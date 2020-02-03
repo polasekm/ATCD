@@ -165,8 +165,16 @@ void atcd_atc_send()                     //send AT command
   atcd_dbg_inf("ATC: Odesilani bylo zahajeno.\r\n");
   atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
   atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+
+  atcd.parser.tx_rbuff.buff = (uint8_t*)atcd.parser.at_cmd_top->cmd;
+  atcd.parser.tx_rbuff.buff_end = (uint8_t*)atcd.parser.at_cmd_top->cmd; + strlen(atcd.parser.at_cmd_top->cmd) - 1;
+  atcd.parser.tx_rbuff.read = (uint8_t*)atcd.parser.at_cmd_top->cmd;
+  atcd.parser.tx_rbuff.write = (uint8_t*)atcd.parser.at_cmd_top->cmd + strlen(atcd.parser.at_cmd_top->cmd);
+  atcd.parser.tx_rbuff.capacity = strlen(atcd.parser.at_cmd_top->cmd);
+  atcd.parser.tx_rbuff.size = strlen(atcd.parser.at_cmd_top->cmd);
+
   atcd.parser.timer = atcd_get_ms();
-  atcd_hw_tx((uint8_t*)atcd.parser.at_cmd_top->cmd, strlen(atcd.parser.at_cmd_top->cmd));
+  atcd_hw_tx(&atcd.parser.tx_rbuff);
 }
 //------------------------------------------------------------------------------
 void atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT command
