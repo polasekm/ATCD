@@ -13,7 +13,7 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 
-#include "ring_buffer/ring_buffer.h"
+#include "../rbuff/rbuff.h"
 
 #include "atcd_config.h"
 #include "atcd_hw.h"
