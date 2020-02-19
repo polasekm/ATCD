@@ -70,8 +70,8 @@ void atcd_state_reset()                  //state machine reset
   atcd.parser.at_cmd_end = NULL;
   
   atcd.parser.tx_state    = ATCD_P_TX_COMPLETE;
-  atcd.parser.tx_data_len = 0;
-  atcd.parser.tx_rbuff    = NULL;
+  /*atcd.parser.tx_data_len = 0;
+  atcd.parser.tx_rbuff    = NULL;*/
 
   atcd.parser.ipd_conn_num = 0;
   atcd.parser.ipd_len      = 0;

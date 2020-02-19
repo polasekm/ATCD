@@ -38,12 +38,12 @@ void atcd_init_seq()
       case 3: cmd = "AT+CFUN=1\r\n";       break;   // Plna fce zarizeni
       case 4: cmd = "AT+CPIN?\r\n";        break;   // Je vyzadovan PIN?
       case 5:
-        if(atcd.at_cmd.resp_buff_size != 0 && strncmp(atcd.at_cmd.resp_buff, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
+        if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
         {
           atcd_dbg_inf("ATCD: INIT: PIN neni treba.\r\n");
           atcd.at_cmd_seq++;
         }
-        else if(atcd.at_cmd.resp_buff_size != 0 && strncmp(atcd.at_cmd.resp_buff, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
+        else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
         {
           atcd_dbg_inf("ATCD: INIT: Je treba zadat PIN.\r\n");
           cmd = "AT+CPIN=\"1234\"\r\n";             // Zadame PIN
@@ -322,7 +322,7 @@ void atcd_gprs_check_state_seq()
         // Zpracovani probehlo v poradku
         atcd_dbg_inf("GPRS: STAT: AT prikaz byl dokoncen.\r\n");
         // ... Zpracovbat odpoved...
-        if(strncmp( atcd.gprs.at_cmd.resp_buff, "+CGATT: 1\r", strlen("+CGATT: 1\r")) == 0)
+        if(strncmp( atcd.gprs.at_cmd.resp, "+CGATT: 1\r", strlen("+CGATT: 1\r")) == 0)
         {
           atcd_dbg_inf("GPRS: STAT: GPRS je pripojeno.\r\n");
         }
@@ -525,8 +525,8 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     conn->at_cmd.prompt = ATCD_ATC_PROMPT_ON;
     conn->at_cmd.timeout = 30000;
 
-    conn->tx_data_len = tx_data_len;
-    atcd.parser.tx_pend_conn_num = conn->num;
+    /*conn->tx_data_len = tx_data_len;
+    atcd.parser.tx_pend_conn_num = conn->num;*/
 
     atcd_atc_exec(&conn->at_cmd);
 

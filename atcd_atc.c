@@ -174,7 +174,7 @@ void atcd_atc_send()                     //send AT command
   atcd.parser.tx_rbuff.size = strlen(atcd.parser.at_cmd_top->cmd);
 
   atcd.parser.timer = atcd_get_ms();
-  atcd_hw_tx(&atcd.parser.tx_rbuff);
+  //atcd_hw_tx(&atcd.parser.tx_rbuff);
 }
 //------------------------------------------------------------------------------
 void atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT command

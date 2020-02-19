@@ -70,7 +70,6 @@ typedef struct atcd_conn
   
   rbuff_t rx_rbuff;               //kruhovy buffer pro prijimana data
   rbuff_t tx_rbuff;               //kruhovy buffer pro odesilana data
-  //uint16_t tx_data_len;           //delka dat k odeslani
   
   uint8_t events;                 //connection events
   void (*callback)(struct atcd_conn*, uint8_t);  //events callback
