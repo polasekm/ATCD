@@ -16,7 +16,7 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 void atcd_init_seq()
 {
-  char *cmd;
+  char *cmd = NULL;
 
   if(atcd.at_cmd.state == ATCD_ATC_STATE_DONE || atcd.at_cmd.state == ATCD_ATC_STATE_FREE)
   {
@@ -467,7 +467,7 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     //conn->state = ATCD_CONN_STATE_OPENING;
 
     tx_data_len = rbuff_size(&conn->tx_rbuff);
-    if(tx_data_len >= 512) tx_data_len = 512;
+    if(tx_data_len > 512) tx_data_len = 512;
 
     atcd_atc_init(&conn->at_cmd);
     sprintf(conn->at_cmd_buff, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
@@ -475,11 +475,11 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     conn->at_cmd.prompt = ATCD_ATC_PROMPT_ON;
     conn->at_cmd.timeout = 30000;
 
-    conn->at_cmd.data_len = tx_data_len;
     conn->at_cmd.data = &conn->tx_rbuff;
+    conn->at_cmd.data_len = tx_data_len;
 
-    /*conn->tx_data_len = tx_data_len;
-    atcd.parser.tx_pend_conn_num = conn->num;*/
+    //je to jeste potreba?
+    atcd.parser.tx_pend_conn_num = conn->num;
 
     atcd_atc_exec(&conn->at_cmd);
 
@@ -500,6 +500,9 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
       //conn->state = ATCD_CONN_STATE_OPENING;
 
       //ne ne tady uz jsou data zadana
+
+      //posunout ukazovatko dat
+      rbuff_seek(&conn->tx_rbuff, conn->at_cmd.data_len);
 
       conn->at_cmd.state = ATCD_ATC_STATE_FREE;
 

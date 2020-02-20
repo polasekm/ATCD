@@ -58,8 +58,6 @@ void atcd_state_reset()                  //state machine reset
 
   atcd_atc_init(&atcd.at_cmd);
   atcd.at_cmd_buff[0] = 0;
-  
-  rbuff_init(&atcd.tx_rbuff, NULL, 0);
 
   atcd.parser.mode       = ATCD_P_MODE_ATC;
   atcd.parser.echo_en    = ATCD_P_ECHO_ON;
@@ -70,8 +68,10 @@ void atcd_state_reset()                  //state machine reset
   atcd.parser.at_cmd_end = NULL;
   
   atcd.parser.tx_state    = ATCD_P_TX_COMPLETE;
-  /*atcd.parser.tx_data_len = 0;
-  atcd.parser.tx_rbuff    = NULL;*/
+  rbuff_init(&atcd.parser.tx_rbuff, NULL, 0);
+  atcd.parser.tx_data_len = 0;
+
+  atcd.parser.tx_pend_conn_num = 0;
 
   atcd.parser.ipd_conn_num = 0;
   atcd.parser.ipd_len      = 0;
@@ -347,7 +347,7 @@ void atcd_rx_ch(char ch)
 
       if(atcd.parser.at_cmd_top->data != NULL)
       {
-        atcd_hw_tx(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
+        atcd_atc_send_data(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
       }
       else
       {

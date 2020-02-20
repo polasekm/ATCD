@@ -90,7 +90,6 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   
   rbuff_init(&conn->rx_rbuff, rx_buff, rx_buff_size);
   rbuff_init(&conn->tx_rbuff, tx_buff, tx_buff_size);
-  //conn->tx_data_len = 0;
   
   conn->events   = ATCD_CONN_EV_NONE;
   conn->callback = NULL;

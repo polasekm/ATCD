@@ -107,8 +107,10 @@ typedef struct
   struct atcd_at_cmd *at_cmd_end;      //AT command end queue
 
   uint8_t  tx_state;              //transmission state
-  //uint16_t tx_data_len;           //tx data length --- mozna predelat na remaining a sloucit se stavem, pokud je 0, je dovysilano...
-  rbuff_t  tx_rbuff;              //kruhovy buffer pro odesilana data
+  rbuff_t  tx_rbuff;
+  uint16_t tx_data_len;
+
+  uint8_t tx_pend_conn_num;
 
   uint8_t  ipd_conn_num;          //connection number for +IPD
   uint16_t ipd_len;               //+IPD data length
@@ -131,7 +133,6 @@ typedef struct
 
   atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
   char at_cmd_buff[40];           //buffer pro sestaveny AT prikaz
-  rbuff_t tx_rbuff;               //kruhovy buffer pro interni pouziti...
 
   atcd_conns_t conns;             //TCP/UDP conections
 

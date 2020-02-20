@@ -58,13 +58,12 @@ typedef struct atcd_at_cmd
   uint16_t resp_len;              //response lenth
   uint16_t resp_buff_size;        //buffer size
 
-  rbuff_t *data;                  //optional tx data in cmd body
-  uint16_t data_len;              //tx data length
-
   uint8_t state;                  //execute state
   uint8_t result;                 //AT command result
 
-  uint8_t prompt;                 //prompt enable
+  uint8_t prompt;                 //prompt enable - neni duplcita se zadanymi daty?
+  rbuff_t *data;                  //optional tx data in cmd body
+  uint16_t data_len;              //optional tx data lenth
 
   uint16_t timeout;               //timeout in ms
 
@@ -84,5 +83,7 @@ void atcd_atc_init(atcd_at_cmd_t *at_cmd);    //init AT command
 void atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
 void atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
 
+void atcd_atc_send_cmd();                     //send AT command
+void atcd_atc_send_data();                    //send AT command data
 //------------------------------------------------------------------------------
 #endif /* ATCD_ATC_H_INCLUDED */
