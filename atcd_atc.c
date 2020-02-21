@@ -28,7 +28,6 @@ void atcd_atc_init(atcd_at_cmd_t *at_cmd)         //init AT command
   at_cmd->state  = ATCD_ATC_STATE_FREE;                  
   at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
 
-  at_cmd->prompt = ATCD_ATC_PROMPT_OFF;
   at_cmd->data = NULL;
   at_cmd->data_len = 0;
 
@@ -89,6 +88,7 @@ void atcd_atc_proc()                     //AT commands processing
   if(at_cmd != NULL)
   {           
     // Kontrola, zda bylo dokonceno jeho odesilani   
+    // Pozor - data odpovedi mohou zacit chodit drive, nez si aktualizujeme stav!
     if(atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_TX && atcd.parser.tx_state == ATCD_P_TX_COMPLETE)
     {
       if(atcd.parser.echo_en == ATCD_P_ECHO_ON)
@@ -101,16 +101,18 @@ void atcd_atc_proc()                     //AT commands processing
         atcd_dbg_inf("ATC: Odesilani bylo dokoceno - prechazime na W_END.\r\n");
         atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_W_END;
 
-        if(atcd.parser.at_cmd_top->prompt == ATCD_ATC_PROMPT_ON) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+        if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
       }
     }
 
     // Kontrola, zda neni cekajici k odeslani
-    if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
+    atcd_atc_queue_proc();
+    /*if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
     {
       atcd_dbg_inf("ATC: Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
       atcd_atc_send_cmd();
-    }
+    }*/
+
     // Kontola, zda nevyprsel timeout
     else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
     {
@@ -122,7 +124,7 @@ void atcd_atc_proc()                     //AT commands processing
 
       if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) 
       {
-        atcd_hw_tx(NULL, 512);
+        atcd_hw_tx(NULL, at_cmd->data_len);
         atcd.parser.mode = ATCD_P_MODE_ATC;
       }
 
@@ -178,13 +180,11 @@ void atcd_atc_send_cmd()                     //send AT command
 void atcd_atc_send_data()                     //send AT command data
 {
   atcd_dbg_inf("ATC: Odesilani dat bylo zahajeno.\r\n");
-  //atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
   atcd.parser.tx_state = ATCD_P_TX_ONGOING;
 
   atcd.parser.tx_rbuff = *atcd.parser.at_cmd_top->data;
   atcd.parser.tx_data_len = atcd.parser.at_cmd_top->data_len;
 
-  //atcd.parser.timer = atcd_get_ms();
   atcd_hw_tx(&atcd.parser.tx_rbuff, atcd.parser.tx_data_len);
 }
 //------------------------------------------------------------------------------

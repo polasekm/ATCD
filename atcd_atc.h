@@ -19,10 +19,6 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-// Povoleni vstupu dat v AT prikazu
-#define ATCD_ATC_PROMPT_OFF         0
-#define ATCD_ATC_PROMPT_ON          1
-
 // Stav zpracovavani AT prikazu
 #define ATCD_ATC_STATE_DONE         0
 #define ATCD_ATC_STATE_WAIT         1
@@ -61,7 +57,6 @@ typedef struct atcd_at_cmd
   uint8_t state;                  //execute state
   uint8_t result;                 //AT command result
 
-  uint8_t prompt;                 //prompt enable - neni duplcita se zadanymi daty?
   rbuff_t *data;                  //optional tx data in cmd body
   uint16_t data_len;              //optional tx data lenth
 

@@ -544,7 +544,7 @@ void atcd_rx_ch(char ch)
 
             if(atcd.parser.at_cmd_top->data != NULL)
             {
-              atcd_hw_tx(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
+              atcd_atc_send_data(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
             }
             else
             {

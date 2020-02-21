@@ -525,8 +525,11 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     conn->at_cmd.prompt = ATCD_ATC_PROMPT_ON;
     conn->at_cmd.timeout = 30000;
 
-    /*conn->tx_data_len = tx_data_len;
-    atcd.parser.tx_pend_conn_num = conn->num;*/
+    conn->at_cmd.data = &conn->tx_rbuff;
+    conn->at_cmd.data_len = tx_data_len;
+
+    //je to jeste potreba?
+    atcd.parser.tx_pend_conn_num = conn->num;
 
     atcd_atc_exec(&conn->at_cmd);
 
@@ -545,6 +548,9 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     {
       atcd_dbg_inf("CONN: Ocekavam vyzvu k zadani odesilanych dat.\r\n");
       //ne ne ne, tady uz je zadavani odesilanych dat ukonceno...
+
+      //posunout ukazovatko dat
+      rbuff_seek(&conn->tx_rbuff, conn->at_cmd.data_len);
 
       //conn->state = ATCD_CONN_STATE_OPENING;
       conn->at_cmd.state = ATCD_ATC_STATE_FREE;
