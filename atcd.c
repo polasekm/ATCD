@@ -408,7 +408,7 @@ void atcd_rx_ch(char ch)
       {
         atcd_dbg_inf("ATC: ECHO detected.\r\n");
         at_cmd->state = ATCD_ATC_STATE_W_END;
-        if(atcd.parser.at_cmd_top->prompt == ATCD_ATC_PROMPT_ON) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+        if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
 
         atcd.buff_pos = 0;
         atcd.line_pos = 0;

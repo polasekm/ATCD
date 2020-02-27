@@ -472,7 +472,6 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     atcd_atc_init(&conn->at_cmd);
     sprintf(conn->at_cmd_buff, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
     conn->at_cmd.cmd = conn->at_cmd_buff;
-    conn->at_cmd.prompt = ATCD_ATC_PROMPT_ON;
     conn->at_cmd.timeout = 30000;
 
     conn->at_cmd.data = &conn->tx_rbuff;
@@ -480,6 +479,7 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
 
     //je to jeste potreba?
     atcd.parser.tx_pend_conn_num = conn->num;
+
 
     atcd_atc_exec(&conn->at_cmd);
 

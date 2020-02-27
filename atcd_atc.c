@@ -86,9 +86,7 @@ void atcd_atc_proc()                     //AT commands processing
 
   // Pokud je nejaky prikaz na vrcholu fronty
   if(at_cmd != NULL)
-  {           
-    // Kontrola, zda bylo dokonceno jeho odesilani   
-    // Pozor - data odpovedi mohou zacit chodit drive, nez si aktualizujeme stav!
+  {             
     if(atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_TX && atcd.parser.tx_state == ATCD_P_TX_COMPLETE)
     {
       if(atcd.parser.echo_en == ATCD_P_ECHO_ON)
@@ -106,13 +104,13 @@ void atcd_atc_proc()                     //AT commands processing
     }
 
     // Kontrola, zda neni cekajici k odeslani
-    atcd_atc_queue_proc();
-    /*if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
+    //atcd_atc_queue_proc();
+
+    if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
     {
       atcd_dbg_inf("ATC: Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
       atcd_atc_send_cmd();
-    }*/
-
+    }
     // Kontola, zda nevyprsel timeout
     else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
     {
@@ -162,7 +160,8 @@ void atcd_atc_send_cmd()                     //send AT command
 
   atcd_dbg_inf("ATC: Odesilani prikazu bylo zahajeno.\r\n");
   atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
-  atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+  //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+  atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 
   len = strlen(atcd.parser.at_cmd_top->cmd);
 
@@ -180,7 +179,8 @@ void atcd_atc_send_cmd()                     //send AT command
 void atcd_atc_send_data()                     //send AT command data
 {
   atcd_dbg_inf("ATC: Odesilani dat bylo zahajeno.\r\n");
-  atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+  //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+  atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 
   atcd.parser.tx_rbuff = *atcd.parser.at_cmd_top->data;
   atcd.parser.tx_data_len = atcd.parser.at_cmd_top->data_len;
