@@ -163,6 +163,8 @@ void atcd_proc()               //data processing
   atcd_phone_proc();                     //phone processing
   atcd_gprs_proc();                      //gprs processing
   atcd_conn_proc();                      //connections processing  
+  //atcd_gps_proc();
+  //atcd_wifi_proc();
 }
 //------------------------------------------------------------------------------
 void atcd_tx_complete()                  //call on tx data complete

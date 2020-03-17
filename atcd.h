@@ -21,6 +21,8 @@
 #include "atcd_atc.h"
 #include "atcd_phone.h"
 #include "atcd_gprs.h"
+//#include "atcd_wifi.h"
+#include "atcd_gps.h"
 #include "atcd_conn.h"
 #include "atcd_conns.h"
 
@@ -59,42 +61,19 @@
 #define ATCD_P_TX_COMPLETE          0
 #define ATCD_P_TX_ONGOING           1
 
-// WIFI
-#define ATCD_WIFI_STATE_DISCONN     0
-#define ATCD_WIFI_STATE_W_DHCP      1
-#define ATCD_WIFI_STATE_CONN        2
+// Stav registrace zazeni
+#define ATCD_REG_STATE_OFF          0
+#define ATCD_REG_STATE_HOME         1
+#define ATCD_REG_STATE_SEARCHING    2
+#define ATCD_REG_STATE_DENIED       3
+#define ATCD_REG_STATE_UNKNOWN      4
+#define ATCD_REG_STATE_ROAMING      5
+#define ATCD_REG_STATE_6            6
+#define ATCD_REG_STATE_7            7
+#define ATCD_REG_STATE_EMERGENCY    8
+#define ATCD_REG_STATE_9            9
+#define ATCD_REG_STATE_10           10
 
-// Mody WIFI
-#define ATCD_WIFI_MODE_OFF          0
-#define ATCD_WIFI_MODE_CLIENT       1
-#define ATCD_WIFI_MODE_AP           2
-#define ATCD_WIFI_MODE_SOFT_AP      3
-
-// Udalosti WIFI
-#define ATCD_WIFI_EV_NONE           0
-#define ATCD_WIFI_EV_CONN           0b00000001
-#define ATCD_WIFI_EV_GOT_IP         0b00000010
-#define ATCD_WIFI_EV_DISCONN        0b00000100
-#define ATCD_WIFI_EV_STA_CONN       0b00001000
-#define ATCD_WIFI_EV_STA_IP         0b00010000
-#define ATCD_WIFI_EV_STA_DISCONN    0b00100000
-
-//------------------------------------------------------------------------------
-typedef struct
-{
-  uint8_t state;                  //wifi state
-  uint8_t mode;                   //wifi mode
-
-  atcd_at_cmd_t at_cmd;           //AT cmd for internal usage  
-  char at_cmd_buff[40];           //buffer pro sestaveny AT prikaz
-
-  char *ssid;                     //SSID
-  char *psswd;                    //password
-  
-  uint8_t events;                 //wifi events
-  void (*callback)(uint8_t);      //events callback
-
-} atcd_wifi_t;
 //------------------------------------------------------------------------------
 typedef struct
 {

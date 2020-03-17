@@ -17,14 +17,15 @@
 /* Defines -------------------------------------------------------------------*/
 #define ATCD_ESP8266  1
 #define ATCD_ESP32    2
-#define ATCD_SIM800L  3
-#define ATCD_GL865    4
-#define ATCD_A6       5
-#define ATCD_A7       6
-#define ATCD_M590     7
-#define ATCD_BGS5E    8
-#define ATCD_BGS2     9
-#define ATCD_ELS61    10
+#define ATCD_SIM800   3
+#define ATCD_SIM7000  4
+#define ATCD_GL865    5
+#define ATCD_A6       6
+#define ATCD_A7       7
+#define ATCD_M590     8
+#define ATCD_BGS5E    9
+#define ATCD_BGS2     10
+#define ATCD_ELS61    11
 
 #include "atcd_user_config.h"
 
@@ -45,6 +46,19 @@
 //-----------------------------
 #if(ATCD_USE_DEVICE == ATCD_A6)
   #define ATCD_STR_START_SEQ        "AT Ready\r\n"
+  #define ATCD_STR_DATA_RX          "+RECEIVE,"
+
+  #define ATCD_STR_SIM_READY        "+CPIN:READY"
+  #define ATCD_STR_SIM_PIN          "+CPIN:SIM PIN"
+
+  #define ATCD_DATA_RX_NL
+  #define ATCD_RX_NL_LEN  2
+
+  #define ATCD_CONN_MAX_NUMBER 4
+#endif /* ATCD_USE_DEVICE */
+//-----------------------------
+#if(ATCD_USE_DEVICE == ATCD_SIM7000)
+  #define ATCD_STR_START_SEQ        "\r\nRDY\r\n"
   #define ATCD_STR_DATA_RX          "+RECEIVE,"
 
   #define ATCD_STR_SIM_READY        "+CPIN:READY"

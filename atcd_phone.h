@@ -20,14 +20,11 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Phone
-#define ATCD_PHONE_STATE_OFF        0
-#define ATCD_PHONE_STATE_REG_HOME   1
-#define ATCD_PHONE_STATE_SEARCHING  2
-#define ATCD_PHONE_STATE_DENIED     3
-#define ATCD_PHONE_STATE_UNKNOWN    4
-#define ATCD_PHONE_STATE_REG_ROAM   5
-#define ATCD_PHONE_STATE_CALL       6
-#define ATCD_PHONE_STATE_GPRS       7
+#define ATCD_PHONE_STATE_UNREG      0
+#define ATCD_PHONE_STATE_READY      1
+#define ATCD_PHONE_STATE_RING       2
+#define ATCD_PHONE_STATE_CALL       3
+#define ATCD_PHONE_STATE_GPRS       4
 
 #define ATCD_PHONE_EV_NONE          0
 #define ATCD_PHONE_EV_REG           0b00000001

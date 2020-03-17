@@ -1,5 +1,6 @@
 {
   "files.associations": {
-    "rbuff.h": "c"
+    "rbuff.h": "c",
+    "atcd.h": "c"
   }
 }
