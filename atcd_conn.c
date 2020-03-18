@@ -176,3 +176,332 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
   else atcd_dbg_err("CONN: Cislo spojeni k uvolneni je mimo rozsah!\r\n");
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_conn_ipd_tst()
+{
+  #ifndef ATCD_DATA_RX_NL
+  // "+IPD," test
+  if(ch == ':' && strncmp(atcd.buff + atcd.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
+  {
+    conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX));
+    
+    if(conn_id < ATCD_CONN_MAX_NUMBER)
+    {
+      atcd.parser.ipd_conn_num = conn_id;
+      atcd.parser.ipd_len     = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+
+      if(atcd.parser.ipd_len != 0)
+      {
+        atcd_dbg_inf("CONN: ATCD_STR_DATA_RX detected.\r\n");
+        atcd.parser.mode  = ATCD_P_MODE_IPD;
+        atcd.parser.timer = atcd_get_ms();
+
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+
+        //atcd.conn[conn_id]->data_len = 0;
+      }
+      else atcd_dbg_err("CONN: ATCD_STR_DATA_RX ma velikost 0!\r\n");
+    }
+    else atcd_dbg_err("CONN: ATCD_STR_DATA_RX ma conn_id mimo rozsah!\r\n");
+    return 1;
+  }
+  #endif /* ATCD_DATA_RX_NL */
+
+  return 0;
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_conn_asc_msg()
+{
+  #ifdef ATCD_DATA_RX_NL
+  // "+IPD," test
+  if(atcd.buff[atcd.buff_pos - 3] == ':' && strncmp(atcd.buff + atcd.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
+  {
+    conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX));
+
+    if(conn_id < ATCD_CONN_MAX_NUMBER)
+    {
+      atcd.parser.ipd_conn_num = conn_id;
+      atcd.parser.ipd_len      = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+
+      if(atcd.parser.ipd_len != 0)
+      {
+        atcd_dbg_inf("CONN: ATCD_STR_DATA_RX detected.\r\n");
+        atcd.parser.mode  = ATCD_P_MODE_IPD;
+        atcd.parser.timer = atcd_get_ms();
+
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+
+        //atcd.conn[conn_id]->data_len = 0;
+      }
+      else atcd_dbg_err("CONN: ATCD_STR_DATA_RX ma velikost 0!\r\n");
+    }
+    else atcd_dbg_err("CONN: ATCD_STR_DATA_RX ma conn_id mimo rozsah!\r\n");
+    return 1;
+  }
+  #endif /* ATCD_DATA_RX_NL */
+
+  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr
+  {
+    //if(strncmp(atcd.buff + atcd.line_pos + 1, ",CONNECT\r\n", strlen(",CONNECT\r\n")) == 0)
+    if(strncmp(atcd.buff + atcd.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        atcd_dbg_inf("CONN: x, CONNECT OK detect.\r\n");
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          conn->state = ATCD_CONN_STATE_OPEN;
+          atcd.buff_pos = atcd.line_pos;
+          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
+        }
+        else
+        {
+          atcd_dbg_err("CONN: Nelze zmenit stav neregistrovaneho spojeni!\r\n");
+        }
+      }
+      else atcd_dbg_err("CONN: x, CONNECT detect - x mimo rozah.\r\n");
+      return 1;
+    }
+    else if(strncmp(atcd.buff + atcd.line_pos, "^SISW: ", strlen("^SISW: ")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SISW: "));
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        atcd_dbg_inf("CONN: ^SISW: x detected.\r\n");
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          op = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SISW: x,"));
+
+          if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
+          {
+            // Testovat kolik muzeme zapsat dat...
+            //
+            //
+
+            atcd_dbg_inf("ATCD: Prompt \"AT^SISW=x,x,x\" detected.\r\n");
+            atcd.parser.mode = ATCD_P_MODE_PROMPT;
+
+            atcd.buff_pos = 0;
+            atcd.line_pos = 0;
+
+            // Nasypat data
+            // eventualne budou nasypana z proc funkce
+
+            // SEM pripsat dalsi promenou ve ktere bude pocet byte co se maji posilat
+            // a moyna a ikazayatel na data
+            // po yaniku spojeni je nutno minimalne vedet kolik e toho melo posilat, pokud
+            // uz se prikaz zacal provadet...
+
+
+            // tohle by se melo prepsat - bez dat k odeslani by nemel jit nastavit prompt, nejlepe jej zahodit a rozhodovat dle dat...
+
+            if(atcd.parser.at_cmd_top->data != NULL)
+            {
+              atcd_atc_send_data(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
+            }
+            else
+            {
+              atcd_dbg_err("ATCD: ATC nema zadna data k odeslani!\r\n");
+            }
+
+            atcd.parser.mode = ATCD_P_MODE_ATC;
+            return;
+          }
+          else if(op == 1)
+          {
+            atcd_dbg_inf("CONN: Spojeni je navazano.\r\n");
+            conn->state = ATCD_CONN_STATE_OPEN;
+            atcd.buff_pos = atcd.line_pos;
+            if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
+          }
+          else
+          {
+            atcd_dbg_warn("CONN: Neznama operace.\r\n");
+          }
+        }
+        else
+        {
+          atcd_dbg_err("CONN: Nelze zmenit stav neregistrovaneho spojeni!\r\n");
+        }
+      }
+      else atcd_dbg_err("CONN: ^SISW: x detect - x mimo rozah.\r\n");
+      return 1;
+    }
+    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", CLOSED\r\n", strlen(", CLOSED\r\n")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        atcd_dbg_inf("CONN: x, CLOSED detect.\r\n");
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          atcd.conns.conn[conn_id] = NULL;
+          conn->state = ATCD_CONN_STATE_CLOSE;
+          conn->num   = ATCD_CONN_NO_NUM;
+          if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
+
+          atcd.buff_pos = atcd.line_pos;
+          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+        }
+        else
+        {
+          atcd_dbg_err("CONN: Nelze zmenit stav neregistrovaneho spojeni!\r\n");
+        }
+      }
+      else atcd_dbg_err("CONN: x, CLOSED detect - x mimo rozah.\r\n");
+      return 1;
+    }
+    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", CLOSE OK\r\n", strlen(", CLOSE OK\r\n")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        atcd_dbg_inf("CONN: x, CLOSE OKdetect.\r\n");
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          atcd.conns.conn[conn_id] = NULL;
+          conn->state = ATCD_CONN_STATE_CLOSE;
+          conn->num   = ATCD_CONN_NO_NUM;
+          if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
+
+          atcd.buff_pos = atcd.line_pos;
+          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+        }
+        else
+        {
+          atcd_dbg_err("CONN: Nelze zmenit stav neregistrovaneho spojeni!\r\n");
+        }
+      }
+      else atcd_dbg_err("CONN: x, CLOSE OK detect - x mimo rozah.\r\n");
+      return 1;
+    }
+    else if(strncmp(atcd.buff + atcd.line_pos, "^SIS: ", strlen("^SIS: ")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SIS: "));
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        atcd_dbg_inf("SIS: x,y... detect.\r\n");
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          op = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SIS: x,"));
+
+          if(op == 0)
+          {
+            atcd_dbg_inf("CONN: Spojeni je zruseno.\r\n");
+
+            atcd.conns.conn[conn_id] = NULL;
+            conn->state = ATCD_CONN_STATE_CLOSE;
+            conn->num   = ATCD_CONN_NO_NUM;
+            if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
+
+            atcd.buff_pos = atcd.line_pos;
+            if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+          }
+          else
+          {
+            atcd_dbg_warn("CONN: SIS: x,y - spatna hodnota parametru y.\r\n");
+          }
+        }
+        else
+        {
+          atcd_dbg_err("CONN: Nelze zmenit stav neregistrovaneho spojeni!\r\n");
+        }
+      }
+      else atcd_dbg_err("CONN: SIS: x,y... detect - x mimo rozah.\r\n");
+      return 1;
+    }
+    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", SEND OK\r\n", strlen(", SEND OK\r\n")) == 0)
+    {
+      atcd_dbg_inf("CONN: x, SEND OK.\r\n");
+
+      atcd.buff_pos = atcd.line_pos;
+
+      // nad jakym spojenim to bude?
+      //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_SEND_OK) != 0) conn->callback(conn, ATCD_CONN_EV_SEND_OK);
+      return 1;
+    }
+    //CONNECT FAIL
+    else if(strncmp(atcd.buff + atcd.line_pos, "DNS Fail\r\n", strlen("DNS Fail\r\n")) == 0)
+    {
+      atcd_dbg_inf("CONN: DNS Fail.\r\n");
+
+      atcd.buff_pos = atcd.line_pos;
+
+      // nad jakym spojenim to bude?
+      //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_FAIL) != 0) conn->callback(conn, ATCD_CONN_EV_FAIL);
+      return 1;
+    }
+    else 
+    {
+
+    }
+  }
+
+  return 0;
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_conn_data_proc()
+{
+  atcd_conn_t *conn;
+
+  // If parser in IPD receiving mode
+  if(atcd.parser.mode == ATCD_P_MODE_IPD)
+  {
+    conn = atcd.conns.conn[atcd.parser.ipd_conn_num];
+    // If any connection
+    if(conn != NULL)
+    {
+      // Pokud je v bufferu misto
+      if(rbuff_available(&conn->rx_rbuff) != 0)
+      {
+        // Zapise prijaty byte do bufferu
+        rbuff_write(&conn->rx_rbuff, (uint8_t*)&ch, 1);
+      } 
+      else 
+      {
+        atcd_dbg_warn("ATCD: CONN: V bufferu spojeni neni dostatek mista pro dalsi prijem dat!\r\n");
+        conn->events |=  ATCD_CONN_EV_OVERRUN;
+      }   
+
+      atcd.buff_pos++;
+
+      // Pokud jsme dosahli komce IPD bloku
+      //if(atcd.buff_pos >= atcd.parser.ipd_len)
+      if(atcd.buff_pos >= atcd.parser.ipd_len)
+      {
+        atcd_dbg_inf("ATCD: CONN: Dosahli jsme konce IPD bloku.\r\n");
+        atcd.parser.mode = ATCD_P_MODE_ATC;
+
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+
+        conn->events |= ATCD_CONN_EV_NEW_DATA;
+        if(conn->callback != NULL) conn->callback(conn, ATCD_CONN_EV_NEW_DATA);
+      }
+    }
+    else
+    {
+      atcd_dbg_err("ATCD: CONN: Rezim IPD, ale zadne prijimajici spojeni! - Prechazim do rezimu ATC.\r\n");
+      atcd.parser.mode = ATCD_P_MODE_ATC;
+
+      atcd.buff_pos = 0;
+      atcd.line_pos = 0;
+    }
+	  return 1;
+  }
+
+  return 0;
+}
+//------------------------------------------------------------------------------

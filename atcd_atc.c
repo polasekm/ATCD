@@ -19,22 +19,34 @@ void atcd_atc_cancell_all();              //cancel all AT commands in queue
 //------------------------------------------------------------------------------
 void atcd_atc_init(atcd_at_cmd_t *at_cmd)         //init AT command
 {
+  at_cmd->state  = ATCD_ATC_STATE_FREE;                  
+  at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
+
+  atcd_atc_set_default(at_cmd);
+
+  at_cmd->next = NULL;
+}
+//------------------------------------------------------------------------------
+void atcd_atc_set_default(atcd_at_cmd_t *at_cmd)  //set default AT commands values
+{
   at_cmd->cmd = NULL;         
   
   at_cmd->resp           = NULL;
   at_cmd->resp_len       = 0;
   at_cmd->resp_buff_size = 0;
     
-  at_cmd->state  = ATCD_ATC_STATE_FREE;                  
-  at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
+  /*at_cmd->state  = ATCD_ATC_STATE_FREE;                  
+  at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;*/
 
   at_cmd->data = NULL;
   at_cmd->data_len = 0;
 
   at_cmd->timeout = 5000;
+
+  at_cmd->cb_events = ATCD_ATC_EV_ALL;
   at_cmd->callback = NULL;
   
-  at_cmd->next = NULL;
+  //at_cmd->next = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
@@ -253,5 +265,133 @@ void atcd_atc_cancell_all()               //cancell all AT commands in queue
   }
 
   atcd.parser.at_cmd_end = NULL;
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_atc_ln_proc()
+{
+  atcd_at_cmd_t *at_cmd;
+
+  at_cmd = atcd.parser.at_cmd_top;
+  // Pokud se zpracovava nejaky ATC
+  if(at_cmd != NULL)                            
+  {
+    if(at_cmd->state == ATCD_ATC_STATE_W_ECHO) 
+    {
+      // Test echa
+      //if(strncmp(atcd.buff + atcd.line_pos, at_cmd->cmd, strlen(at_cmd->cmd)) == 0)
+      if(strncmp(atcd.buff + atcd.line_pos, at_cmd->cmd, strlen(at_cmd->cmd) - 1) == 0)
+      {
+        atcd_dbg_inf("ATC: ECHO detected.\r\n");
+        at_cmd->state = ATCD_ATC_STATE_W_END;
+        if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+
+        if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
+        return 1;
+      }
+      else atcd_dbg_warn("ATC: ECHO test FAIL.\r\n");
+    } 
+    else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
+    {
+      // Vymazani pocatecnich prazdnych radku
+      if(at_cmd->resp_len == 0 && atcd.buff_pos == 2) 
+      {
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+        return 1;
+      }
+      // Test odpovedi a zpracovani dat
+      if(strncmp(atcd.buff + atcd.line_pos, "OK\r\n", strlen("OK\r\n")) == 0)
+      {
+        atcd_dbg_inf("ATC: OK detected.\r\n");
+        at_cmd->result = ATCD_ATC_RESULT_OK;
+      }
+      else if(strncmp(atcd.buff + atcd.line_pos, "ERROR\r\n", strlen("ERROR\r\n")) == 0)
+      {
+        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        at_cmd->result = ATCD_ATC_RESULT_ERROR;
+      }
+      // Neni tohle nahodou asynchorinni zprava?
+      else if(strncmp(atcd.buff + atcd.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
+      {
+        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        at_cmd->result = ATCD_ATC_RESULT_ERROR;
+      }
+      else if(strncmp(atcd.buff + atcd.line_pos, "+CMS ERROR:", strlen("+CMS ERROR:")) == 0)
+      {
+        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        at_cmd->result = ATCD_ATC_RESULT_ERROR;
+      }
+      else if(strncmp(atcd.buff + atcd.line_pos, "FAIL\r\n", strlen("FAIL\r\n")) == 0)
+      {
+        atcd_dbg_inf("ATC: FAIL detected.\r\n");
+        at_cmd->result = ATCD_ATC_RESULT_FAIL;
+      }
+
+      if(at_cmd->result != ATCD_ATC_RESULT_UNKNOWN)
+      {
+        // AT prikaz byl v casti vyse dokoncen
+        if(at_cmd->resp_len == 0)
+          at_cmd->resp_len = 0;
+        else
+          at_cmd->resp_len -= 2;
+
+        at_cmd->resp[at_cmd->resp_len] = 0;
+        at_cmd->state  = ATCD_ATC_STATE_DONE;
+
+        if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) atcd.parser.mode = ATCD_P_MODE_ATC;
+
+        atcd.buff_pos = 0;
+        atcd.line_pos = 0;
+
+        atcd.parser.at_cmd_top = at_cmd->next;
+        atcd_atc_queue_proc(); 
+
+        if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
+        return 1;
+      }
+    }    
+  }
+
+  return 0;
+}                
+//------------------------------------------------------------------------------
+uint8_t atcd_atc_prompt_tst()
+{
+  // "> " test
+  if(atcd.parser.mode == ATCD_P_MODE_TX_PEND && strncmp(atcd.buff + atcd.line_pos, "> ", strlen("> ")) == 0)
+  {
+    atcd_dbg_inf("ATCD: Prompt \">\" detected.\r\n");
+    atcd.parser.mode = ATCD_P_MODE_PROMPT;
+
+    atcd.buff_pos = 0;
+    atcd.line_pos = 0;
+
+    // Nasypat data
+    // eventualne budou nasypana z proc funkce
+    
+    // SEM pripsat dalsi promenou ve ktere bude pocet byte co se maji posilat
+    // a moyna a ikazayatel na data
+    // po yaniku spojeni je nutno minimalne vedet kolik e toho melo posilat, pokud
+    // uz se prikaz zacal provadet...
+
+    // tohle by se melo prepsat - bez dat k odeslani by nemel jit nastavit prompt, nejlepe jej zahodit a rozhodovat dle dat...
+
+    if(atcd.parser.at_cmd_top->data != NULL)
+    {
+      atcd_atc_send_data(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
+    }
+    else
+    {
+      atcd_dbg_err("ATCD: ATC nema zadna data k odeslani!\r\n");
+    }
+
+    atcd.parser.mode = ATCD_P_MODE_ATC;
+    return 1;
+  }
+
+  return 0;
 }
 //------------------------------------------------------------------------------

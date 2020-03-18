@@ -102,5 +102,7 @@ void atcd_phone_call_down();                 //polozit hovor
 // PHONE
 void atcd_phone_proc();                    //phone processing
 void atcd_phone_reset();                   //phone state reset
+
+uint8_t atcd_phone_asc_msg();
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */

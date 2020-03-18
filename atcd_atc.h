@@ -37,32 +37,37 @@
 #define ATCD_ATC_RESULT_OVERRUN     6
 #define ATCD_ATC_RESULT_OVERWRITE   7
 
+// Vysledny stav zpracovani odpovedi AT prikazu
+/*#define ATCD_ATC_RESP_FLUSH         0
+#define ATCD_ATC_RESP_OK            1
+#define ATCD_ATC_RESP_OVERRUN       2*/
+
 // Udalosti AT prikazu
-#define ATCD_ATC_EV_NONE            0
+#define ATCD_ATC_EV_NONE            0x00
 #define ATCD_ATC_EV_ECHO            0b00000001
 #define ATCD_ATC_EV_DONE            0b00000010
 #define ATCD_ATC_EV_TIMEOUT         0b00000100
 #define ATCD_ATC_EV_OVERRUN         0b00001000
-#define ATCD_ATC_EV_OVERWRITE       0b00010000
+#define ATCD_ATC_EV_ALL             0xFF
 
 //------------------------------------------------------------------------------
 typedef struct atcd_at_cmd
 {
   char *cmd;                      //AT command
 
-  char *resp;                     //buffer to response
-  uint16_t resp_len;              //response lenth
-  uint16_t resp_buff_size;        //buffer size
+  char *resp;                     //response buffer
+  uint16_t resp_len;              //response size
+  uint16_t resp_buff_size;        //response buffer size
 
   uint8_t state;                  //execute state
   uint8_t result;                 //AT command result
 
-  rbuff_t *data;                  //optional tx data in cmd body
-  uint16_t data_len;              //optional tx data lenth
+  rbuff_t *data;                  //optional tx data in AT command body
+  uint16_t data_len;              //optional tx data size
 
   uint16_t timeout;               //timeout in ms
 
-  uint8_t events;                 //AT commands events
+  uint8_t cb_events;              //enabled AT command callback events
   void (*callback)(uint8_t);      //events callback
 
   struct atcd_at_cmd *next;       //next AT cmd in queue
@@ -75,10 +80,15 @@ typedef struct atcd_at_cmd
 
 // AT Commands
 void atcd_atc_init(atcd_at_cmd_t *at_cmd);    //init AT command
+void atcd_atc_set_default(atcd_at_cmd_t *at_cmd);  //set default AT commands values
+
 void atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
 void atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
 
 void atcd_atc_send_cmd();                     //send AT command
 void atcd_atc_send_data();                    //send AT command data
+
+uint8_t atcd_atc_ln_proc();   
+uint8_t atcd_atc_prompt_tst();                 
 //------------------------------------------------------------------------------
 #endif /* ATCD_ATC_H_INCLUDED */

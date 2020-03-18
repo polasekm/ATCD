@@ -21,7 +21,7 @@
 #include "atcd_atc.h"
 #include "atcd_phone.h"
 #include "atcd_gprs.h"
-//#include "atcd_wifi.h"
+#include "atcd_wifi.h"
 #include "atcd_gps.h"
 #include "atcd_conn.h"
 #include "atcd_conns.h"
@@ -41,8 +41,9 @@
 #define ATCD_STATE_INIT             4
 #define ATCD_STATE_READY            5
 
-#define ATCD_EV_NONE                0
-#define ATCD_EV_READY               0b00000001
+#define ATCD_EV_NONE                0x00
+#define ATCD_EV_STATE               0b00000001
+#define ATCD_EV_ALL                 0xFF
 
 // Mod parseru prichozich dat
 #define ATCD_P_MODE_ATC             0
@@ -61,19 +62,6 @@
 #define ATCD_P_TX_COMPLETE          0
 #define ATCD_P_TX_ONGOING           1
 
-// Stav registrace zazeni
-#define ATCD_REG_STATE_OFF          0
-#define ATCD_REG_STATE_HOME         1
-#define ATCD_REG_STATE_SEARCHING    2
-#define ATCD_REG_STATE_DENIED       3
-#define ATCD_REG_STATE_UNKNOWN      4
-#define ATCD_REG_STATE_ROAMING      5
-#define ATCD_REG_STATE_6            6
-#define ATCD_REG_STATE_7            7
-#define ATCD_REG_STATE_EMERGENCY    8
-#define ATCD_REG_STATE_9            9
-#define ATCD_REG_STATE_10           10
-
 //------------------------------------------------------------------------------
 typedef struct
 {
@@ -91,9 +79,9 @@ typedef struct
 
   uint8_t tx_pend_conn_num;
 
-  uint8_t  ipd_conn_num;          //connection number for +IPD
-  uint16_t ipd_len;               //+IPD data length
-  uint16_t ipd_pos;               //position in +IPD data 
+  uint8_t  rx_conn_num;          //connection number for +IPD
+  uint16_t rx_data_len;          //+IPD data length
+  uint16_t rx_data_pos;          //position in +IPD data 
 
 } atcd_parser_t;
 //------------------------------------------------------------------------------
@@ -121,7 +109,7 @@ typedef struct
   //atcd_gps_t gps;               //
   atcd_wifi_t wifi;               //
 
-  uint8_t events;                 //deviceevents
+  uint8_t cb_events;              //device callback events
   void (*callback)(uint8_t);      //events callback
   
 } atcd_t;
@@ -138,7 +126,6 @@ void atcd_rx_ch(char ch);
 void atcd_tx_complete();         //call on tx data complete
 
 void atcd_proc();                //data processing 
-//--------------------------------------------------------------
 //--------------------------------------------------------------
 // Implementace pro jednotlive modemy...
 void atcd_init_seq();

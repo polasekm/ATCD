@@ -35,7 +35,7 @@
 #define ATCD_CONN_STATE_OPEN        8
 
 // Udalosti spojeni
-#define ATCD_CONN_EV_NONE           0
+#define ATCD_CONN_EV_NONE           0x00
 #define ATCD_CONN_EV_NEW_DATA       0b00000001
 #define ATCD_CONN_EV_SEND_OK        0b00000010
 #define ATCD_CONN_EV_OVERRUN        0b00000100
@@ -43,6 +43,7 @@
 #define ATCD_CONN_EV_OPEN           0b00010000
 #define ATCD_CONN_EV_CLOSE          0b00100000
 #define ATCD_CONN_EV_FAIL           0b01000000
+#define ATCD_CONN_EV_ALL            0xFF
 
 // Typ spojeni
 #define ATCD_CONN_T_TCP             0
@@ -71,7 +72,7 @@ typedef struct atcd_conn
   rbuff_t rx_rbuff;               //kruhovy buffer pro prijimana data
   rbuff_t tx_rbuff;               //kruhovy buffer pro odesilana data
   
-  uint8_t events;                 //connection events
+  uint8_t cb_events;              //connection events
   void (*callback)(struct atcd_conn*, uint8_t);  //events callback
 
 } atcd_conn_t;
@@ -79,7 +80,7 @@ typedef struct atcd_conn
 // Functions -------------------------------------------------------------------
 
 // Connections
-void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size);                                          //init connection
+void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size);  //init connection
 void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type); //open conenction
 void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len);            //write data to connection
 void atcd_conn_close(atcd_conn_t *conn);                                         //close connection
@@ -88,5 +89,9 @@ void atcd_conn_free(atcd_conn_t *conn);                                         
 // Connections
 void atcd_conn_proc();                    //connections processing
 void atcd_conn_reset_all();               //force close all active connections
+
+uint8_t atcd_conn_ipd_tst();
+uint8_t atcd_conn_asc_msg();
+uint8_t atcd_conn_data_proc();
 //------------------------------------------------------------------------------
 #endif /* ATCD_CONN_H_INCLUDED */

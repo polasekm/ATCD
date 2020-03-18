@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "rbuff.h": "c",
-    "atcd.h": "c"
+    "atcd.h": "c",
+    "atcd_config.h": "c"
   }
 }
