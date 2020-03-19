@@ -13,26 +13,26 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-void atcd_phone_init(atcd_phone_t *phone)   //inializace telefonu
+void atcd_phone_init()   //inializace telefonu
 {
-  phone->state = ATCD_PHONE_STATE_OFF;
-  phone->pin = NULL;
+  atcd.phone.state = ATCD_PHONE_STATE_UNREG;
+  atcd.phone.pin = NULL;
 
-  phone->flags = 0;           
-  phone->miss_call_cnt = 0;  
+  atcd.phone.flags = 0;
+  atcd.phone.miss_call_cnt = 0;
 
-  phone->events = ATCD_PHONE_EV_NONE;              
-  phone->callback = NULL;
+  atcd.phone.cb_events = ATCD_PHONE_EV_ALL;
+  atcd.phone.callback = NULL;
+}
+//------------------------------------------------------------------------------
+void atcd_phone_reset()                   //phone state reset
+{
+  atcd.phone.state = ATCD_PHONE_STATE_UNREG;
 }
 //------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
 {
 
-}
-//------------------------------------------------------------------------------
-void atcd_phone_reset()                   //phone state reset
-{
-  atcd.phone.state = ATCD_PHONE_STATE_OFF;
 }
 //------------------------------------------------------------------------------
 void atcd_phone_set_pin(char *pin)       //set PIN
@@ -47,7 +47,7 @@ uint8_t atcd_phone_asc_msg()
     atcd_dbg_inf("PHONE: RING detect.\r\n");
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.buff_pos = atcd.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
     return 1;
   }
   
@@ -58,7 +58,7 @@ uint8_t atcd_phone_asc_msg()
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.buff_pos = atcd.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.events & ATCD_PHONE_EV_SMS_IN) != 0) atcd.phone.callback(ATCD_PHONE_EV_SMS_IN);
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_SMS_IN) != 0) atcd.phone.callback(ATCD_PHONE_EV_SMS_IN);
     return 0;
   }
 

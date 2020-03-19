@@ -19,6 +19,7 @@
 #include "atcd_hw.h"
 
 #include "atcd_atc.h"
+#include "atcd_gsm.h"
 #include "atcd_phone.h"
 #include "atcd_gprs.h"
 #include "atcd_wifi.h"
@@ -43,6 +44,7 @@
 
 #define ATCD_EV_NONE                0x00
 #define ATCD_EV_STATE               0b00000001
+#define ATCD_EV_ASYNC_MSG           0b00000010
 #define ATCD_EV_ALL                 0xFF
 
 // Mod parseru prichozich dat
@@ -74,11 +76,10 @@ typedef struct
   struct atcd_at_cmd *at_cmd_end;      //AT command end queue
 
   uint8_t  tx_state;              //transmission state
-  rbuff_t  tx_rbuff;
+  uint8_t  tx_conn_num;
   uint16_t tx_data_len;
-
-  uint8_t tx_pend_conn_num;
-
+  rbuff_t  tx_rbuff;
+  
   uint8_t  rx_conn_num;          //connection number for +IPD
   uint16_t rx_data_len;          //+IPD data length
   uint16_t rx_data_pos;          //position in +IPD data 
@@ -104,9 +105,10 @@ typedef struct
   atcd_conns_t conns;             //TCP/UDP conections
 
   // Podmineny preklad
+  atcd_gsm_t gsm;                 //
   atcd_phone_t phone;             //
   atcd_gprs_t gprs;               //
-  //atcd_gps_t gps;               //
+  atcd_gps_t gps;                 //
   atcd_wifi_t wifi;               //
 
   uint8_t cb_events;              //device callback events

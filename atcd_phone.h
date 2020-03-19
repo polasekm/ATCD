@@ -26,13 +26,14 @@
 #define ATCD_PHONE_STATE_CALL       3
 #define ATCD_PHONE_STATE_GPRS       4
 
-#define ATCD_PHONE_EV_NONE          0
+#define ATCD_PHONE_EV_NONE          0x00
 #define ATCD_PHONE_EV_REG           0b00000001
 #define ATCD_PHONE_EV_UNREG         0b00000010
 #define ATCD_PHONE_EV_RING          0b00000100
 #define ATCD_PHONE_EV_RING_END      0b00001000
 #define ATCD_PHONE_EV_SMS_IN        0b00010000
 #define ATCD_PHONE_EV_CALL_END      0b00100000
+#define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
 #define ATCD_SMS_STATE_OFF        0
@@ -42,12 +43,13 @@
 #define ATCD_SMS_STATE_UNKNOWN    4
 #define ATCD_SMS_STATE_REG_ROAM   5
 
-#define ATCD_SMS_EV_NONE          0
+#define ATCD_SMS_EV_NONE          0x00
 #define ATCD_SMS_EV_SEND          0b00000001
 #define ATCD_SMS_EV_FAIL          0b00000010
 #define ATCD_SMS_EV_CALL_IN       0b00000100
 #define ATCD_SMS_EV_CALL_DW       0b00001000
 #define ATCD_SMS_EV_SMS_IN        0b00010000
+#define ATCD_SMS_EV_ALL           0xFF
 
 //------------------------------------------------------------------------------
 typedef struct atcd_sms
@@ -64,7 +66,7 @@ typedef struct atcd_sms
   
   uint16_t timeout;               //timeout in s
 
-  uint8_t events;                 //AT commands events
+  uint8_t cb_events;              //AT commands events
   void (*callback)(uint8_t);      //events callback
   
   struct atcd_sms *next;          //next SMS in queue
@@ -81,14 +83,14 @@ typedef struct
 
   atcd_sms_t sms;                 //SMS struct for internal usage
 
-  uint8_t events;                 //phone events
+  uint8_t cb_events;              //phone events
   void (*callback)(uint8_t);      //events callback
 
 } atcd_phone_t;
 
 // Functions -------------------------------------------------------------------
 // Phone
-void atcd_phone_init(atcd_phone_t *phone);   //inializace telefonu
+void atcd_phone_init();                      //inializace telefonu
 
 void atcd_phone_set_pin(char *pin);          //set PIN
 

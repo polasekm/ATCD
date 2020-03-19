@@ -32,7 +32,7 @@ void atcd_conn_proc()                    //connections processing
         conn->at_cmd_seq = 0;
         if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
-        if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+        if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
       }
 
       if(conn->state == ATCD_CONN_STATE_W_OPEN)
@@ -66,8 +66,8 @@ void atcd_conn_reset_all()
       atcd_atc_init(&conn->at_cmd);
       atcd.conns.conn[i] = NULL;
 
-      //Opravbdu event na close? Spojeni je ruseno nasilne - nemuselo byt ani navazano, mozna spise novy priznak...
-      if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+      //Opravdu event na close? Spojeni je ruseno nasilne - nemuselo byt ani navazano, mozna spise novy priznak...
+      if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
     }
   }
 }
@@ -91,8 +91,8 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   rbuff_init(&conn->rx_rbuff, rx_buff, rx_buff_size);
   rbuff_init(&conn->tx_rbuff, tx_buff, tx_buff_size);
   
-  conn->events   = ATCD_CONN_EV_NONE;
-  conn->callback = NULL;
+  conn->cb_events  = ATCD_CONN_EV_ALL;
+  conn->callback   = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type) //open conenction
@@ -117,7 +117,7 @@ void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type) 
   rbuff_reset(&conn->rx_rbuff);
   rbuff_reset(&conn->tx_rbuff);
   
-  conn->events = ATCD_CONN_EV_NONE;
+  conn->cb_events = ATCD_CONN_EV_NONE;
   conn->callback = NULL;
   
   for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
@@ -171,7 +171,7 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
     conn->state = ATCD_CONN_STATE_CLOSE;
     conn->num   = ATCD_CONN_NO_NUM;
     atcd_atc_init(&conn->at_cmd);
-    if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+    if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
   }
   else atcd_dbg_err("CONN: Cislo spojeni k uvolneni je mimo rozsah!\r\n");
 }
@@ -186,10 +186,10 @@ uint8_t atcd_conn_ipd_tst()
     
     if(conn_id < ATCD_CONN_MAX_NUMBER)
     {
-      atcd.parser.ipd_conn_num = conn_id;
-      atcd.parser.ipd_len     = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+      atcd.parser.rx_conn_num = conn_id;
+      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
 
-      if(atcd.parser.ipd_len != 0)
+      if(atcd.parser.rx_data_len != 0)
       {
         atcd_dbg_inf("CONN: ATCD_STR_DATA_RX detected.\r\n");
         atcd.parser.mode  = ATCD_P_MODE_IPD;
@@ -212,6 +212,10 @@ uint8_t atcd_conn_ipd_tst()
 //------------------------------------------------------------------------------
 uint8_t atcd_conn_asc_msg()
 {
+  atcd_conn_t *conn;
+  uint8_t conn_id;
+  uint16_t op;
+
   #ifdef ATCD_DATA_RX_NL
   // "+IPD," test
   if(atcd.buff[atcd.buff_pos - 3] == ':' && strncmp(atcd.buff + atcd.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
@@ -220,10 +224,10 @@ uint8_t atcd_conn_asc_msg()
 
     if(conn_id < ATCD_CONN_MAX_NUMBER)
     {
-      atcd.parser.ipd_conn_num = conn_id;
-      atcd.parser.ipd_len      = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+      atcd.parser.rx_conn_num = conn_id;
+      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
 
-      if(atcd.parser.ipd_len != 0)
+      if(atcd.parser.rx_data_len != 0)
       {
         atcd_dbg_inf("CONN: ATCD_STR_DATA_RX detected.\r\n");
         atcd.parser.mode  = ATCD_P_MODE_IPD;
@@ -256,7 +260,7 @@ uint8_t atcd_conn_asc_msg()
         {
           conn->state = ATCD_CONN_STATE_OPEN;
           atcd.buff_pos = atcd.line_pos;
-          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
+          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
         }
         else
         {
@@ -318,7 +322,7 @@ uint8_t atcd_conn_asc_msg()
             atcd_dbg_inf("CONN: Spojeni je navazano.\r\n");
             conn->state = ATCD_CONN_STATE_OPEN;
             atcd.buff_pos = atcd.line_pos;
-            if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
+            if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
           }
           else
           {
@@ -349,7 +353,7 @@ uint8_t atcd_conn_asc_msg()
           if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
           atcd.buff_pos = atcd.line_pos;
-          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
         }
         else
         {
@@ -375,7 +379,7 @@ uint8_t atcd_conn_asc_msg()
           if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
           atcd.buff_pos = atcd.line_pos;
-          if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
         }
         else
         {
@@ -407,7 +411,7 @@ uint8_t atcd_conn_asc_msg()
             if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
             atcd.buff_pos = atcd.line_pos;
-            if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+            if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
           }
           else
           {
@@ -452,14 +456,14 @@ uint8_t atcd_conn_asc_msg()
   return 0;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_conn_data_proc()
+uint8_t atcd_conn_data_proc(char ch)
 {
   atcd_conn_t *conn;
 
   // If parser in IPD receiving mode
   if(atcd.parser.mode == ATCD_P_MODE_IPD)
   {
-    conn = atcd.conns.conn[atcd.parser.ipd_conn_num];
+    conn = atcd.conns.conn[atcd.parser.rx_conn_num];
     // If any connection
     if(conn != NULL)
     {
@@ -472,14 +476,14 @@ uint8_t atcd_conn_data_proc()
       else 
       {
         atcd_dbg_warn("ATCD: CONN: V bufferu spojeni neni dostatek mista pro dalsi prijem dat!\r\n");
-        conn->events |=  ATCD_CONN_EV_OVERRUN;
+        conn->cb_events |=  ATCD_CONN_EV_OVERRUN;
       }   
 
       atcd.buff_pos++;
 
       // Pokud jsme dosahli komce IPD bloku
       //if(atcd.buff_pos >= atcd.parser.ipd_len)
-      if(atcd.buff_pos >= atcd.parser.ipd_len)
+      if(atcd.buff_pos >= atcd.parser.rx_data_len)
       {
         atcd_dbg_inf("ATCD: CONN: Dosahli jsme konce IPD bloku.\r\n");
         atcd.parser.mode = ATCD_P_MODE_ATC;
@@ -487,7 +491,7 @@ uint8_t atcd_conn_data_proc()
         atcd.buff_pos = 0;
         atcd.line_pos = 0;
 
-        conn->events |= ATCD_CONN_EV_NEW_DATA;
+        conn->cb_events |= ATCD_CONN_EV_NEW_DATA;
         if(conn->callback != NULL) conn->callback(conn, ATCD_CONN_EV_NEW_DATA);
       }
     }

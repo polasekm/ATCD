@@ -17,6 +17,11 @@ void atcd_gsm_init()
 
 }
 //------------------------------------------------------------------------------
+void atcd_gsm_reset()
+{
+
+}
+//------------------------------------------------------------------------------
 void atcd_gsm_proc()
 {
 
@@ -27,6 +32,7 @@ uint8_t atcd_gsm_asc_msg()
 {
   uint16_t op;
   uint8_t val;
+  uint8_t state_p;
 
   if(strncmp(atcd.buff + atcd.line_pos, "+CREG: ", strlen("+CREG: ")) == 0)
   {
@@ -35,10 +41,16 @@ uint8_t atcd_gsm_asc_msg()
     if(val >= 0 && val <= 10)
     {
       ATCD_DBG_CREG
-      atcd.phone.state = val;
-      atcd.buff_pos = atcd.line_pos;
-      atcd_conn_reset_all();
-      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_GSM_EV_REG) != 0) atcd.phone.callback(ATCD_GSM_EV_REG);
+      state_p = atcd.gsm.state;
+
+      atcd.gsm.state = val;
+      atcd.buff_pos  = atcd.line_pos;
+
+      if(state_p != val)
+      {
+        atcd_conn_reset_all();
+        if(atcd.gsm.callback != NULL && (atcd.gsm.cb_events & ATCD_GSM_EV_REG) != 0) atcd.gsm.callback(ATCD_GSM_EV_REG);
+      }
     }
     else
     {

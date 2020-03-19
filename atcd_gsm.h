@@ -53,6 +53,7 @@ typedef struct
 
 // Functions -------------------------------------------------------------------
 void atcd_gsm_init();
+void atcd_gsm_reset();
 void atcd_gsm_proc();
 uint8_t atcd_gsm_asc_msg();
 

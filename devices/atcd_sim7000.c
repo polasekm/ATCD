@@ -8,7 +8,7 @@
 #include "../atcd.h"
 
 //------------------------------------------------------------------------------
-#if(ATCD_USE_DEVICE == ATCD_A6)
+#if(ATCD_USE_DEVICE == ATCD_SIM7000)
 //------------------------------------------------------------------------------
 
 extern atcd_t atcd;
@@ -478,7 +478,7 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
     conn->at_cmd.data_len = tx_data_len;
 
     //je to jeste potreba?
-    atcd.parser.tx_pend_conn_num = conn->num;
+    atcd.parser.tx_conn_num = conn->num;
 
 
     atcd_atc_exec(&conn->at_cmd);
@@ -519,5 +519,5 @@ void atcd_conn_write_seq(atcd_conn_t *conn)
   }
 }
 //------------------------------------------------------------------------------
-#endif /* ATCD_A6 */
+#endif /* ATCD_SIM7000 */
 //------------------------------------------------------------------------------

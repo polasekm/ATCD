@@ -30,6 +30,7 @@ void atcd_init()                          //init AT command device
   atcd.cb_events = ATCD_EV_ALL;
   atcd.callback  = NULL;
 
+  atcd_gsm_init();
   atcd_phone_init();
   atcd_gprs_init();
   atcd_gps_init();
@@ -52,10 +53,10 @@ void atcd_state_reset()                  //state machine reset
   atcd_atc_cancell_all();
   atcd_conn_reset_all(); 
 
-  atcd_atc_init();
+  atcd_atc_init(&atcd.at_cmd);
 
   atcd.at_cmd_buff[0] = 0;
-
+  //----------------------------------------
   atcd.parser.mode       = ATCD_P_MODE_ATC;
   atcd.parser.echo_en    = ATCD_P_ECHO_ON;
 
@@ -65,15 +66,15 @@ void atcd_state_reset()                  //state machine reset
   atcd.parser.at_cmd_end = NULL;
   
   atcd.parser.tx_state    = ATCD_P_TX_COMPLETE;
+  atcd.parser.tx_conn_num = 0;
   atcd.parser.tx_data_len = 0;
   rbuff_init(&atcd.parser.tx_rbuff, NULL, 0);
-  
-  atcd.parser.tx_pend_conn_num = 0;
 
-  atcd.parser.ipd_conn_num = 0;
-  atcd.parser.ipd_len      = 0;
-  atcd.parser.ipd_pos      = 0;
-
+  atcd.parser.rx_conn_num = 0;
+  atcd.parser.rx_data_len = 0;
+  atcd.parser.rx_data_pos = 0;
+  //----------------------------------------
+  atcd_gsm_reset();
   atcd_phone_reset();
   atcd_gprs_reset();
   atcd_gps_reset();
@@ -95,7 +96,7 @@ void atcd_start()               //Spusteni zarizeni
 void atcd_reset()               //Reset zarizeni
 {
   // SW reset
-  atcd_dbg_warn("ATCD: Reset zarizeni.\r\n");
+  ATCD_DBG_RESET
   atcd_state_reset();
   
   atcd_hw_reset();
@@ -155,16 +156,12 @@ void atcd_proc()               //data processing
 
   atcd_check_state_seq();
 
+  atcd_gsm_proc();
   atcd_phone_proc();                     //phone processing
   atcd_gprs_proc();                      //gprs processing
   atcd_conn_proc();                      //connections processing  
   atcd_gps_proc();
   atcd_wifi_proc();
-}
-//------------------------------------------------------------------------------
-void atcd_tx_complete()                  //call on tx data complete
-{
-  atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 }
 //------------------------------------------------------------------------------
 void atcd_rx_data(uint8_t *data, uint16_t len)
@@ -203,15 +200,15 @@ void atcd_rx_ch(char ch)
   atcd_at_cmd_t *at_cmd;
   
   atcd_dbg_in(&ch, 1);                    // Logovani prijatych dat
-  if(atcd_conn_data_proc() != 0) return;  // Zpracovani prichozich dat TCP/UDP spojeni
+  if(atcd_conn_data_proc(ch) != 0) return;  // Zpracovani prichozich dat TCP/UDP spojeni
 
   if(atcd.buff_pos >= ATCD_BUFF_SIZE - 1) // Test mista v bufferu
   {
     ATCD_DBG_BUFF_OVERRUN
     at_cmd = atcd.parser.at_cmd_top;
-    if(atcd.parser.at_cmd_top != NULL && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_END)
+    if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
     {
-      ATCD_DBG_ATC_LN_BUFF_OVERRUN
+      ATCD_DBG_ATC_LN_BUFF_OV
       at_cmd->resp           = NULL;
       at_cmd->resp_len       = 0;
       at_cmd->resp_buff_size = 0;
@@ -240,6 +237,8 @@ void atcd_rx_ch(char ch)
   // Jedna se o konec radku
   //------------------------------
   atcd_atc_ln_proc();   // Zpracovani AT prikazu
+
+  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
   atcd_conn_asc_msg();  // Zpracovani TCP/UDP spojeni
   atcd_wifi_asc_msg();  // Zpracovani udalosti WLAN
   atcd_gsm_asc_msg();   // Zpracovani udalosti GSM site
@@ -247,7 +246,7 @@ void atcd_rx_ch(char ch)
   //------------------------------
   // Zpracovani startovaci sekvence
   //------------------------------
-  else if(strncmp(atcd.buff + atcd.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
+  if(strncmp(atcd.buff + atcd.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
   {
     ATCD_DBG_BOOT_SEQ
     atcd.state = ATCD_STATE_ON;
@@ -260,12 +259,13 @@ void atcd_rx_ch(char ch)
   // Zalezi, jesli se zrovna zpracovava nejaky AT prikaz
   // Pokud ano, drzi se buffer a posouvaji radky, jinak muzeme resetovat na zacatek
   //------------------------------
-  if(atcd.parser.at_cmd_top != NULL && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_END)
+  at_cmd = atcd.parser.at_cmd_top;
+  if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
   {
-    if(atcd.line_pos != atcd.buff_pos)
+    if(atcd.line_pos != atcd.buff_pos)    //Pokud radek nebyl vymazan nekde vyse
     {
-      // kopirovat radek odpovedi AT prikazu
-      if(at_cmd->resp != atcd.buff) 
+      
+      if(at_cmd->resp != atcd.buff)       //Pokud ma ATC vlastni buffer
       {
         if(at_cmd->resp_len + atcd.buff_pos - atcd.line_pos < at_cmd->resp_buff_size)
         {
@@ -274,27 +274,36 @@ void atcd_rx_ch(char ch)
         }
         else
         {
-          atcd_dbg_warn("ATCD: V cilovem bufferu ATC neni dost mista!\r\n");
-          atcd_dbg_warn("ATCD: Nastavuji overrun u zpracovavaneho AT prikazu.\r\n");
-          //at_cmd->result = ATCD_ATC_RESULT_OVERRUN;
+          ATCD_DBG_ATC_BUFF_OV
+          if(at_cmd->state == ATCD_ATC_STATE_W_END)
+          {
+            ATCD_DBG_ATC_LN_BUFF_OV
+            at_cmd->resp           = NULL;
+            at_cmd->resp_len       = 0;
+            at_cmd->resp_buff_size = 0;
 
-          // neni poreseno stav se s koncem ATC prepise....
+            if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
+          }
         }
 
         atcd.buff_pos = 0;
         atcd.line_pos = 0;
+        return;
       }
-      else 
-      {
-        at_cmd->resp_len += atcd.buff_pos - atcd.line_pos;
-        atcd.line_pos = atcd.buff_pos;
-      }
+
+      //Pokud ATC nema vlastni buffer
+      at_cmd->resp_len += atcd.buff_pos - atcd.line_pos;
+      atcd.line_pos = atcd.buff_pos;
     }
+    return;
   }
-  else
-  {
-    atcd.buff_pos = 0;
-    atcd.line_pos = 0;
-  }
+
+  atcd.buff_pos = 0;
+  atcd.line_pos = 0;
+}
+//------------------------------------------------------------------------------
+void atcd_tx_complete()                  //call on tx data complete
+{
+  atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 }
 //------------------------------------------------------------------------------

@@ -16,24 +16,24 @@ void atcd_gprs_start_connect();           //gprs start connect
 void atcd_gprs_start_disconnect();        //gprs start disconnect
 
 //------------------------------------------------------------------------------
-void atcd_gprs_init(atcd_gprs_t *gprs)      //inializace gprs
+void atcd_gprs_init()      //inializace gprs
 {
-  gprs->state = ATCD_GPRS_STATE_DISCONN; 
-  gprs->mode = ATCD_GPRS_MODE_DISCONN;
+  atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+  atcd.gprs.mode = ATCD_GPRS_MODE_DISCONN;
 
-  atcd_atc_init(&gprs->at_cmd);
-  gprs->at_cmd_str[0] = 0;
-  gprs->at_cmd_resp[0] = 0;
+  atcd_atc_init(&atcd.gprs.at_cmd);
+  atcd.gprs.at_cmd_str[0] = 0;
+  atcd.gprs.at_cmd_resp[0] = 0;
 
-  gprs->at_cmd_seq = 0;
-  gprs->err_cnt = 0;
-  gprs->timer = 0;
+  atcd.gprs.at_cmd_seq = 0;
+  atcd.gprs.err_cnt = 0;
+  atcd.gprs.timer = 0;
 
-  gprs->apn = NULL;
-  gprs->psswd = NULL;
+  atcd.gprs.apn = NULL;
+  atcd.gprs.psswd = NULL;
   
-  gprs->events = ATCD_GPRS_EV_NONE;
-  gprs->callback = NULL;
+  atcd.gprs.cb_events = ATCD_GPRS_EV_NONE;
+  atcd.gprs.callback = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_reset()                   //gprs state reset
@@ -95,7 +95,7 @@ void atcd_gprs_proc()                    //gprs connection processing
 //------------------------------------------------------------------------------
 void atcd_gprs_start_connect()              //gprs start connect
 {
-  if(atcd.state == ATCD_STATE_READY && atcd.phone.state == ATCD_PHONE_STATE_REG_HOME)
+  if(atcd.state == ATCD_STATE_READY && atcd.gsm.state == ATCD_GSM_STATE_HOME)
   {
     atcd_dbg_inf("GPRS: INIT: Zacina inicializace.\r\n");
     atcd_atc_cancell(&atcd.gprs.at_cmd);

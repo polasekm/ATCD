@@ -141,7 +141,7 @@ void atcd_atc_proc()                     //AT commands processing
       atcd.parser.at_cmd_top = at_cmd->next;
       atcd_atc_queue_proc();
 
-      if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_TIMEOUT) != 0) at_cmd->callback(ATCD_ATC_EV_TIMEOUT);
+      if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_TIMEOUT) != 0) at_cmd->callback(ATCD_ATC_EV_TIMEOUT);
     }
   }
 }
@@ -230,7 +230,7 @@ void atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT command
       at_cmd->result = ATCD_ATC_RESULT_CANCELL;
       at_cmd->state = ATCD_ATC_STATE_DONE;
 
-      if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
+      if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
       return;
     }
 
@@ -261,7 +261,7 @@ void atcd_atc_cancell_all()               //cancell all AT commands in queue
     //
     //
 
-    if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
+    if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
   }
 
   atcd.parser.at_cmd_end = NULL;
@@ -288,7 +288,7 @@ uint8_t atcd_atc_ln_proc()
         atcd.buff_pos = 0;
         atcd.line_pos = 0;
 
-        if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
+        if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
         return 1;
       }
       else atcd_dbg_warn("ATC: ECHO test FAIL.\r\n");
@@ -349,7 +349,7 @@ uint8_t atcd_atc_ln_proc()
         atcd.parser.at_cmd_top = at_cmd->next;
         atcd_atc_queue_proc(); 
 
-        if(at_cmd->callback != NULL && (at_cmd->events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
+        if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
         return 1;
       }
     }    

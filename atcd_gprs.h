@@ -50,7 +50,7 @@ typedef struct
   char *apn;                      //APN
   char *psswd;                    //APN password
   
-  uint8_t events;                 //gprs events
+  uint8_t cb_events;              //gprs events
   void (*callback)(uint8_t);      //events callback
 
 } atcd_gprs_t;
@@ -58,7 +58,7 @@ typedef struct
 // Functions -------------------------------------------------------------------
 
 // GPRS
-void atcd_gprs_init(atcd_gprs_t *gprs);      //inializace gprs
+void atcd_gprs_init();            //inializace gprs
 //--------------------------------------------------------------
 void atcd_gprs_connect();                    //connect gprs
 void atcd_gprs_disconnect();                 //disconnect gprs

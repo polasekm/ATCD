@@ -92,6 +92,6 @@ void atcd_conn_reset_all();               //force close all active connections
 
 uint8_t atcd_conn_ipd_tst();
 uint8_t atcd_conn_asc_msg();
-uint8_t atcd_conn_data_proc();
+uint8_t atcd_conn_data_proc(char ch);
 //------------------------------------------------------------------------------
 #endif /* ATCD_CONN_H_INCLUDED */

@@ -62,6 +62,7 @@ typedef struct
 
 // Functions -------------------------------------------------------------------
 void atcd_wifi_init();
+void atcd_wifi_reset();
 void atcd_wifi_proc();
 
 uint8_t atcd_wifi_asc_msg();
