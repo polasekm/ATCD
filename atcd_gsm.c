@@ -46,6 +46,8 @@ uint8_t atcd_gsm_asc_msg()
       atcd.gsm.state = val;
       atcd.buff_pos  = atcd.line_pos;
 
+      //Pokud probihal ATC, nemazat z odpovedi...
+
       if(state_p != val)
       {
         atcd_conn_reset_all();

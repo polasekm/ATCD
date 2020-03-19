@@ -177,12 +177,12 @@ void atcd_atc_send_cmd()                     //send AT command
 
   len = strlen(atcd.parser.at_cmd_top->cmd);
 
-  atcd.parser.tx_rbuff.buff = (uint8_t*)atcd.parser.at_cmd_top->cmd;
+  /*atcd.parser.tx_rbuff.buff = (uint8_t*)atcd.parser.at_cmd_top->cmd;
   atcd.parser.tx_rbuff.buff_end = (uint8_t*)atcd.parser.at_cmd_top->cmd + len;
   atcd.parser.tx_rbuff.read = atcd.parser.tx_rbuff.buff;
   atcd.parser.tx_rbuff.write = atcd.parser.tx_rbuff.buff + len;
-  atcd.parser.tx_rbuff.capacity = len;
-  //atcd.parser.tx_rbuff.size = len;
+  atcd.parser.tx_rbuff.capacity = len;*/
+  rbuff_lin_space(&atcd.parser.tx_rbuff, (uint8_t*)atcd.parser.at_cmd_top->cmd, len);
 
   atcd.parser.timer = atcd_get_ms();
   atcd_hw_tx(&atcd.parser.tx_rbuff, len);
