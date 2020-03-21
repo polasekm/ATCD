@@ -187,11 +187,11 @@ void atcd_rx_proc()                       //proc rx data
   uint16_t n;
   uint8_t ch;
 
-  n = rbuff_read(&atcd_rx_ring_buff, &ch, 1);
+  n = rbuff_read_b(&atcd_rx_ring_buff, &ch);
   while(n == 1)
   {
     atcd_rx_ch((char) ch);
-    n = rbuff_read(&atcd_rx_ring_buff, &ch, 1);
+    n = rbuff_read_b(&atcd_rx_ring_buff, &ch);
   }
 }
 //------------------------------------------------------------------------------
