@@ -64,6 +64,11 @@
 #define ATCD_P_TX_COMPLETE          0
 #define ATCD_P_TX_ONGOING           1
 
+// Navratove hodnoty
+#define ATCD_OK                     0
+#define ATCD_ERR                    1
+#define ATCD_ERR_LOCK               2
+
 //------------------------------------------------------------------------------
 typedef struct
 {

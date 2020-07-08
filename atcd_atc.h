@@ -25,7 +25,7 @@
 #define ATCD_ATC_STATE_TX           3
 #define ATCD_ATC_STATE_W_ECHO       4
 #define ATCD_ATC_STATE_W_END        5
-#define ATCD_ATC_STATE_FREE         6
+//#define ATCD_ATC_STATE_IDLE         6
 
 // Vysledny stav zpracovani AT prikazu
 #define ATCD_ATC_RESULT_UNKNOWN     0
@@ -79,14 +79,15 @@ typedef struct atcd_at_cmd
 // Functions -------------------------------------------------------------------
 
 // AT Commands
-void atcd_atc_init(atcd_at_cmd_t *at_cmd);    //init AT command
-void atcd_atc_set_default(atcd_at_cmd_t *at_cmd);  //set default AT commands values
+   void atcd_atc_init(atcd_at_cmd_t *at_cmd);    //init AT command
+uint8_t atcd_atc_set_default(atcd_at_cmd_t *at_cmd);  //set default AT commands values
+   void atcd_atc_check(atcd_at_cmd_t *at_cmd);   //check AT command
+   
+uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
+uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
 
-void atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
-void atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
-
-void atcd_atc_send_cmd();                     //send AT command
-void atcd_atc_send_data();                    //send AT command data
+uint8_t atcd_atc_send_cmd();                     //send AT command
+uint8_t atcd_atc_send_data();                    //send AT command data
 
 uint8_t atcd_atc_ln_proc();   
 uint8_t atcd_atc_prompt_tst();                 

@@ -19,24 +19,26 @@ void atcd_atc_cancell_all();              //cancel all AT commands in queue
 //------------------------------------------------------------------------------
 void atcd_atc_init(atcd_at_cmd_t *at_cmd)         //init AT command
 {
-  at_cmd->state  = ATCD_ATC_STATE_FREE;                  
+  at_cmd->state  = ATCD_ATC_STATE_DONE;                  
   at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
+  at_cmd->next = NULL;
 
   atcd_atc_set_default(at_cmd);
-
-  at_cmd->next = NULL;
 }
 //------------------------------------------------------------------------------
-void atcd_atc_set_default(atcd_at_cmd_t *at_cmd)  //set default AT commands values
+uint8_t atcd_atc_set_default(atcd_at_cmd_t *at_cmd)  //set default AT commands values
 {
+  atcd_atc_check(at_cmd);
+  if(at_cmd->state != ATCD_ATC_STATE_DONE)
+  {
+    return ATCD_ERR_LOCK;
+  }
+
   at_cmd->cmd = NULL;         
   
   at_cmd->resp           = NULL;
   at_cmd->resp_len       = 0;
   at_cmd->resp_buff_size = 0;
-    
-  /*at_cmd->state  = ATCD_ATC_STATE_FREE;                  
-  at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;*/
 
   at_cmd->data = NULL;
   at_cmd->data_len = 0;
@@ -47,10 +49,28 @@ void atcd_atc_set_default(atcd_at_cmd_t *at_cmd)  //set default AT commands valu
   at_cmd->callback = NULL;
   
   //at_cmd->next = NULL;
+
+  return ATCD_OK;
 }
 //------------------------------------------------------------------------------
-void atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
+void atcd_atc_check(atcd_at_cmd_t *at_cmd)    //check AT command
 {
+  if(at_cmd->state != ATCD_ATC_STATE_DONE)
+  {
+
+
+
+  }
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
+{
+  atcd_atc_check(at_cmd);
+  if(at_cmd->state != ATCD_ATC_STATE_DONE)
+  {
+    return ATCD_ERR_LOCK;
+  }
+
   at_cmd->next = NULL;
   at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
 
@@ -88,6 +108,8 @@ void atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
     atcd.parser.at_cmd_end->next = at_cmd;
     atcd.parser.at_cmd_end = at_cmd;
   }
+
+  return ATCD_OK;
 }
 //------------------------------------------------------------------------------
 void atcd_atc_proc()                     //AT commands processing 
