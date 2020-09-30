@@ -21,18 +21,18 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-// Stav GSM registrace zazeni
-#define ATCD_GSM_STATE_OFF          0
-#define ATCD_GSM_STATE_HOME         1
-#define ATCD_GSM_STATE_SEARCHING    2
-#define ATCD_GSM_STATE_DENIED       3
-#define ATCD_GSM_STATE_UNKNOWN      4
-#define ATCD_GSM_STATE_ROAMING      5
-#define ATCD_GSM_STATE_6            6
-#define ATCD_GSM_STATE_7            7
-#define ATCD_GSM_STATE_EMERGENCY    8
-#define ATCD_GSM_STATE_9            9
-#define ATCD_GSM_STATE_10           10
+// Stav registrace zazeni
+#define ATCD_REG_STATE_OFF          0
+#define ATCD_REG_STATE_HOME         1
+#define ATCD_REG_STATE_SEARCHING    2
+#define ATCD_REG_STATE_DENIED       3
+#define ATCD_REG_STATE_UNKNOWN      4
+#define ATCD_REG_STATE_ROAMING      5
+#define ATCD_REG_STATE_6            6
+#define ATCD_REG_STATE_7            7
+#define ATCD_REG_STATE_EMERGENCY    8
+#define ATCD_REG_STATE_9            9
+#define ATCD_REG_STATE_10           10
 
 //Udalosti GSM zarizeni
 #define ATCD_GSM_EV_NONE            0x00

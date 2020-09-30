@@ -19,6 +19,10 @@
 #include "atcd_hw.h"
 
 #include "atcd_atc.h"
+#include "atcd_atc_seq.h"
+#include "atcd_parser.h"
+
+#include "atcd_sim.h"
 #include "atcd_gsm.h"
 #include "atcd_phone.h"
 #include "atcd_gprs.h"
@@ -36,33 +40,18 @@
 // Stav samotneho zarizeni. Proihlaseni do site, wifi, ci gprs je v prislusnych 
 // modulech
 #define ATCD_STATE_OFF              0
-#define ATCD_STATE_SLEEP            1
-#define ATCD_STATE_STARTING         2
+#define ATCD_STATE_STARTING         1
+#define ATCD_STATE_SLEEP            2
 #define ATCD_STATE_ON               3
-#define ATCD_STATE_INIT             4
-#define ATCD_STATE_READY            5
+
+#define ATCD_INIT_NONE              0
+#define ATCD_INIT_RUN               1
+#define ATCD_INIT_DONE              2
 
 #define ATCD_EV_NONE                0x00
 #define ATCD_EV_STATE               0b00000001
 #define ATCD_EV_ASYNC_MSG           0b00000010
 #define ATCD_EV_ALL                 0xFF
-
-// Mod parseru prichozich dat
-#define ATCD_P_MODE_ATC             0
-#define ATCD_P_MODE_IPD             1
-#define ATCD_P_MODE_TX_PEND         2
-#define ATCD_P_MODE_PROMPT          3
-
-// Opravdu - s ohledem na stav vyse asi smazat
-#define ATCD_P_NO_TX_PENDING        0xFF
-
-// Stav echa AT prikazu
-#define ATCD_P_ECHO_OFF             0
-#define ATCD_P_ECHO_ON              1
-
-// Stav odesilani dat
-#define ATCD_P_TX_COMPLETE          0
-#define ATCD_P_TX_ONGOING           1
 
 // Navratove hodnoty
 #define ATCD_OK                     0
@@ -72,40 +61,14 @@
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t mode;                   //parser mode
-  uint8_t echo_en;                //AT cmd echo enable  
-
-  uint32_t timer;                 //current operation timer
-
-  struct atcd_at_cmd *at_cmd_top;      //AT command top queue
-  struct atcd_at_cmd *at_cmd_end;      //AT command end queue
-
-  uint8_t  tx_state;              //transmission state
-  uint8_t  tx_conn_num;
-  uint16_t tx_data_len;
-  rbuff_t  tx_rbuff;
-  
-  uint8_t  rx_conn_num;          //connection number for +IPD
-  uint16_t rx_data_len;          //+IPD data length
-  uint16_t rx_data_pos;          //position in +IPD data 
-
-} atcd_parser_t;
-//------------------------------------------------------------------------------
-typedef struct
-{
   uint8_t state;                  //device state
   uint32_t timer;                 //current operation timer
-  uint8_t at_cmd_seq;             //phase of initialization
-  
-  char buff[ATCD_BUFF_SIZE];      //rx data buffer
-  
-  uint16_t buff_pos;              //position in buffer
-  uint16_t line_pos;              //last line position in buffer
+  atcd_at_cmd_seq_t init_seq;     //inicializacni sekvence
   
   atcd_parser_t parser;           //AT cmd parser
 
   atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
-  char at_cmd_buff[40];           //buffer pro sestaveny AT prikaz
+  char at_cmd_buff[64];           //buffer pro sestaveny AT prikaz
 
   atcd_conns_t conns;             //TCP/UDP conections
 

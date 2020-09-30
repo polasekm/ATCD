@@ -30,6 +30,9 @@ void atcd_init()                          //init AT command device
   atcd.cb_events = ATCD_EV_ALL;
   atcd.callback  = NULL;
 
+  atcd_atc_seq_init(atcd.init_seq);   
+
+  atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
   atcd_gprs_init();
@@ -41,39 +44,16 @@ void atcd_init()                          //init AT command device
 //------------------------------------------------------------------------------
 void atcd_state_reset()                  //state machine reset
 {
-  atcd.buff[0]                  = 0;
-  atcd.buff[ATCD_BUFF_SIZE - 1] = 0;
-  
-  atcd.buff_pos   = 0;
-  atcd.line_pos   = 0;
-  
-  atcd.timer      = 0;
-  atcd.at_cmd_seq = 0;
+  atcd_parser_init();
+  atcd.timer = atcd_get_ms(); 
 
   atcd_atc_cancell_all();
   atcd_conn_reset_all(); 
 
+  atcd_atc_seq_init(atcd.init_seq);
   atcd_atc_init(&atcd.at_cmd);
-
   atcd.at_cmd_buff[0] = 0;
-  //----------------------------------------
-  atcd.parser.mode       = ATCD_P_MODE_ATC;
-  atcd.parser.echo_en    = ATCD_P_ECHO_ON;
 
-  atcd.parser.timer      = atcd_get_ms();        //optravdu nastavit na aktualni cas?
-  
-  atcd.parser.at_cmd_top = NULL;
-  atcd.parser.at_cmd_end = NULL;
-  
-  atcd.parser.tx_state    = ATCD_P_TX_COMPLETE;
-  atcd.parser.tx_conn_num = 0;
-  atcd.parser.tx_data_len = 0;
-  rbuff_init(&atcd.parser.tx_rbuff, NULL, 0);
-
-  atcd.parser.rx_conn_num = 0;
-  atcd.parser.rx_data_len = 0;
-  atcd.parser.rx_data_pos = 0;
-  //----------------------------------------
   atcd_gsm_reset();
   atcd_phone_reset();
   atcd_gprs_reset();
@@ -199,13 +179,17 @@ void atcd_rx_ch(char ch)
 {
   atcd_at_cmd_t *at_cmd;
   
-  atcd_dbg_in(&ch, 1);                    // Logovani prijatych dat
-  if(atcd_conn_data_proc(ch) != 0) return;  // Zpracovani prichozich dat TCP/UDP spojeni
+  atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
 
-  if(atcd.buff_pos >= ATCD_BUFF_SIZE - 1) // Test mista v bufferu
+  //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
+  if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni
+  //---------------------------------------
+
+  if(atcd.parser.buff_pos >= ATCD_BUFF_SIZE - 1) // Test mista v bufferu
   {
     ATCD_DBG_BUFF_OVERRUN
     at_cmd = atcd.parser.at_cmd_top;
+    //nemely by se resit i jine stavy?
     if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
     {
       ATCD_DBG_ATC_LN_BUFF_OV
@@ -213,17 +197,17 @@ void atcd_rx_ch(char ch)
       at_cmd->resp_len       = 0;
       at_cmd->resp_buff_size = 0;
 
-      if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
+      if(agt_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
     }
 
-    atcd.buff_pos = 0;
-    atcd.line_pos = 0;
+    atcd.parser.buff_pos = 0;
+    atcd.parser.line_pos = 0;
   }
   //-------------------
   // Ulozi prijaty znak do bufferu
   // Do ATC se pak pripadne memcopy na konci radku po prislusnych testech
   // Radek muze byt vymaskovan jako async zprava...
-  atcd.buff[atcd.buff_pos++] = ch;
+  atcd.parser.buff[atcd.parser.buff_pos++] = ch;
   //------------------------------
   // Pokud se nejedna o konec radku
   //------------------------------
@@ -236,23 +220,25 @@ void atcd_rx_ch(char ch)
   //------------------------------
   // Jedna se o konec radku
   //------------------------------
-  atcd_atc_ln_proc();   // Zpracovani AT prikazu
+  if(atcd_atc_ln_proc() != 0) return;   // Zpracovani AT prikazu
 
   if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
-  atcd_conn_asc_msg();  // Zpracovani TCP/UDP spojeni
-  atcd_wifi_asc_msg();  // Zpracovani udalosti WLAN
-  atcd_gsm_asc_msg();   // Zpracovani udalosti GSM site
-  atcd_phone_asc_msg();
+
+  if(atcd_conn_asc_msg() != 0) return;  // Zpracovani TCP/UDP spojeni
+  if(atcd_wifi_asc_msg() != 0) return;  // Zpracovani udalosti WLAN
+  if(atcd_gsm_asc_msg() != 0) return;   // Zpracovani udalosti GSM site
+  if(atcd_phone_asc_msg() != 0) return; // Zpracovani udalosti telefonu
   //------------------------------
   // Zpracovani startovaci sekvence
   //------------------------------
-  if(strncmp(atcd.buff + atcd.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
   {
     ATCD_DBG_BOOT_SEQ
     atcd.state = ATCD_STATE_ON;
-    atcd.buff_pos = atcd.line_pos;
+    atcd.parser.buff_pos = atcd.parser.line_pos;
     atcd_state_reset();
     if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
+    return;
   }
   //------------------------------
   // Aktualizace zacatku posledniho radku
@@ -262,15 +248,14 @@ void atcd_rx_ch(char ch)
   at_cmd = atcd.parser.at_cmd_top;
   if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
   {
-    if(atcd.line_pos != atcd.buff_pos)    //Pokud radek nebyl vymazan nekde vyse
+    if(atcd.parser.line_pos != atcd.parser.buff_pos)    //Pokud radek nebyl vymazan nekde vyse
     {
-      
-      if(at_cmd->resp != atcd.buff)       //Pokud ma ATC vlastni buffer
+      if(at_cmd->resp != atcd.parser.buff)              //Pokud ma ATC vlastni buffer
       {
-        if(at_cmd->resp_len + atcd.buff_pos - atcd.line_pos < at_cmd->resp_buff_size)
+        if(at_cmd->resp_len + atcd.parser.buff_pos - atcd.parser.line_pos < at_cmd->resp_buff_size)
         {
-          memcpy(at_cmd->resp + at_cmd->resp_len, atcd.buff, atcd.buff_pos - atcd.line_pos);
-          at_cmd->resp_len += atcd.buff_pos - atcd.line_pos;
+          memcpy(at_cmd->resp + at_cmd->resp_len, atcd.parser.buff, atcd.parser.buff_pos - atcd.parser.line_pos);
+          at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
         }
         else
         {
@@ -286,20 +271,20 @@ void atcd_rx_ch(char ch)
           }
         }
 
-        atcd.buff_pos = 0;
-        atcd.line_pos = 0;
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
         return;
       }
 
       //Pokud ATC nema vlastni buffer
-      at_cmd->resp_len += atcd.buff_pos - atcd.line_pos;
-      atcd.line_pos = atcd.buff_pos;
+      at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
+      atcd.parser.line_pos = atcd.parser.buff_pos;
     }
     return;
   }
 
-  atcd.buff_pos = 0;
-  atcd.line_pos = 0;
+  atcd.parser.buff_pos = 0;
+  atcd.parser.line_pos = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_tx_complete()                  //call on tx data complete

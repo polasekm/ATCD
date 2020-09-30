@@ -36,12 +36,6 @@
 #define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
-#define ATCD_SMS_STATE_OFF        0
-#define ATCD_SMS_STATE_REG_HOME   1
-#define ATCD_SMS_STATE_SEARCHING  2
-#define ATCD_SMS_STATE_DENIED     3
-#define ATCD_SMS_STATE_UNKNOWN    4
-#define ATCD_SMS_STATE_REG_ROAM   5
 
 #define ATCD_SMS_EV_NONE          0x00
 #define ATCD_SMS_EV_SEND          0b00000001

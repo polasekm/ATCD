@@ -79,17 +79,24 @@ typedef struct atcd_at_cmd
 // Functions -------------------------------------------------------------------
 
 // AT Commands
-   void atcd_atc_init(atcd_at_cmd_t *at_cmd);    //init AT command
-uint8_t atcd_atc_set_default(atcd_at_cmd_t *at_cmd);  //set default AT commands values
-   void atcd_atc_check(atcd_at_cmd_t *at_cmd);   //check AT command
-   
+   void atcd_atc_init(atcd_at_cmd_t *at_cmd);         //init AT command
+   void atcd_atc_check_queue(atcd_at_cmd_t *at_cmd);  //check AT command
+
 uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
 
 uint8_t atcd_atc_send_cmd();                     //send AT command
 uint8_t atcd_atc_send_data();                    //send AT command data
 
-uint8_t atcd_atc_ln_proc();   
-uint8_t atcd_atc_prompt_tst();                 
+uint8_t atcd_atc_ln_proc();                      //AT commant line processing
+uint8_t atcd_atc_prompt_tst();                   //prompt test processing
+
+uint8_t atcd_atc_set_defaults(atcd_at_cmd_t *at_cmd);                                 //set default AT commands values
+   void atcd_atc_set_cmd(atcd_at_cmd_t *at_cmd, char *cmd);                           //set AT command
+   void atcd_atc_set_resp_buf(atcd_at_cmd_t *at_cmd, uint8_t *buff, uint16_t len);    //set AT command
+   void atcd_atc_set_timeout(atcd_at_cmd_t *at_cmd, uint16_t timeout);   
+
+uint8_t atcd_atc_get_state(atcd_at_cmd_t *at_cmd);    //get AT command state
+uint8_t atcd_atc_get_result(atcd_at_cmd_t *at_cmd);   //get AT command result
 //------------------------------------------------------------------------------
 #endif /* ATCD_ATC_H_INCLUDED */

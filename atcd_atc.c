@@ -12,18 +12,18 @@ extern atcd_t atcd;
 
 //------------------------------------------------------------------------------
 // AT commands
-void atcd_atc_proc();                     //AT commands processing 
-void atcd_atc_queue_proc();               //AT commands queue processing 
-void atcd_atc_cancell_all();              //cancel all AT commands in queue
+void atcd_atc_proc();                         //AT commands processing 
+void atcd_atc_queue_proc();                   //AT commands queue processing 
+void atcd_atc_cancell_all();                  //cancel all AT commands in queue
 
 //------------------------------------------------------------------------------
-void atcd_atc_init(atcd_at_cmd_t *at_cmd)         //init AT command
+void atcd_atc_init(atcd_at_cmd_t *at_cmd)     //init AT command
 {
   at_cmd->state  = ATCD_ATC_STATE_DONE;                  
   at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
-  at_cmd->next = NULL;
+  at_cmd->next   = NULL;
 
-  atcd_atc_set_default(at_cmd);
+  atcd_atc_set_defaults(at_cmd);
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_set_default(atcd_at_cmd_t *at_cmd)  //set default AT commands values
@@ -65,7 +65,10 @@ void atcd_atc_check(atcd_at_cmd_t *at_cmd)    //check AT command
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
 {
-  atcd_atc_check(at_cmd);
+  atcd_atc_check_queue(at_cmd);
+
+
+  //tohle prepsat, radeji vzdy overovat, zza neni fe fronte?
   if(at_cmd->state != ATCD_ATC_STATE_DONE)
   {
     return ATCD_ERR_LOCK;

@@ -11,21 +11,21 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-
 /* Exported functions ------------------------------------------------------- */
 
 /* Defines -------------------------------------------------------------------*/
 #define ATCD_ESP8266  1
 #define ATCD_ESP32    2
 #define ATCD_SIM800   3
-#define ATCD_SIM7000  4
-#define ATCD_GL865    5
-#define ATCD_A6       6
-#define ATCD_A7       7
-#define ATCD_M590     8
-#define ATCD_BGS5E    9
-#define ATCD_BGS2     10
-#define ATCD_ELS61    11
+#define ATCD_SIM868   4
+#define ATCD_SIM7000  5
+#define ATCD_GL865    6
+#define ATCD_A6       7
+#define ATCD_A7       8
+#define ATCD_M590     9
+#define ATCD_BGS5E    10
+#define ATCD_BGS2     11
+#define ATCD_ELS61    12
 
 #include "atcd_user_config.h"
 
@@ -57,8 +57,7 @@
 //#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 
 //-----------------------------
-#define ATCD_BUFF_SIZE 512
-
+#define ATCD_P_BUFF_SIZE 512
 
 #define ATCD_FAIL 0
 #define ATCD_OK   1
