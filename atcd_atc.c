@@ -377,6 +377,39 @@ uint8_t atcd_atc_ln_proc()
         if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
         return 1;
       }
+
+      //AT prikaz nebyl dokoncen a v radce je nejaky text - zkopirujeme ji do odpovedi...
+      if(at_cmd->resp != atcd.parser.buff)              //Pokud ma ATC vlastni buffer
+      {
+        if(at_cmd->resp_len + atcd.parser.buff_pos - atcd.parser.line_pos < at_cmd->resp_buff_size)
+        {
+          memcpy(at_cmd->resp + at_cmd->resp_len, atcd.parser.buff, atcd.parser.buff_pos - atcd.parser.line_pos);
+          at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
+        }
+        else
+        {
+          ATCD_DBG_ATC_BUFF_OV
+          if(at_cmd->state == ATCD_ATC_STATE_W_END)
+          {
+            ATCD_DBG_ATC_LN_BUFF_OV
+            at_cmd->resp           = NULL;
+            at_cmd->resp_len       = 0;
+            at_cmd->resp_buff_size = 0;
+
+            if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
+          }
+        }
+
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
+        return 1;
+      }
+
+      //Pokud ATC nema vlastni buffer
+      at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
+      atcd.parser.line_pos = atcd.parser.buff_pos;
+
+      return 1;
     }    
   }
 

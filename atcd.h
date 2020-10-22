@@ -90,9 +90,10 @@ void atcd_init();                //init AT command device
 void atcd_reset();               //reset AT command device
 void atcd_start();               //start AT command device
  
-void atcd_rx_data(uint8_t *data, uint16_t len);
-void atcd_rx_str(char *ch);
-void atcd_rx_ch(char ch);
+void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data
+void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec
+void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
+
 void atcd_tx_complete();         //call on tx data complete
 
 void atcd_proc();                //data processing 

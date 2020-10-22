@@ -184,8 +184,8 @@ void atcd_rx_ch(char ch)
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni
   //---------------------------------------
-
-  if(atcd.parser.buff_pos >= ATCD_BUFF_SIZE - 1) // Test mista v bufferu
+  // Test volneho mista v bufferu
+  if(atcd.parser.buff_pos >= ATCD_BUFF_SIZE - 1) 
   {
     ATCD_DBG_BUFF_OVERRUN
     at_cmd = atcd.parser.at_cmd_top;
@@ -203,7 +203,7 @@ void atcd_rx_ch(char ch)
     atcd.parser.buff_pos = 0;
     atcd.parser.line_pos = 0;
   }
-  //-------------------
+  //------------------------------
   // Ulozi prijaty znak do bufferu
   // Do ATC se pak pripadne memcopy na konci radku po prislusnych testech
   // Radek muze byt vymaskovan jako async zprava...
@@ -220,9 +220,9 @@ void atcd_rx_ch(char ch)
   //------------------------------
   // Jedna se o konec radku
   //------------------------------
-  if(atcd_atc_ln_proc() != 0) return;   // Zpracovani AT prikazu
-
-  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
+  // Tohle nebude fungovat --- !
+  // Je potreba volat jen pokud doslo skutecne k detekci, neboi je to ve stavu mimo ATC...
+  //if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
 
   if(atcd_conn_asc_msg() != 0) return;  // Zpracovani TCP/UDP spojeni
   if(atcd_wifi_asc_msg() != 0) return;  // Zpracovani udalosti WLAN
@@ -245,44 +245,8 @@ void atcd_rx_ch(char ch)
   // Zalezi, jesli se zrovna zpracovava nejaky AT prikaz
   // Pokud ano, drzi se buffer a posouvaji radky, jinak muzeme resetovat na zacatek
   //------------------------------
-  at_cmd = atcd.parser.at_cmd_top;
-  if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
-  {
-    if(atcd.parser.line_pos != atcd.parser.buff_pos)    //Pokud radek nebyl vymazan nekde vyse
-    {
-      if(at_cmd->resp != atcd.parser.buff)              //Pokud ma ATC vlastni buffer
-      {
-        if(at_cmd->resp_len + atcd.parser.buff_pos - atcd.parser.line_pos < at_cmd->resp_buff_size)
-        {
-          memcpy(at_cmd->resp + at_cmd->resp_len, atcd.parser.buff, atcd.parser.buff_pos - atcd.parser.line_pos);
-          at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
-        }
-        else
-        {
-          ATCD_DBG_ATC_BUFF_OV
-          if(at_cmd->state == ATCD_ATC_STATE_W_END)
-          {
-            ATCD_DBG_ATC_LN_BUFF_OV
-            at_cmd->resp           = NULL;
-            at_cmd->resp_len       = 0;
-            at_cmd->resp_buff_size = 0;
-
-            if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
-          }
-        }
-
-        atcd.parser.buff_pos = 0;
-        atcd.parser.line_pos = 0;
-        return;
-      }
-
-      //Pokud ATC nema vlastni buffer
-      at_cmd->resp_len += atcd.parser.buff_pos - atcd.parser.line_pos;
-      atcd.parser.line_pos = atcd.parser.buff_pos;
-    }
-    return;
-  }
-
+  if(atcd_atc_ln_proc() != 0) return;   // Zpracovani AT prikazu
+  //------------------------------
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
 }
