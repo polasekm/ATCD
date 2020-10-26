@@ -2,7 +2,7 @@
  * usart.c
  *
  *  Created on: Apr 9, 2011
- *      Author: Martin
+ *      Author: Martin Polasek
  */
 //------------------------------------------------------------------------------
 #include "atcd.h"
