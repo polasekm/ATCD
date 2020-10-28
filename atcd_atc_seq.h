@@ -47,6 +47,7 @@ typedef struct
 // Functions -------------------------------------------------------------------
 
 void atcd_atc_seq_init(atcd_at_cmd_seq_t *at_cmd_seq);  
+void atcd_atc_seq_run(atcd_at_cmd_seq_t *at_cmd_seq);   
 void atcd_atc_seq_proc(atcd_at_cmd_seq_t *at_cmd_seq);         
 //------------------------------------------------------------------------------
 #endif /* ATCD_ATC_SEQ_H_INCLUDED */

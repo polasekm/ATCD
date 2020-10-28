@@ -68,28 +68,31 @@ void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
   atc_seq->at_cmd->cmd = cmd;
 }
 //------------------------------------------------------------------------------
-void atcd_restart_seq(atcd_at_cmd_seq_t *atc_seq)
+void atcd_restart_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   
 }
 //------------------------------------------------------------------------------
-void atcd_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
+void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
-  char *cmd;
+  char *cmd = NULL;
 
-  if(atcd_get_ms() - atcd.timer > 7500)
+  switch(atc_seq->step)
   {
-    if(atcd.state == ATCD_STATE_READY && (atcd.at_cmd.state == ATCD_ATC_STATE_FREE || atcd.at_cmd.state == ATCD_ATC_STATE_DONE))
-    {
-      atcd.timer = atcd_get_ms();
+    case 0: cmd = "AT+CREG?\r\n";        break;   // Stav registrace do site
+    case 1:
+      // Inicializace byla dokoncena
+      atcd_dbg_inf("ATCD: STAT: Dotazuji na stav bylo dokonceno.\r\n");
+      atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
+      break;
 
-      atcd_dbg_inf("ATCD: STAT: Dotazuji se na stav registrace do site.\r\n");
-      atcd_atc_init(&atcd.at_cmd);
+    default:
+      atc_seq->step = 0;
       cmd = "AT+CREG?\r\n";
-      atcd.at_cmd.cmd = cmd;
-      atcd_atc_exec(&atcd.at_cmd);
-    }
+      break;
   }
+
+  atc_seq->at_cmd->cmd = cmd;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq)

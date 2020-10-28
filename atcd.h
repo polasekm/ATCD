@@ -66,6 +66,7 @@ typedef struct
   //uint8_t init_state;             //device init state    // Prekryva se se stavem inicializacni sekvence...
   uint32_t timer;                 //current operation timer
   atcd_at_cmd_seq_t init_seq;     //inicializacni sekvence
+  atcd_at_cmd_seq_t state_seq;    //sekvence kontroly stavu
   
   atcd_parser_t parser;           //AT cmd parser
 
@@ -103,8 +104,8 @@ void atcd_proc();                //data processing
 // Implementace budou pro jednotlive modemy...
 
 void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq);
-void atcd_restart_seq(atcd_at_cmd_seq_t *atc_seq);
-void atcd_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
+void atcd_restart_seq_step(atcd_at_cmd_seq_t *atc_seq);
+void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
 void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq);
 void atcd_gprs_deinit_seq(atcd_at_cmd_seq_t *atc_seq);

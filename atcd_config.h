@@ -50,10 +50,22 @@
   #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: Sekvence byla dokoncena.\r\n");
   #define ATCD_DBG_INIT_ERR_R           atcd_dbg_err("ATCD: INIT: atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n"); 
   
-  #define ATCD_DBG_SEQ_ERR              atcd_dbg_warn("ATCD: SEQ: Krok sekvence skoncil chybou!\r\n");
+  #define ATCD_DBG_SEQ_ERR              atcd_dbg_warn("ATCD: ATC_SEQ: Krok sekvence skoncil chybou!\r\n");
   #define ATCD_DBG_SEQ_ERR_MAX          atcd_dbg_warn("ATCD: ATC_SEQ: Dosazano maximalniho poctu chyb sekvence!\r\n");
   #define ATCD_DBG_SEQ_NEXT             atcd_dbg_inf("ATCD: ATC_SEQ: Spoustim dalsi krok sekvence.\r\n");
   #define ATCD_DBG_SEQ_STEP             atcd_dbg_inf("ATCD: ATC_SEQ: Odesilam dalsi krok sekvence.\r\n");
+
+  #define ATCD_DBG_IPD_TIM              atcd_dbg_err("ATCD: Vyprsel timeout na IPD!\r\n");
+  #define ATCD_DBG_START_TIM            atcd_dbg_err("ATCD: Vyprsel timeout na start!\r\n");
+  #define ATCD_DBG_INIT_START           atcd_dbg_inf("ATCD: INIT: Zacina inicializace zarizeni.\r\n");
+  #define ATCD_DBG_INIT_STEP            atcd_dbg_inf("ATCD: INIT: Provadim krok inicializace zarizeni.\r\n");
+  #define ATCD_DBG_INIT_ERR             atcd_dbg_err("ATCD: INIT: Inicializace selhala!\r\n");
+  #define ATCD_DBG_INIT_OK              atcd_dbg_inf("ATCD: INIT: Inicializace zarizeni byla dokoncena.\r\n");
+ 
+  #define ATCD_DBG_STAT_START           atcd_dbg_inf("ATCD: STAT: Dotazuji se na stav modemu.\r\n");
+  #define ATCD_DBG_STAT_STEP            atcd_dbg_inf("ATCD: STAT: Provadim krok dotazovani se na stav modemu\r\n");
+  #define ATCD_DBG_STAT_ERR             atcd_dbg_err("ATCD: STAT: Dotazovani na stav modemu selhalo.\r\n");
+  #define ATCD_DBG_STAT_OK              atcd_dbg_inf("ATCD: STAT: Dotazuji na stav modemu je hotovo.\r\n");
 
 #else if
   #define ATCD_DBG_BUFF_OVERRUN

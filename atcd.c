@@ -31,8 +31,6 @@ void atcd_init()                          //init AT command device
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
-  atcd_atc_seq_init(atcd.init_seq);   
-
   atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
@@ -51,8 +49,18 @@ void atcd_state_reset()                  //state machine reset
   atcd_atc_cancell_all();
   atcd_conn_reset_all(); 
 
-  atcd_atc_seq_init(atcd.init_seq);
   atcd_atc_init(&atcd.at_cmd);
+
+  atcd_atc_seq_init(&atcd.init_seq);
+  atcd.init_seq.at_cmd    = &atcd.at_cmd;
+  atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
+  atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
+
+  atcd_atc_seq_init(&atcd.state_seq);
+  atcd.init_seq.at_cmd    = &atcd.at_cmd;
+  atcd.init_seq.err_max   = 3;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
+  atcd.init_seq.make_step = &atcd_check_state_seq_step();    //mela by se nastavovat v init fce... 
+
   atcd.at_cmd_buff[0] = 0;
 
   atcd_gsm_reset();
@@ -103,69 +111,91 @@ void atcd_proc()               //data processing
     {
       // Pokud vyprsel timeout
       // Prechod parseru do rezimu AT prikazu
-      atcd_dbg_err("ATCD: Vyprsel timeout na IPD!\r\n");
+      ATCD_DBG_IPD_TIM
       atcd.parser.mode = ATCD_P_MODE_ATC;
 
       //osetrit spojeni kde dochazelo k prijmu dat...
     }
   }
 
-  // Test timeoutu v rezimu startu modemu
   if(atcd.state == ATCD_STATE_STARTING)
   {
+     // Test timeoutu v rezimu startu modemu
     if(atcd_get_ms() - atcd.timer > 10000)
     {
       // Restart modemu
-      atcd_dbg_err("ATCD: Vyprsel timeout na start!\r\n");
+      ATCD_DBG_START_TIM
       atcd_reset();
     }
   }
-
-  // Test dokonceni startu modemu
-  if(atcd.state == ATCD_STATE_ON)
+  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
   {
-    // Zahajime inicializacni sekcenci
-    atcd_dbg_inf("ATCD: INIT: Zacina inicializace zarizeni.\r\n");
-
-    //atcd.at_cmd_seq = 0;
-    atcd_atc_seq_init(&atcd.init_seq);
-
-    atcd.init_seq.at_cmd    = &atcd.at_cmd;
-    atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-    atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
-
-    //zavolat run
-
-    atcd.state      = ATCD_STATE_INIT;
-  }
-  
-  if(atcd.state == ATCD_STATE_INIT)
-  {
-    // Provedeme dalsi krok inicializace
-    //atcd_init_seq();
-
-    atcd_atc_seq_proc(&atcd.init_seq);
-
-    if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+    // Inicializovat jen pokud je toho HW schopen...
+    if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
     {
-      atcd_atc_seq_init(&atcd.init_seq);
-
-      atcd.init_seq.at_cmd    = &atcd.at_cmd;
-      atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-      atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
-
-      //zavolat run
+      // Zahajime inicializacni sekvenci
+      ATCD_DBG_INIT_START
+      atcd_atc_seq_run(&atcd.init_seq);
     }
   }
+  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_RUN)
+  {
+    // Provedeme dalsi krok inicializace
+    ATCD_DBG_INIT_STEP
+    atcd_atc_seq_proc(&atcd.init_seq);
+  }
+  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+  {
+    // Znovu spustime inicializaci
+    // === Doplnit restart po opakovanem selhani...
+    ATCD_DBG_INIT_ERR
+    atcd_atc_seq_run(&atcd.init_seq);
+  }
+  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_DONE)
+  {
+    // Inicializace je dokoncena
+    // Pripadne testy stavu a dalsi cinnosti na pozadi...
+    ATCD_DBG_INIT_OK
 
-  atcd_check_state_seq();
+    if(atcd_get_ms() - atcd.timer > 7500)
+    {
+      // Je cast spustit kontrolu stavu modemu
+      if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
+      {
+        ATCD_DBG_STAT_START
 
-  atcd_gsm_proc();
-  atcd_phone_proc();                     //phone processing
-  atcd_gprs_proc();                      //gprs processing
-  atcd_conn_proc();                      //connections processing  
-  atcd_gps_proc();
-  atcd_wifi_proc();
+        atcd.timer = atcd_get_ms();
+        atcd_atc_seq_run(&atcd.state_seq);
+      }
+    }
+
+    if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_RUN)
+    {
+      // Provedeme dalsi krok dotazovani na stav
+      ATCD_DBG_STAT_STEP
+      atcd_atc_seq_proc(&atcd.state_seq);
+    }
+    else if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+    {
+      // Znovu spustime dotazovani na stav
+      // === Doplnit restart po opakovanem selhani...
+      ATCD_DBG_STAT_ERR
+      atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT;
+    }
+    else if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_DONE)
+    {
+      // Dotazovani na stav je hotovo
+      ATCD_DBG_STAT_OK
+      atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT;
+    }
+
+    atcd_gsm_proc();
+    atcd_phone_proc();                     //phone processing
+    atcd_gprs_proc();                      //gprs processing
+    atcd_conn_proc();                      //connections processing  
+    atcd_gps_proc();
+    atcd_wifi_proc();
+  }
 }
 //------------------------------------------------------------------------------
 void atcd_rx_data(uint8_t *data, uint16_t len)
