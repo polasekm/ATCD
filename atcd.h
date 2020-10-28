@@ -44,9 +44,10 @@
 #define ATCD_STATE_SLEEP            2
 #define ATCD_STATE_ON               3
 
-#define ATCD_INIT_NONE              0
+// Prekryva se se stavem inicializacni sekvence...
+/*#define ATCD_INIT_NONE              0
 #define ATCD_INIT_RUN               1
-#define ATCD_INIT_DONE              2
+#define ATCD_INIT_DONE              2*/
 
 #define ATCD_EV_NONE                0x00
 #define ATCD_EV_STATE               0b00000001
@@ -62,6 +63,7 @@
 typedef struct
 {
   uint8_t state;                  //device state
+  //uint8_t init_state;             //device init state    // Prekryva se se stavem inicializacni sekvence...
   uint32_t timer;                 //current operation timer
   atcd_at_cmd_seq_t init_seq;     //inicializacni sekvence
   
@@ -98,16 +100,17 @@ void atcd_tx_complete();         //call on tx data complete
 
 void atcd_proc();                //data processing 
 //--------------------------------------------------------------
-// Implementace pro jednotlive modemy...
-void atcd_init_seq();
-void atcd_restart_seq();
-void atcd_check_state_seq();
+// Implementace budou pro jednotlive modemy...
+
+void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq);
+void atcd_restart_seq(atcd_at_cmd_seq_t *atc_seq);
+void atcd_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
-void atcd_gprs_init_seq();
-void atcd_gprs_deinit_seq();
-void atcd_gprs_check_state_seq();
+void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq);
+void atcd_gprs_deinit_seq(atcd_at_cmd_seq_t *atc_seq);
+void atcd_gprs_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
-void atcd_conns_check_state_seq();
+void atcd_conns_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
 void atcd_conn_open_seq(atcd_conn_t *conn);
 void atcd_conn_close_seq(atcd_conn_t *conn);

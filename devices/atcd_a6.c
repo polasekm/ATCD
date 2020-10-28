@@ -14,86 +14,66 @@
 extern atcd_t atcd;
 
 //------------------------------------------------------------------------------
-void atcd_init_seq()
+void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd = NULL;
 
-  if(atcd.at_cmd.state == ATCD_ATC_STATE_DONE || atcd.at_cmd.state == ATCD_ATC_STATE_FREE)
+  switch(atc_seq->step)
   {
-    if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
-    {
-      atcd.at_cmd_seq++;
-    }
-    else if(atcd.at_cmd.state != ATCD_ATC_STATE_FREE)
-    {
-      atcd_dbg_warn("ATCD: INIT: Sekvence skoncila chybou - zacinam znovu!\r\n");
-      atcd.at_cmd_seq = 0;
-    }
-
-    switch(atcd.at_cmd_seq)
-    {
-      case 0: cmd = "ATE1\r\n";            break;   // Enable AT cmd echo
-      case 1: cmd = "ATV1\r\n";            break;   // ???
-      case 2: cmd = "AT+CMEE=1\r\n";       break;   // Rezim vypisu chybovych hlaseni +CME
-      case 3: cmd = "AT+CFUN=1\r\n";       break;   // Plna fce zarizeni
-      case 4: cmd = "AT+CPIN?\r\n";        break;   // Je vyzadovan PIN?
-      case 5:
-        if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
-        {
-          atcd_dbg_inf("ATCD: INIT: PIN neni treba.\r\n");
-          atcd.at_cmd_seq++;
-        }
-        else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
-        {
-          atcd_dbg_inf("ATCD: INIT: Je treba zadat PIN.\r\n");
-          cmd = "AT+CPIN=\"1234\"\r\n";             // Zadame PIN
-          break;
-        }
-        else
-        {
-          atcd_dbg_err("ATCD: INIT: Na dotaz na PIN prisla neocekavana odpoved - zacinam znovu!\r\n");
-          atcd.at_cmd_seq = 0;
-          cmd = "ATE1\r\n";
-          break;
-        }
-
-      case 6: cmd = "AT+CLIP=1\r\n";     break;  // Zobrazovat cislo volajiciho
-      case 7: cmd = "AT+CMGF=1\r\n";     break;  // Textovy rezim SMS
-      case 8: cmd = "AT+CPMS?\r\n";      break;  // --- Test vyuziti pametovych prostoru na SMS
-      case 9: cmd = "AT+CMGD=1,4\r\n";  break;  // Smaze vsechny SMS na karte
-      case 10: cmd = "AT+CSDH=1\r\n";    break;  //
-      case 11: cmd = "AT+CNMI=0,2,0,0,0\r\n";    break;   // Rezim nakladani s novymi SMS
-      //case 12: cmd = "AT+CNMI=1,1,0,0,0\r\n";    break;   // Rezim nakladani s novymi SMS
-      case 12:
-        atcd_dbg_inf("ATCD: INIT: Sekvence byla dokoncena.\r\n");
-        atcd.at_cmd.state = ATCD_ATC_STATE_FREE;
-        atcd.state = ATCD_STATE_READY;
-        atcd.at_cmd_seq = 0;
+    case 0: cmd = "ATE1\r\n";            break;   // Enable AT cmd echo
+    case 1: cmd = "ATV1\r\n";            break;   // ???
+    case 2: cmd = "AT+CMEE=1\r\n";       break;   // Rezim vypisu chybovych hlaseni +CME
+    case 3: cmd = "AT+CFUN=1\r\n";       break;   // Plna fce zarizeni
+    case 4: cmd = "AT+CPIN?\r\n";        break;   // Je vyzadovan PIN?
+    case 5:
+      if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
+      {
+        ATCD_DBG_PIN_NONE
+        atc_seq->step++;
+      }
+      else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
+      {
+        ATCD_DBG_PIN_REQ
+        cmd = "AT+CPIN=\"1234\"\r\n";             // Zadame PIN
         break;
-
-      default: 
-        atcd_dbg_err("ATCD: INIT: atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n");
-        atcd.at_cmd_seq = 0;
+      }
+      else
+      {
+        ATCD_DBG_PIN_ERR
+        atc_seq->step = 0;
         cmd = "ATE1\r\n";
         break;
-    }
+      }
 
-    if(atcd.state == ATCD_STATE_INIT)
-    {
-      atcd_dbg_inf("ATCD: INIT: Odesilam dalsi krok sekvence.\r\n");
-      atcd_atc_init(&atcd.at_cmd);
-      atcd.at_cmd.cmd = cmd;
-      atcd_atc_exec(&atcd.at_cmd);
-    }
+    case 6: cmd = "AT+CLIP=1\r\n";     break;  // Zobrazovat cislo volajiciho
+    case 7: cmd = "AT+CMGF=1\r\n";     break;  // Textovy rezim SMS
+    case 8: cmd = "AT+CPMS?\r\n";      break;  // --- Test vyuziti pametovych prostoru na SMS
+    case 9: cmd = "AT+CMGD=1,4\r\n";  break;  // Smaze vsechny SMS na karte
+    case 10: cmd = "AT+CSDH=1\r\n";    break;  //
+    case 11: cmd = "AT+CNMI=0,2,0,0,0\r\n";    break;   // Rezim nakladani s novymi SMS
+    //case 12: cmd = "AT+CNMI=1,1,0,0,0\r\n";    break;   // Rezim nakladani s novymi SMS
+    case 12:
+      // Inicializace byla dokoncena
+      ATCD_DBG_INIT_DONE
+      atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
+      break;
+
+    default:
+      ATCD_DBG_INIT_ERR_R
+      atc_seq->step = 0;
+      cmd = "ATE1\r\n";
+      break;
   }
+
+  atc_seq->at_cmd->cmd = cmd;
 }
 //------------------------------------------------------------------------------
-void atcd_restart_seq()
+void atcd_restart_seq(atcd_at_cmd_seq_t *atc_seq)
 {
   
 }
 //------------------------------------------------------------------------------
-void atcd_check_state_seq()
+void atcd_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd;
 
@@ -112,7 +92,7 @@ void atcd_check_state_seq()
   }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_init_seq()
+void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd;
 
@@ -216,7 +196,7 @@ void atcd_gprs_init_seq()
   }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_deinit_seq()
+void atcd_gprs_deinit_seq(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd;
 
@@ -301,7 +281,7 @@ void atcd_gprs_deinit_seq()
   }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_check_state_seq()
+void atcd_gprs_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
 {
   //--------------------------------------------------
   // Zpracovani vysledku posledne volaneho AT prikazu
@@ -386,7 +366,7 @@ void atcd_gprs_check_state_seq()
   }
 }
 //------------------------------------------------------------------------------
-void atcd_conns_check_state_seq()
+void atcd_conns_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
 {
 
 }

@@ -26,9 +26,10 @@ void atcd_init()                          //init AT command device
 {
   atc_dev_hw_init();                      //HW init
 
-  atcd.state     = ATCD_STATE_OFF;
-  atcd.cb_events = ATCD_EV_ALL;
-  atcd.callback  = NULL;
+  atcd.state      = ATCD_STATE_OFF;
+  //atcd.init_state = ATCD_INIT_NONE;            // Prekryva se se stavem inicializacni sekvence...
+  atcd.cb_events  = ATCD_EV_ALL;
+  atcd.callback   = NULL;
 
   atcd_atc_seq_init(atcd.init_seq);   
 
@@ -98,9 +99,10 @@ void atcd_proc()               //data processing
   // Test timeoutu v rezimu prijmu dat
   if(atcd.parser.mode == ATCD_P_MODE_IPD)
   {
-    // Prechod parseru do rezimu AT prikazu
     if(atcd_get_ms() - atcd.parser.timer > 4000)
     {
+      // Pokud vyprsel timeout
+      // Prechod parseru do rezimu AT prikazu
       atcd_dbg_err("ATCD: Vyprsel timeout na IPD!\r\n");
       atcd.parser.mode = ATCD_P_MODE_ATC;
 
@@ -124,14 +126,36 @@ void atcd_proc()               //data processing
   {
     // Zahajime inicializacni sekcenci
     atcd_dbg_inf("ATCD: INIT: Zacina inicializace zarizeni.\r\n");
-    atcd.at_cmd_seq = 0;
+
+    //atcd.at_cmd_seq = 0;
+    atcd_atc_seq_init(&atcd.init_seq);
+
+    atcd.init_seq.at_cmd    = &atcd.at_cmd;
+    atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
+    atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
+
+    //zavolat run
+
     atcd.state      = ATCD_STATE_INIT;
   }
   
   if(atcd.state == ATCD_STATE_INIT)
   {
     // Provedeme dalsi krok inicializace
-    atcd_init_seq(); 
+    //atcd_init_seq();
+
+    atcd_atc_seq_proc(&atcd.init_seq);
+
+    if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+    {
+      atcd_atc_seq_init(&atcd.init_seq);
+
+      atcd.init_seq.at_cmd    = &atcd.at_cmd;
+      atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
+      atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
+
+      //zavolat run
+    }
   }
 
   atcd_check_state_seq();

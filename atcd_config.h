@@ -42,6 +42,19 @@
   #define ATCD_DBG_CREG_ERR             atcd_dbg_warn("ATCD: GSM +CREG: x je mimo rozah.\r\n");
   #define ATCD_DBG_ATC_BUFF_OV          atcd_dbg_warn("ATCD: V cilovem bufferu ATC neni dost mista!\r\n");
   #define ATCD_DBG_RESET                atcd_dbg_warn("ATCD: Reset zarizeni.\r\n");
+
+  #define ATCD_DBG_PIN_NONE             atcd_dbg_inf("ATCD: INIT: PIN neni treba.\r\n");
+  #define ATCD_DBG_PIN_REQ              atcd_dbg_inf("ATCD: INIT: Je treba zadat PIN.\r\n");
+  #define ATCD_DBG_PIN_ERR              atcd_dbg_err("ATCD: INIT: Na dotaz na PIN prisla neocekavana odpoved - zacinam znovu!\r\n");
+
+  #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: Sekvence byla dokoncena.\r\n");
+  #define ATCD_DBG_INIT_ERR_R           atcd_dbg_err("ATCD: INIT: atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n"); 
+  
+  #define ATCD_DBG_SEQ_ERR              atcd_dbg_warn("ATCD: SEQ: Krok sekvence skoncil chybou!\r\n");
+  #define ATCD_DBG_SEQ_ERR_MAX          atcd_dbg_warn("ATCD: ATC_SEQ: Dosazano maximalniho poctu chyb sekvence!\r\n");
+  #define ATCD_DBG_SEQ_NEXT             atcd_dbg_inf("ATCD: ATC_SEQ: Spoustim dalsi krok sekvence.\r\n");
+  #define ATCD_DBG_SEQ_STEP             atcd_dbg_inf("ATCD: ATC_SEQ: Odesilam dalsi krok sekvence.\r\n");
+
 #else if
   #define ATCD_DBG_BUFF_OVERRUN
   #define ATCD_DBG_ATC_LN_BUFF_OV
@@ -52,6 +65,11 @@
   #define ATCD_DBG_ATC_BUFF_OV
   #define ATCD_DBG_RESET
 
+  #define ATCD_DBG_PIN_NONE
+  #define ATCD_DBG_PIN_REQ
+  #define ATCD_DBG_PIN_ERR
+
+
 #endif /* ATCD_DBG */
 
 //#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
@@ -59,8 +77,11 @@
 //-----------------------------
 #define ATCD_P_BUFF_SIZE 512
 
+/*
+Casem smazat...
+
 #define ATCD_FAIL 0
-#define ATCD_OK   1
+#define ATCD_OK   1*/
 //-----------------------------
 
 #ifndef ATCD_USE_DEVICE

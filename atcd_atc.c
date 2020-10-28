@@ -19,6 +19,8 @@ void atcd_atc_cancell_all();                  //cancel all AT commands in queue
 //------------------------------------------------------------------------------
 void atcd_atc_init(atcd_at_cmd_t *at_cmd)     //init AT command
 {
+  // napred test zda neni ve fronte...
+  
   at_cmd->state  = ATCD_ATC_STATE_DONE;                  
   at_cmd->result = ATCD_ATC_RESULT_UNKNOWN;
   at_cmd->next   = NULL;
