@@ -43,8 +43,8 @@ typedef struct
   char at_cmd_str[40];            //buffer pro sestaveny AT prikaz
   char at_cmd_resp[100];          //buffer pro odpoved AT prikazu
 
-  uint8_t at_cmd_seq;
-  uint8_t err_cnt;                //error counter
+  //uint8_t at_cmd_seq;
+  //uint8_t err_cnt;                //error counter
   uint32_t timer;                 //current operation timer
 
   char *apn;                      //APN

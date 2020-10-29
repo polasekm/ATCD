@@ -107,9 +107,9 @@ void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq);
 void atcd_restart_seq_step(atcd_at_cmd_seq_t *atc_seq);
 void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
-void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq);
-void atcd_gprs_deinit_seq(atcd_at_cmd_seq_t *atc_seq);
-void atcd_gprs_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
+void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq);
+void atcd_gprs_deinit_seq_step(atcd_at_cmd_seq_t *atc_seq);
+void atcd_gprs_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
 void atcd_conns_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------

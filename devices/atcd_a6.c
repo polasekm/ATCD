@@ -82,7 +82,7 @@ void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq)
     case 0: cmd = "AT+CREG?\r\n";        break;   // Stav registrace do site
     case 1:
       // Inicializace byla dokoncena
-      atcd_dbg_inf("ATCD: STAT: Dotazuji na stav bylo dokonceno.\r\n");
+      atcd_dbg_inf("ATCD: STAT: Dotazovani na stav modemu bylo dokonceno.\r\n");
       atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
       break;
 
@@ -95,9 +95,43 @@ void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq)
   atc_seq->at_cmd->cmd = cmd;
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_init_seq(atcd_at_cmd_seq_t *atc_seq)
+void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
-  char *cmd;
+  char *cmd = NULL;
+
+  switch(atc_seq->step)
+  {
+    case 0:         
+      atcd_dbg_inf("GPRS: INIT: Zacinam s inicializaci GPRS.\r\n");
+      atcd.gprs.at_cmd_seq = 1;
+
+    case 1: cmd = "AT+CGATT=1\r\n";                           break;
+    case 2: cmd = "AT+CIPMUX=1\r\n";                          break;
+    case 3: cmd = "AT+CSTT=\"internet\",\"\",\"\"\r\n";       break;
+    case 4: cmd = "AT+CGDCONT=1,\"IP\",\"internet\"\r\n";     break;
+    //case 4: cmd = "AT+CGACT=1,1\r\n";                         break;
+    case 5: cmd = "AT+CIICR\r\n";                             break;
+    //case 4: cmd = "AT+CIFSR \r\n";                             break;
+
+    // Konec inicializacni sekvence
+    case 6:
+      atcd_dbg_inf("GPRS: INIT: Init sekvence dokoncena - cekam na pripojeni.\r\n");
+      //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
+      atcd.gprs.state = ATCD_GPRS_STATE_CONN;
+      atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
+      return;
+
+    // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
+    default:
+      atcd_dbg_err("GPRS: INIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+      atc_seq->step = 1;
+      cmd = "AT+CGATT=1\r\n";   
+      break;
+  }
+
+  //atcd_dbg_inf("GPRS: INIT: Odesilam AT prikaz ze sekvence.\r\n");
+  atc_seq->at_cmd->timeout = 40000;
+  atc_seq->at_cmd->cmd     = cmd;
 
   //--------------------------------------------------
   // Zpracovani vysledku posledne volaneho AT prikazu
