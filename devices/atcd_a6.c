@@ -82,7 +82,7 @@ void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq)
     case 0: cmd = "AT+CREG?\r\n";        break;   // Stav registrace do site
     case 1:
       // Inicializace byla dokoncena
-      atcd_dbg_inf("ATCD: STAT: Dotazovani na stav modemu bylo dokonceno.\r\n");
+      ATCD_DBG_STAT_DONE
       atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
       break;
 
@@ -102,8 +102,8 @@ void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
   switch(atc_seq->step)
   {
     case 0:         
-      atcd_dbg_inf("GPRS: INIT: Zacinam s inicializaci GPRS.\r\n");
-      atcd.gprs.at_cmd_seq = 1;
+      ATCD_DBG_GPRS_INIT_START
+      atc_seq->step = 1;
 
     case 1: cmd = "AT+CGATT=1\r\n";                           break;
     case 2: cmd = "AT+CIPMUX=1\r\n";                          break;
@@ -115,7 +115,7 @@ void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
 
     // Konec inicializacni sekvence
     case 6:
-      atcd_dbg_inf("GPRS: INIT: Init sekvence dokoncena - cekam na pripojeni.\r\n");
+      ATCD_DBG_GPRS_INIT_OK
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
       atcd.gprs.state = ATCD_GPRS_STATE_CONN;
       atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
@@ -123,7 +123,7 @@ void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
 
     // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
     default:
-      atcd_dbg_err("GPRS: INIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+      ATCD_DBG_GPRS_INIT_ERR_R
       atc_seq->step = 1;
       cmd = "AT+CGATT=1\r\n";   
       break;
@@ -132,275 +132,70 @@ void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
   //atcd_dbg_inf("GPRS: INIT: Odesilam AT prikaz ze sekvence.\r\n");
   atc_seq->at_cmd->timeout = 40000;
   atc_seq->at_cmd->cmd     = cmd;
-
-  //--------------------------------------------------
-  // Zpracovani vysledku posledne volaneho AT prikazu
-  //--------------------------------------------------
-  if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_DONE)
-  {
-    // AT prikaz byl dokoncen
-    if(atcd.gprs.at_cmd_seq == 0)
-    {
-      // Pokud se jedna o prechod z jineho stavu,
-      // tak nas vysledek predchoziho AT prikazu nezajima...
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
-    else 
-    {
-      // Zpracujeme vysledek AT prikazu
-      if(atcd.gprs.at_cmd.result == ATCD_ATC_RESULT_OK)
-      {
-        // Zpracovani probehlo v poradku
-        atcd_dbg_inf("GPRS: INIT: AT prikaz byl dokoncen.\r\n");
-
-        // ... Zpracovat odpoved...
-
-        // Posuneme se na dalsi krok sekvence
-        atcd.gprs.at_cmd_seq++;
-        // Vynulujeme citac chyb
-        atcd.gprs.err_cnt = 0;
-      }
-      else 
-      {
-        // Pri zpracovani doslo k chybe
-        atcd_dbg_warn("GPRS: INIT: Pri zpracovani AT prikazu doslo k chybe.\r\n");
-        // Posuneme sekvenci zpet na zacatek
-        atcd.gprs.at_cmd_seq = 1;
-        // Inkrementujeme citac chyb
-        atcd.gprs.err_cnt++;
-        if(atcd.gprs.err_cnt >= 5)
-        {
-          // Pokus o opravu odpojenim a znovu pripojenim
-          atcd_dbg_warn("GPRS: INIT: Prekrocen pocet neuspesnych pokusu, zkousim o opravu odpojenim a znovu pripojenim.\r\n");
-          atcd_atc_init(&atcd.gprs.at_cmd);
-          atcd.gprs.at_cmd.cmd = "AT+CGATT=0\r\n";
-          atcd.gprs.at_cmd.timeout = 10000;
-          atcd_atc_exec(&atcd.gprs.at_cmd);
-          return;
-        }
-      }
-
-      // Nastavime AT prikaz jako uvolneny
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
-  }
-  //--------------------------------------------------
-  // Pripadne odeslani dotazu
-  //--------------------------------------------------
-  // Pokud se jeste provadi AT prikaz, pockame na jeho dokonceni
-  if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_FREE)
-  {
-    // Inicializace struktuty AT prikazu
-    atcd_atc_init(&atcd.gprs.at_cmd);
-    atcd.gprs.at_cmd.timeout = 40000;
-
-    // Volba prikazu ze sekvence
-    switch(atcd.gprs.at_cmd_seq)
-    {
-      case 0:         
-        atcd_dbg_inf("GPRS: INIT: Zacinam s inicializaci GPRS.\r\n");
-        atcd.gprs.at_cmd_seq = 1;
-
-      case 1: cmd = "AT+CGATT=1\r\n";                           break;
-      case 2: cmd = "AT+CIPMUX=1\r\n";                          break;
-      case 3: cmd = "AT+CSTT=\"internet\",\"\",\"\"\r\n";       break;
-      case 4: cmd = "AT+CGDCONT=1,\"IP\",\"internet\"\r\n";     break;
-      //case 4: cmd = "AT+CGACT=1,1\r\n";                         break;
-      case 5: cmd = "AT+CIICR\r\n";                             break;
-      //case 4: cmd = "AT+CIFSR \r\n";                             break;
-
-      // Konec inicializacni sekvence
-      case 6:
-        atcd_dbg_inf("GPRS: INIT: Init sekvence dokoncena - cekam na pripojeni.\r\n");
-        //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
-        atcd.gprs.state = ATCD_GPRS_STATE_CONN;
-        atcd.gprs.at_cmd_seq = 0;
-        atcd.gprs.err_cnt = 0;
-        return;
-
-      // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
-      default:
-        atcd_dbg_err("GPRS: INIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
-        atcd.gprs.at_cmd_seq = 1;
-        cmd = "AT+CGATT=1\r\n";   
-        break;
-    }
-
-    // Odesleme AT prikaz
-    atcd_dbg_inf("GPRS: INIT: Odesilam AT prikaz ze sekvence.\r\n");
-    atcd.gprs.at_cmd.cmd = cmd;
-    atcd_atc_exec(&atcd.gprs.at_cmd);
-  }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_deinit_seq(atcd_at_cmd_seq_t *atc_seq)
+void atcd_gprs_deinit_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd;
 
-  //--------------------------------------------------
-  // Zpracovani vysledku posledne volaneho AT prikazu
-  //--------------------------------------------------
-  if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_DONE)
+  // Volba prikazu ze sekvence
+  switch(atc_seq->step)
   {
-    // AT prikaz byl dokoncen
-    if(atcd.gprs.at_cmd_seq == 0)
-    {
-      // Pokud se jedna o prechod z jineho stavu,
-      // tak nas vysledek predchoziho AT prikazu nezajima...
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
-    else 
-    {
-      // Zpracujeme vysledek AT prikazu
-      if(atcd.gprs.at_cmd.result == ATCD_ATC_RESULT_OK)
-      {
-        // Zpracovani probehlo v poradku
-        atcd_dbg_inf("GPRS: DEINIT: AT prikaz byl dokoncen.\r\n");
+    case 0:
+      ATCD_DBG_GPRS_DEINIT_START
+      atc_seq->step = 1;
 
-        // ... Zpracovat odpoved...
+    case 1: cmd = "AT+CIPSHUT\r\n";                          break;
 
-        // Posuneme se na dalsi krok sekvence
-        atcd.gprs.at_cmd_seq++;
-        // Vynulujeme citac chyb
-        atcd.gprs.err_cnt = 0;
-      }
-      else 
-      {
-        // Pri zpracovani doslo k chybe
-        atcd_dbg_warn("GPRS: DEINIT: Pri zpracovani AT prikazu doslo k chybe.\r\n");
-        // Posuneme sekvenci zpet na zacatek
-        atcd.gprs.at_cmd_seq = 1;
-      }
+    // Konec deinicializacni sekvence
+    case 2:
+      ATCD_DBG_GPRS_DEINIT_OK
+      atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atc_seq->step = 0;
+      break;
 
-      // Nastavime AT prikaz jako uvolneny
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
+    // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
+    default:
+      ATCD_DBG_GPRS_DEINIT_ERR_R
+      atc_seq->step = 1;
+      cmd = "AT+CIPSHUT\r\n";
+      break;
   }
-  //--------------------------------------------------
-  // Pripadne odeslani dotazu
-  //--------------------------------------------------
-  // Pokud se jeste provadi AT prikaz, pockame na jeho dokonceni
-  if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_FREE)
-  {
-    // Inicializace struktuty AT prikazu
-    atcd_atc_init(&atcd.gprs.at_cmd);
-    atcd.gprs.at_cmd.timeout = 40000;
 
-    // Volba prikazu ze sekvence
-    switch(atcd.gprs.at_cmd_seq)
-    {
-      case 0:         
-        atcd_dbg_inf("GPRS: DEINIT: Zacinam s deinicializaci GPRS.\r\n");
-        atcd.gprs.at_cmd_seq = 1;
-
-      case 1: cmd = "AT+CIPSHUT\r\n";                          break;
-
-      // Konec deinicializacni sekvence
-      case 2:
-        atcd_dbg_inf("GPRS: DEINIT: Deinit sekvence dokoncena.\r\n");
-        atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
-        atcd.gprs.at_cmd_seq = 0;
-        atcd.gprs.err_cnt = 0;
-        break;
-
-      // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
-      default:
-        atcd_dbg_err("GPRS: DEINIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
-        atcd.gprs.at_cmd_seq = 1;
-        cmd = "AT+CIPSHUT\r\n";  
-        break;
-    }
-
-    // Odesleme AT prikaz
-    atcd_dbg_inf("GPRS: DEINIT: Odesilam AT prikaz ze sekvence.\r\n");
-    atcd.gprs.at_cmd.cmd = cmd;
-    atcd_atc_exec(&atcd.gprs.at_cmd);
-  }
+  // Odesleme AT prikaz
+  //atcd_dbg_inf("GPRS: DEINIT: Odesilam AT prikaz ze sekvence.\r\n");
+  atc_seq->at_cmd->timeout = 40000;
+  atc_seq->at_cmd->cmd     = cmd;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
 {
-  //--------------------------------------------------
-  // Zpracovani vysledku posledne volaneho AT prikazu
-  //--------------------------------------------------
-  if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_DONE)
+  char *cmd;
+
+  // Volba prikazu ze sekvence
+  switch(atc_seq->step)
   {
-    // AT prikaz byl dokoncen
-    if(atcd.gprs.at_cmd_seq == 0)
-    {
-      // Pokud se jedna o prechod z jineho stavu,
-      // tak nas vysledek predchoziho AT prikazu nezajima...
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
-    else 
-    {
-      // Zpracujeme vysledek AT prikazu
-      if(atcd.gprs.at_cmd.result == ATCD_ATC_RESULT_OK)
-      {
-        // Zpracovani probehlo v poradku
-        atcd_dbg_inf("GPRS: STAT: AT prikaz byl dokoncen.\r\n");
-        // ... Zpracovbat odpoved...
-      }
-      else 
-      {
-        // Pri zpracovani doslo k chybe
-        atcd_dbg_warn("GPRS: STAT: Pri zpracovani AT prikazu doslo k chybe.\r\n");
-      }
+    case 0:
+      ATCD_DBG_GPRS_STAT_CGATT
+      cmd = "AT+CGATT?\r\n";
+      break;
 
-      // Posuneme se na dalsi krok sekvence
-      atcd.gprs.at_cmd_seq++;
-      // Nastavime AT prikaz jako uvolneny
-      atcd.gprs.at_cmd.state = ATCD_ATC_STATE_FREE;
-    }
+    case 1:
+      atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
+      cmd = "AT+CGATT?\r\n";
+      break;
+
+    default:
+      atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
+      atc_seq->step = 1;
+      cmd = "AT+CGATT?\r\n";
+      break;
   }
-  //--------------------------------------------------
-  // Test timeoutu a pripadne odeslani dotazu
-  //--------------------------------------------------
-  if(atcd_get_ms() - atcd.gprs.timer > 2000)
-  {
-    atcd.gprs.timer = atcd_get_ms();
-    atcd_dbg_inf("GPRS: STAT: Kontrola stavu pripojeni.\r\n");
-    
-    // Pokud se jeste provadi AT prikaz, pockame na jeho dokonceni
-    if(atcd.gprs.at_cmd.state == ATCD_ATC_STATE_FREE)
-    {
-      // Inicializace struktuty AT prikazu
-      atcd_atc_init(&atcd.gprs.at_cmd);
-      atcd.gprs.at_cmd.timeout = 5000;
 
-      // Volba prikazu ze sekvence
-      switch(atcd.gprs.at_cmd_seq)
-      {
-        case 0:         
-          atcd_dbg_inf("GPRS: STAT: Zacinam s testy stavu GPRS.\r\n");
-          atcd.gprs.at_cmd_seq = 1;
-        case 1:         
-          atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
-          atcd.gprs.at_cmd.cmd = "AT+CGATT?\r\n";  
-          break;
-
-        case 2:
-          atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
-          atcd.gprs.at_cmd.cmd = "AT+CGATT?\r\n";  
-          break;
-
-        case 3:
-          atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
-          atcd.gprs.at_cmd.cmd = "AT+CGATT?\r\n";  
-          break;
-
-        default:
-         atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
-          atcd.gprs.at_cmd_seq = 1;
-          atcd.gprs.at_cmd.cmd = "AT+CGATT?\r\n";  
-          break;
-      }
-
-      // Odesleme AT prikaz
-      atcd_dbg_inf("GPRS: STAT: Odesilam AT prikaz ze sekvence.\r\n");
-      atcd_atc_exec(&atcd.gprs.at_cmd);
-    }
-  }
+  // Odesleme AT prikaz
+  //atcd_dbg_inf("GPRS: STAT: Odesilam AT prikaz ze sekvence.\r\n");
+  atc_seq->at_cmd->timeout = 5000;
+  atc_seq->at_cmd->cmd     = cmd;
 }
 //------------------------------------------------------------------------------
 void atcd_conns_check_state_seq(atcd_at_cmd_seq_t *atc_seq)

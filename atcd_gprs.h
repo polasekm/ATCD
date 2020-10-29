@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "atcd_atc.h"
+#include "atcd_atc_seq.h"
 #include "atcd_phone.h"
 
 /* Exported functions ------------------------------------------------------- */
@@ -43,8 +44,9 @@ typedef struct
   char at_cmd_str[40];            //buffer pro sestaveny AT prikaz
   char at_cmd_resp[100];          //buffer pro odpoved AT prikazu
 
-  //uint8_t at_cmd_seq;
-  //uint8_t err_cnt;                //error counter
+  atcd_at_cmd_seq_t atc_seq;     //sekvence at prikazu
+
+  //uint8_t err_cnt;
   uint32_t timer;                 //current operation timer
 
   char *apn;                      //APN

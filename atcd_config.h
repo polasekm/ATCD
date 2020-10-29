@@ -49,6 +49,8 @@
 
   #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: Sekvence byla dokoncena.\r\n");
   #define ATCD_DBG_INIT_ERR_R           atcd_dbg_err("ATCD: INIT: atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n"); 
+
+  #define ATCD_DBG_STAT_DONE            atcd_dbg_inf("ATCD: STAT: Dotazovani na stav modemu bylo dokonceno.\r\n");
   
   #define ATCD_DBG_SEQ_ERR              atcd_dbg_warn("ATCD: ATC_SEQ: Krok sekvence skoncil chybou!\r\n");
   #define ATCD_DBG_SEQ_ERR_MAX          atcd_dbg_warn("ATCD: ATC_SEQ: Dosazano maximalniho poctu chyb sekvence!\r\n");
@@ -66,6 +68,24 @@
   #define ATCD_DBG_STAT_STEP            atcd_dbg_inf("ATCD: STAT: Provadim krok dotazovani se na stav modemu\r\n");
   #define ATCD_DBG_STAT_ERR             atcd_dbg_err("ATCD: STAT: Dotazovani na stav modemu selhalo.\r\n");
   #define ATCD_DBG_STAT_OK              atcd_dbg_inf("ATCD: STAT: Dotazuji na stav modemu je hotovo.\r\n");
+
+  #define ATCD_DBG_GPRS_SEQ_STEP       atcd_dbg_inf("ATCD: GPRS: SEQ: Provadim krok sekvence AT prikazu GPRS.\r\n");
+  #define ATCD_DBG_GPRS_SEQ_ERR        atcd_dbg_warn("ATCD: GPRS: SEQ: Prekrocen pocet neuspesnych pokusu, zkousim o opravu odpojenim a znovu pripojenim.\r\n");
+  #define ATCD_DBG_GPRS_SEQ_OK         atcd_dbg_inf("ATCD: GPRS: SEQ: Sekvence AT prikazu byla dokoncena.\r\n");
+  #define ATCD_DBG_GPRS_STATE_ERR      atcd_dbg_err("ATCD: GPRS: Stav GPRS je mimo rozah.\r\n");
+
+  #define ATCD_DBG_GPRS_STAT_START     atcd_dbg_inf("GPRS: STAT: Kontrola stavu pripojeni.\r\n");
+  #define ATCD_DBG_GPRS_STAT_CGATT     atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
+  
+  #define ATCD_DBG_GPRS_INIT_START     atcd_dbg_inf("GPRS: INIT: Zacinam s inicializaci GPRS.\r\n");
+  #define ATCD_DBG_GPRS_INIT_OK        atcd_dbg_inf("GPRS: INIT: Init sekvence dokoncena - cekam na pripojeni.\r\n");
+  #define ATCD_DBG_GPRS_INIT_ERR_R     atcd_dbg_err("GPRS: INIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+
+  #define ATCD_DBG_GPRS_DEINIT_START   atcd_dbg_inf("GPRS: DEINIT: Zacinam s deinicializaci GPRS.\r\n");
+  #define ATCD_DBG_GPRS_DEINIT_OK      atcd_dbg_inf("GPRS: DEINIT: Deinit sekvence dokoncena.\r\n");
+  #define ATCD_DBG_GPRS_DEINIT_ERR_R   atcd_dbg_err("GPRS: DEINIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+  
+
 
 #else if
   #define ATCD_DBG_BUFF_OVERRUN
