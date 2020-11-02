@@ -51,15 +51,10 @@ void atcd_state_reset()                  //state machine reset
 
   atcd_atc_init(&atcd.at_cmd);
 
-  atcd_atc_seq_init(&atcd.init_seq);
-  atcd.init_seq.at_cmd    = &atcd.at_cmd;
-  atcd.init_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-  atcd.init_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
-
-  atcd_atc_seq_init(&atcd.state_seq);
-  atcd.init_seq.at_cmd    = &atcd.at_cmd;
-  atcd.init_seq.err_max   = 3;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-  atcd.init_seq.make_step = &atcd_check_state_seq_step();    //mela by se nastavovat v init fce... 
+  atcd_atc_seq_init(&atcd.atc_seq);
+  atcd.atc_seq.at_cmd    = &atcd.at_cmd;
+  atcd.atc_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
+  atcd.atc_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
 
   atcd.at_cmd_buff[0] = 0;
 
@@ -117,7 +112,7 @@ void atcd_proc()               //data processing
       //osetrit spojeni kde dochazelo k prijmu dat...
     }
   }
-
+  //----------------------------------------------
   if(atcd.state == ATCD_STATE_STARTING)
   {
      // Test timeoutu v rezimu startu modemu
@@ -128,65 +123,72 @@ void atcd_proc()               //data processing
       atcd_reset();
     }
   }
-  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
+  else if(atcd.state == ATCD_STATE_NO_INIT)
   {
-    // Inicializovat jen pokud je toho HW schopen...
-    if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
+    // Zpracovani inicializace modemu
+    if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
     {
       // Zahajime inicializacni sekvenci
       ATCD_DBG_INIT_START
-      atcd_atc_seq_run(&atcd.init_seq);
+      atcd_atc_seq_run(&atcd.atc_seq);
+    }
+    else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_RUN)
+    {
+      // Provedeme dalsi krok inicializace
+      // ATCD_DBG_INIT_STEP
+      atcd_atc_seq_proc(&atcd.atc_seq);
+    }
+    else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+    {
+      // Znovu spustime inicializaci
+      // === Doplnit restart po opakovanem selhani...
+      ATCD_DBG_INIT_ERR
+      atcd_atc_seq_run(&atcd.atc_seq);
+    }
+    else if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_DONE)
+    {
+      // Inicializace je dokoncena
+      ATCD_DBG_INIT_OK
+      // Zmenime stav zarizeni    
+      atcd.state = ATCD_STATE_ON;
+      atcd.atc_seq.state = ATCD_ATC_SEQ_STATE_WAIT;
     }
   }
-  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_RUN)
+  else if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
   {
-    // Provedeme dalsi krok inicializace
-    ATCD_DBG_INIT_STEP
-    atcd_atc_seq_proc(&atcd.init_seq);
-  }
-  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
-  {
-    // Znovu spustime inicializaci
-    // === Doplnit restart po opakovanem selhani...
-    ATCD_DBG_INIT_ERR
-    atcd_atc_seq_run(&atcd.init_seq);
-  }
-  else if(atcd.init_seq.state == ATCD_ATC_SEQ_STATE_DONE)
-  {
-    // Inicializace je dokoncena
+    // Zarizeni je pripraveno k praci, pripadne spi...
     // Pripadne testy stavu a dalsi cinnosti na pozadi...
-    ATCD_DBG_INIT_OK
 
     if(atcd_get_ms() - atcd.timer > 7500)
     {
       // Je cast spustit kontrolu stavu modemu
-      if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
+      if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
       {
         ATCD_DBG_STAT_START
 
         atcd.timer = atcd_get_ms();
-        atcd_atc_seq_run(&atcd.state_seq);
+        atcd_atc_seq_run(&atcd.atc_seq);
       }
     }
 
-    if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_RUN)
+    if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_RUN)
     {
       // Provedeme dalsi krok dotazovani na stav
-      ATCD_DBG_STAT_STEP
-      atcd_atc_seq_proc(&atcd.state_seq);
+      // ATCD_DBG_STAT_STEP
+      atcd_atc_seq_proc(&atcd.atc_seq);
     }
-    else if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+    else if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
     {
       // Znovu spustime dotazovani na stav
       // === Doplnit restart po opakovanem selhani...
       ATCD_DBG_STAT_ERR
-      atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT;
+      atcd.atc_seq.state = ATCD_ATC_SEQ_STATE_WAIT;
     }
-    else if(atcd.state_seq.state == ATCD_ATC_SEQ_STATE_DONE)
+    else if(atcd.atc_seq.state == ATCD_ATC_SEQ_STATE_DONE)
     {
       // Dotazovani na stav je hotovo
       ATCD_DBG_STAT_OK
-      atcd.state_seq.state == ATCD_ATC_SEQ_STATE_WAIT;
+      atcd.atc_seq.state = ATCD_ATC_SEQ_STATE_WAIT;
     }
 
     atcd_gsm_proc();
@@ -196,6 +198,7 @@ void atcd_proc()               //data processing
     atcd_gps_proc();
     atcd_wifi_proc();
   }
+  //----------------------------------------------
 }
 //------------------------------------------------------------------------------
 void atcd_rx_data(uint8_t *data, uint16_t len)
@@ -288,7 +291,7 @@ void atcd_rx_ch(char ch)
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
   {
     ATCD_DBG_BOOT_SEQ
-    atcd.state = ATCD_STATE_ON;
+    atcd.state = ATCD_STATE_NO_INIT;
     atcd.parser.buff_pos = atcd.parser.line_pos;
     atcd_state_reset();
     if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);

@@ -41,8 +41,9 @@
 // modulech
 #define ATCD_STATE_OFF              0
 #define ATCD_STATE_STARTING         1
-#define ATCD_STATE_SLEEP            2
-#define ATCD_STATE_ON               3
+#define ATCD_STATE_NO_INIT          2
+#define ATCD_STATE_SLEEP            3
+#define ATCD_STATE_ON               4
 
 // Prekryva se se stavem inicializacni sekvence...
 /*#define ATCD_INIT_NONE              0
@@ -65,8 +66,7 @@ typedef struct
   uint8_t state;                  //device state
   //uint8_t init_state;             //device init state    // Prekryva se se stavem inicializacni sekvence...
   uint32_t timer;                 //current operation timer
-  atcd_at_cmd_seq_t init_seq;     //inicializacni sekvence
-  atcd_at_cmd_seq_t state_seq;    //sekvence kontroly stavu    //sloucit do jeste atc_seq!
+  atcd_at_cmd_seq_t atc_seq;      //sekvence at prikazu
   
   atcd_parser_t parser;           //AT cmd parser
 

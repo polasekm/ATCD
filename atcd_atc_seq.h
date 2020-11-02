@@ -38,7 +38,7 @@ typedef struct
    uint8_t err_max;
 
    atcd_at_cmd_t *at_cmd;
-   void (*make_step)(uint8_t);
+   //void (*make_step)(uint8_t);
 
 } atcd_at_cmd_seq_t;
 //------------------------------------------------------------------------------

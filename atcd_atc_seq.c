@@ -22,7 +22,7 @@ void atcd_atc_seq_init(atcd_at_cmd_seq_t *at_cmd_seq, void (*make_step)(uint8_t)
   at_cmd_seq->err_max = 0;
 
   at_cmd_seq->at_cmd = NULL;
-  at_cmd_seq->make_step = make_step;
+  //at_cmd_seq->make_step = make_step;
 
   //atcd_atc_init(at_cmd_seq->at_cmd);
 }
