@@ -21,15 +21,10 @@
 /* Defines -------------------------------------------------------------------*/
 
 // GPRS State
-#define ATCD_GPRS_STATE_DISCONN     0
-#define ATCD_GPRS_STATE_CONN        1
-#define ATCD_GPRS_STATE_CONNECTING  2
-#define ATCD_GPRS_STATE_INIT        3
-#define ATCD_GPRS_STATE_DEINIT      4
-
-// GPRS Mode
-#define ATCD_GPRS_MODE_DISCONN      0
-#define ATCD_GPRS_MODE_CONN         1
+#define ATCD_GPRS_STATE_DISCONN       0
+#define ATCD_GPRS_STATE_DISCONNING    1
+#define ATCD_GPRS_STATE_CONN          2
+#define ATCD_GPRS_STATE_CONNECTING    3
 
 // GPRS Events
 #define ATCD_GPRS_EV_NONE           0
@@ -38,7 +33,6 @@
 typedef struct
 {
   uint8_t state;                  //gprs state
-  uint8_t mode;                   //gprs mode
 
   atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
   char at_cmd_str[40];            //buffer pro sestaveny AT prikaz

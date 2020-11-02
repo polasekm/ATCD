@@ -95,7 +95,7 @@ void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq)
   atc_seq->at_cmd->cmd = cmd;
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
+void atcd_gprs_conn_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd = NULL;
 
@@ -134,7 +134,7 @@ void atcd_gprs_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
   atc_seq->at_cmd->cmd     = cmd;
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_deinit_seq_step(atcd_at_cmd_seq_t *atc_seq)
+void atcd_gprs_disconn_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd;
 
@@ -186,7 +186,6 @@ void atcd_gprs_check_state_seq(atcd_at_cmd_seq_t *atc_seq)
       break;
 
     default:
-      atcd_dbg_inf("GPRS: STAT: Dotazuji se na stav GPRS.\r\n");
       atc_seq->step = 1;
       cmd = "AT+CGATT?\r\n";
       break;
