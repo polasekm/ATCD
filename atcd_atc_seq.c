@@ -38,6 +38,8 @@ void atcd_atc_seq_run(atcd_at_cmd_seq_t *at_cmd_seq)
 //------------------------------------------------------------------------------
 void atcd_atc_seq_proc(atcd_at_cmd_seq_t *at_cmd_seq)
 {
+  // Tohle by se asi oprvdu melo rozepsat jinak, takto se to minimalne dvakrat testuje. Odpadla by nutnost veste ten ukazatel, volala by se rovnou step funnkce. Asi by bylo fajn ji prejmenovat jinak...
+
   if(at_cmd_seq->state == ATCD_ATC_SEQ_STATE_RUN && at_cmd_seq->at_cmd.state == ATCD_ATC_STATE_DONE)
   {
     if(at_cmd_seq->at_cmd.result == ATCD_ATC_RESULT_OK)
