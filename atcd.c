@@ -31,7 +31,7 @@ void atcd_init()                          //init AT command device
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
-  atcd_sim_init();
+  //atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
   atcd_gprs_init();

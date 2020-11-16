@@ -13,13 +13,14 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 void atcd_gsm_init()
 {
-
-
+  atcd.gsm.state     = ATCD_REG_STATE_OFF;
+  atcd.gsm.cb_events = ATCD_GSM_EV_ALL;
+  atcd.gsm.callback  = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_gsm_reset()
 {
-
+  atcd.gsm.state     = ATCD_REG_STATE_OFF;
 }
 //------------------------------------------------------------------------------
 void atcd_gsm_proc()

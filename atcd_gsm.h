@@ -43,7 +43,10 @@
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //phone state
+  uint8_t state;                  //registration state
+  //uint8_t roaming;                //roaming state
+  //uint8_t pin_state;              //pin state
+
   char *pin;                      //PIN
 
   uint8_t cb_events;              //GSM events

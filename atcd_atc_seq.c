@@ -13,7 +13,7 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-void atcd_atc_seq_init(atcd_at_cmd_seq_t *at_cmd_seq, void (*make_step)(uint8_t))
+void atcd_atc_seq_init(atcd_at_cmd_seq_t *at_cmd_seq)
 {
   at_cmd_seq->state = ATCD_ATC_SEQ_STATE_WAIT;
   at_cmd_seq->step = 0;
