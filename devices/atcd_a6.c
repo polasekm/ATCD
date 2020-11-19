@@ -18,6 +18,8 @@ void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
 {
   char *cmd = NULL;
 
+  if(atcd_atc_seq_proc(atc_seq) != 0) return;
+
   switch(atc_seq->step)
   {
     case 0: cmd = "ATE1\r\n";            break;   // Enable AT cmd echo
