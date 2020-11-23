@@ -66,6 +66,34 @@ void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq)
       atc_seq->step = 0;
       cmd = "ATE1\r\n";
       break;
+
+     case 0:         
+      ATCD_DBG_GPRS_INIT_START
+      atc_seq->step = 1;
+
+    //GPRS cast
+    case 1: cmd = "AT+CGATT=1\r\n";                           break;
+    case 2: cmd = "AT+CIPMUX=1\r\n";                          break;
+    case 3: cmd = "AT+CSTT=\"internet\",\"\",\"\"\r\n";       break;
+    case 4: cmd = "AT+CGDCONT=1,\"IP\",\"internet\"\r\n";     break;
+    //case 4: cmd = "AT+CGACT=1,1\r\n";                         break;
+    case 5: cmd = "AT+CIICR\r\n";                             break;
+    //case 4: cmd = "AT+CIFSR \r\n";                             break;
+
+    // Konec inicializacni sekvence
+    case 6:
+      ATCD_DBG_GPRS_INIT_OK
+      //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
+      atcd.gprs.state = ATCD_GPRS_STATE_CONN;
+      atc_seq->state = ATCD_ATC_SEQ_STATE_DONE;
+      return;
+
+    // Neocekavana hodnota - reset sekvence (nebo radeji ATCD?)
+    default:
+      ATCD_DBG_GPRS_INIT_ERR_R
+      atc_seq->step = 1;
+      cmd = "AT+CGATT=1\r\n";   
+      break;
   }
 
   atc_seq->at_cmd->cmd = cmd;
