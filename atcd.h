@@ -66,7 +66,12 @@ typedef struct
   uint8_t state;                  //device state
   //uint8_t init_state;             //device init state    // Prekryva se se stavem inicializacni sekvence...
   uint32_t timer;                 //current operation timer
+
   atcd_at_cmd_seq_t atc_seq;      //sekvence at prikazu
+  
+  uint16_t proc_step;
+  uint16_t err_cnt;
+  uint16_t err_max;
   
   atcd_parser_t parser;           //AT cmd parser
 
@@ -100,6 +105,9 @@ void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
 void atcd_tx_complete();         //call on tx data complete
 
 void atcd_proc();                //data processing 
+//--------------------------------------------------------------
+// nemela by byt lokalni?
+uint8_t atcd_check_atc_proc(atcd_at_cmd_t *at_cmd);  //check AT command processing
 //--------------------------------------------------------------
 // Implementace budou pro jednotlive modemy...
 

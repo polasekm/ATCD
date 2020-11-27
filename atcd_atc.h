@@ -79,11 +79,13 @@ typedef struct atcd_at_cmd
 // Functions -------------------------------------------------------------------
 
 // AT Commands
-   void atcd_atc_init(atcd_at_cmd_t *at_cmd);         //init AT command
-   void atcd_atc_check_queue(atcd_at_cmd_t *at_cmd);  //check AT command
+   void atcd_atc_init(atcd_at_cmd_t *at_cmd);           //init AT command
+   void atcd_atc_check_queue(atcd_at_cmd_t *at_cmd);    //check AT command
+uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd);  //check AT command state and result
 
-uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);    //execute AT command
-uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd); //cancell execute AT command
+uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);                   //execute AT command
+uint8_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd);    //execute and set AT command
+uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execute AT command
 
 uint8_t atcd_atc_send_cmd();                     //send AT command
 uint8_t atcd_atc_send_data();                    //send AT command data

@@ -56,6 +56,10 @@ void atcd_state_reset()                  //state machine reset
   atcd.atc_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
   atcd.atc_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
 
+  atcd.proc_step = 0;
+  atcd.err_cnt   = 0;
+  atcd.err_max   = 0;
+
   atcd.at_cmd_buff[0] = 0;
 
   atcd_gsm_reset();
@@ -199,6 +203,17 @@ void atcd_proc()               //data processing
     atcd_wifi_proc();
   }
   //----------------------------------------------
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_check_atc_proc(atcd_at_cmd_t *at_cmd)  //check AT command processing
+{
+  if(at_cmd->state != ATCD_ATC_STATE_DONE) return ATCD_ERR;
+  if(at_cmd->result != ATCD_ATC_RESULT_OK)
+  {
+    atcd.err_cnt++;
+    return ATCD_ERR;
+  }
+  return ATCD_OK;
 }
 //------------------------------------------------------------------------------
 void atcd_rx_data(uint8_t *data, uint16_t len)

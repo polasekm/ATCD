@@ -65,6 +65,12 @@ void atcd_atc_check(atcd_at_cmd_t *at_cmd)    //check AT command
   }
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd)  //check AT command state and result
+{
+  if(at_cmd->state == ATCD_ATC_STATE_DONE && at_cmd->result == ATCD_ATC_RESULT_OK) return ATCD_OK;
+  return ATCD_ERR;
+}
+//------------------------------------------------------------------------------
 uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
 {
   atcd_atc_check_queue(at_cmd);
@@ -115,6 +121,12 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
   }
 
   return ATCD_OK;
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd)    //execute and set AT command
+{
+  at_cmd->cmd = cmd;
+  return atcd_atc_exec(at_cmd);
 }
 //------------------------------------------------------------------------------
 void atcd_atc_proc()                     //AT commands processing 
