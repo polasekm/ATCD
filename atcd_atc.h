@@ -80,7 +80,7 @@ typedef struct atcd_at_cmd
 
 // AT Commands
    void atcd_atc_init(atcd_at_cmd_t *at_cmd);           //init AT command
-   void atcd_atc_check_queue(atcd_at_cmd_t *at_cmd);    //check AT command
+   void atcd_atc_check_queue(atcd_at_cmd_t *at_cmd);    //check AT command in queue
 uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd);  //check AT command state and result
 
 uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);                   //execute AT command

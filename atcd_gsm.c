@@ -35,9 +35,9 @@ uint8_t atcd_gsm_asc_msg()
   uint8_t val;
   uint8_t state_p;
 
-  if(strncmp(atcd.buff + atcd.line_pos, "+CREG: ", strlen("+CREG: ")) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CREG: ", strlen("+CREG: ")) == 0)
   {
-    val = (uint8_t)atoi(atcd.buff + atcd.buff_pos - ATCD_RX_NL_LEN - 1);
+    val = (uint8_t)atoi(atcd.parser.buff + atcd.parser.buff_pos - ATCD_RX_NL_LEN - 1);
 
     if(val >= 0 && val <= 10)
     {
@@ -45,7 +45,7 @@ uint8_t atcd_gsm_asc_msg()
       state_p = atcd.gsm.state;
 
       atcd.gsm.state = val;
-      atcd.buff_pos  = atcd.line_pos;
+      atcd.parser.buff_pos  = atcd.parser.line_pos;
 
       //Pokud probihal ATC, nemazat z odpovedi...
 
@@ -59,7 +59,7 @@ uint8_t atcd_gsm_asc_msg()
     {
       ATCD_DBG_CREG_ERR
       atcd_conn_reset_all();
-      atcd.buff_pos = atcd.line_pos;
+      atcd.parser.buff_pos = atcd.parser.line_pos;
     }
     
     return 1;

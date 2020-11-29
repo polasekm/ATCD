@@ -15,6 +15,8 @@
 
 #include "../rbuff/rbuff.h"
 
+#include "atcd_config.h"
+
 #include "atcd_atc.h"
 
 /* Exported functions ------------------------------------------------------- */

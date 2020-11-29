@@ -6,8 +6,9 @@
  */
 //------------------------------------------------------------------------------
 #include "atcd_parser.h"
+#include "atcd.h"
 
-atcd_t atcd;
+extern atcd_t atcd;
 
 //char *strs[NUMBER_OF_STRINGS] = {"foo", "bar", "bletch", ...};
 //char *strs[4] = {"foo", "bar", "bletch", ""};

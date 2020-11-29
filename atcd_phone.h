@@ -13,6 +13,8 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 
+#include "atcd_config.h"
+
 #include "atcd_atc.h"
 
 /* Exported functions ------------------------------------------------------- */

@@ -24,7 +24,7 @@ void atcd_gprs_init()      //inializace gprs
   atcd_atc_seq_init(&atcd.gprs.atc_seq);
   atcd.gprs.atc_seq.at_cmd    = &atcd.gprs.at_cmd;
   atcd.gprs.atc_seq.err_max   = 3;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-  atcd.gprs.atc_seq.make_step = &atcd_check_state_seq_step();    //mela by se nastavovat v init fce...
+  //atcd.gprs.atc_seq.make_step = &atcd_check_state_seq_step();    //mela by se nastavovat v init fce...
 
   //atcd.gprs.err_cnt = 0;
   atcd.gprs.timer = 0;
@@ -87,7 +87,7 @@ void atcd_gprs_proc()                    //gprs connection processing
 //------------------------------------------------------------------------------
 void atcd_gprs_connect()                    //connect gprs
 {
-  if(atcd.init_seq.state != ATCD_GPRS_STATE_CONN)
+  if(atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
   {
     atcd_dbg_inf("GPRS: INIT: Zacina inicializace.\r\n");
 
@@ -98,11 +98,11 @@ void atcd_gprs_connect()                    //connect gprs
 //------------------------------------------------------------------------------
 void atcd_gprs_disconnect()                //disconnect gprs
 {
-  if(atcd.init_seq.state != ATCD_GPRS_STATE_DISCONN)
+  if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
   {
     atcd_dbg_inf("GPRS: DEINIT: Zacina deinicializace.\r\n");
 
-    atcd.gprs.atc_seq.make_step = &atcd_gprs_disconn_seq_step();
+    //atcd.gprs.atc_seq.make_step = &atcd_gprs_disconn_seq_step();
     atcd_atc_seq_run(&atcd.gprs.atc_seq);
 
     atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;

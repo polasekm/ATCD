@@ -42,22 +42,22 @@ void atcd_phone_set_pin(char *pin)       //set PIN
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_asc_msg()
 {
-  if(strncmp(atcd.buff + atcd.line_pos, "RING\r\n", strlen("RING\r\n")) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "RING\r\n", strlen("RING\r\n")) == 0)
   {
     atcd_dbg_inf("PHONE: RING detect.\r\n");
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
-    atcd.buff_pos = atcd.line_pos;
+    atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
     return 1;
   }
   
-  if(strncmp(atcd.buff + atcd.line_pos, "+CMT: ", strlen("+CMT: ")) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMT: ", strlen("+CMT: ")) == 0)
   {
     atcd_dbg_inf("PHONE: New SMS detected.\r\n");
     // Bude nasledovat SMS - pocet znaku je uveden na konci...
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
-    atcd.buff_pos = atcd.line_pos;
+    atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_SMS_IN) != 0) atcd.phone.callback(ATCD_PHONE_EV_SMS_IN);
     return 0;
   }

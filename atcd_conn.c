@@ -34,17 +34,6 @@ void atcd_conn_proc()                    //connections processing
 
         if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
       }
-
-      if(conn->state == ATCD_CONN_STATE_W_OPEN)
-      {
-        atcd_conn_open_seq(conn);
-      }
-      else if(conn->state == ATCD_CONN_STATE_OPEN && rbuff_size(&conn->tx_rbuff) != 0)
-      {
-        atcd_conn_write_seq(conn);
-      }
-
-      atcd_conn_check_state_seq(conn);
     }
   }
 
@@ -180,14 +169,14 @@ uint8_t atcd_conn_ipd_tst()
 {
   #ifndef ATCD_DATA_RX_NL
   // "+IPD," test
-  if(ch == ':' && strncmp(atcd.buff + atcd.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
+  if(ch == ':' && strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
   {
-    conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX));
+    conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen(ATCD_STR_DATA_RX));
     
     if(conn_id < ATCD_CONN_MAX_NUMBER)
     {
       atcd.parser.rx_conn_num = conn_id;
-      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
 
       if(atcd.parser.rx_data_len != 0)
       {
@@ -195,8 +184,8 @@ uint8_t atcd_conn_ipd_tst()
         atcd.parser.mode  = ATCD_P_MODE_IPD;
         atcd.parser.timer = atcd_get_ms();
 
-        atcd.buff_pos = 0;
-        atcd.line_pos = 0;
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
 
         //atcd.conn[conn_id]->data_len = 0;
       }
@@ -218,14 +207,14 @@ uint8_t atcd_conn_asc_msg()
 
   #ifdef ATCD_DATA_RX_NL
   // "+IPD," test
-  if(atcd.buff[atcd.buff_pos - 3] == ':' && strncmp(atcd.buff + atcd.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
+  if(atcd.parser.buff[atcd.parser.buff_pos - 3] == ':' && strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_DATA_RX, strlen(ATCD_STR_DATA_RX)) == 0)
   {
-    conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX));
+    conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen(ATCD_STR_DATA_RX));
 
     if(conn_id < ATCD_CONN_MAX_NUMBER)
     {
       atcd.parser.rx_conn_num = conn_id;
-      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.buff + atcd.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
+      atcd.parser.rx_data_len = (uint16_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen(ATCD_STR_DATA_RX) + 2);
 
       if(atcd.parser.rx_data_len != 0)
       {
@@ -233,8 +222,8 @@ uint8_t atcd_conn_asc_msg()
         atcd.parser.mode  = ATCD_P_MODE_IPD;
         atcd.parser.timer = atcd_get_ms();
 
-        atcd.buff_pos = 0;
-        atcd.line_pos = 0;
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
 
         //atcd.conn[conn_id]->data_len = 0;
       }
@@ -248,9 +237,9 @@ uint8_t atcd_conn_asc_msg()
   if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr
   {
     //if(strncmp(atcd.buff + atcd.line_pos + 1, ",CONNECT\r\n", strlen(",CONNECT\r\n")) == 0)
-    if(strncmp(atcd.buff + atcd.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
+    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
     {
-      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
       {
@@ -259,7 +248,7 @@ uint8_t atcd_conn_asc_msg()
         if(conn != NULL)
         {
           conn->state = ATCD_CONN_STATE_OPEN;
-          atcd.buff_pos = atcd.line_pos;
+          atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
         }
         else
@@ -270,9 +259,9 @@ uint8_t atcd_conn_asc_msg()
       else atcd_dbg_err("CONN: x, CONNECT detect - x mimo rozah.\r\n");
       return 1;
     }
-    else if(strncmp(atcd.buff + atcd.line_pos, "^SISW: ", strlen("^SISW: ")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "^SISW: ", strlen("^SISW: ")) == 0)
     {
-      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SISW: "));
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SISW: "));
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
       {
@@ -280,7 +269,7 @@ uint8_t atcd_conn_asc_msg()
         conn = atcd.conns.conn[conn_id];
         if(conn != NULL)
         {
-          op = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SISW: x,"));
+          op = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SISW: x,"));
 
           if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
           {
@@ -291,8 +280,8 @@ uint8_t atcd_conn_asc_msg()
             atcd_dbg_inf("ATCD: Prompt \"AT^SISW=x,x,x\" detected.\r\n");
             atcd.parser.mode = ATCD_P_MODE_PROMPT;
 
-            atcd.buff_pos = 0;
-            atcd.line_pos = 0;
+            atcd.parser.buff_pos = 0;
+            atcd.parser.line_pos = 0;
 
             // Nasypat data
             // eventualne budou nasypana z proc funkce
@@ -321,7 +310,7 @@ uint8_t atcd_conn_asc_msg()
           {
             atcd_dbg_inf("CONN: Spojeni je navazano.\r\n");
             conn->state = ATCD_CONN_STATE_OPEN;
-            atcd.buff_pos = atcd.line_pos;
+            atcd.parser.buff_pos = atcd.parser.line_pos;
             if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_OPEN) != 0) conn->callback(conn, ATCD_CONN_EV_OPEN);
           }
           else
@@ -337,9 +326,9 @@ uint8_t atcd_conn_asc_msg()
       else atcd_dbg_err("CONN: ^SISW: x detect - x mimo rozah.\r\n");
       return 1;
     }
-    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", CLOSED\r\n", strlen(", CLOSED\r\n")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CLOSED\r\n", strlen(", CLOSED\r\n")) == 0)
     {
-      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
       {
@@ -352,7 +341,7 @@ uint8_t atcd_conn_asc_msg()
           conn->num   = ATCD_CONN_NO_NUM;
           if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
-          atcd.buff_pos = atcd.line_pos;
+          atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
         }
         else
@@ -363,9 +352,9 @@ uint8_t atcd_conn_asc_msg()
       else atcd_dbg_err("CONN: x, CLOSED detect - x mimo rozah.\r\n");
       return 1;
     }
-    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", CLOSE OK\r\n", strlen(", CLOSE OK\r\n")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CLOSE OK\r\n", strlen(", CLOSE OK\r\n")) == 0)
     {
-      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos);
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
       {
@@ -378,7 +367,7 @@ uint8_t atcd_conn_asc_msg()
           conn->num   = ATCD_CONN_NO_NUM;
           if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
-          atcd.buff_pos = atcd.line_pos;
+          atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
         }
         else
@@ -389,9 +378,9 @@ uint8_t atcd_conn_asc_msg()
       else atcd_dbg_err("CONN: x, CLOSE OK detect - x mimo rozah.\r\n");
       return 1;
     }
-    else if(strncmp(atcd.buff + atcd.line_pos, "^SIS: ", strlen("^SIS: ")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "^SIS: ", strlen("^SIS: ")) == 0)
     {
-      conn_id = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SIS: "));
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SIS: "));
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
       {
@@ -399,7 +388,7 @@ uint8_t atcd_conn_asc_msg()
         conn = atcd.conns.conn[conn_id];
         if(conn != NULL)
         {
-          op = (uint8_t)atoi(atcd.buff + atcd.line_pos + strlen("^SIS: x,"));
+          op = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SIS: x,"));
 
           if(op == 0)
           {
@@ -410,7 +399,7 @@ uint8_t atcd_conn_asc_msg()
             conn->num   = ATCD_CONN_NO_NUM;
             if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
-            atcd.buff_pos = atcd.line_pos;
+            atcd.parser.buff_pos = atcd.parser.line_pos;
             if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
           }
           else
@@ -426,22 +415,22 @@ uint8_t atcd_conn_asc_msg()
       else atcd_dbg_err("CONN: SIS: x,y... detect - x mimo rozah.\r\n");
       return 1;
     }
-    else if(strncmp(atcd.buff + atcd.line_pos + 1, ", SEND OK\r\n", strlen(", SEND OK\r\n")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", SEND OK\r\n", strlen(", SEND OK\r\n")) == 0)
     {
       atcd_dbg_inf("CONN: x, SEND OK.\r\n");
 
-      atcd.buff_pos = atcd.line_pos;
+      atcd.parser.buff_pos = atcd.parser.line_pos;
 
       // nad jakym spojenim to bude?
       //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_SEND_OK) != 0) conn->callback(conn, ATCD_CONN_EV_SEND_OK);
       return 1;
     }
     //CONNECT FAIL
-    else if(strncmp(atcd.buff + atcd.line_pos, "DNS Fail\r\n", strlen("DNS Fail\r\n")) == 0)
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "DNS Fail\r\n", strlen("DNS Fail\r\n")) == 0)
     {
       atcd_dbg_inf("CONN: DNS Fail.\r\n");
 
-      atcd.buff_pos = atcd.line_pos;
+      atcd.parser.buff_pos = atcd.parser.line_pos;
 
       // nad jakym spojenim to bude?
       //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_FAIL) != 0) conn->callback(conn, ATCD_CONN_EV_FAIL);
@@ -479,17 +468,17 @@ uint8_t atcd_conn_data_proc(char ch)
         conn->cb_events |=  ATCD_CONN_EV_OVERRUN;
       }   
 
-      atcd.buff_pos++;
+      atcd.parser.buff_pos++;
 
       // Pokud jsme dosahli komce IPD bloku
       //if(atcd.buff_pos >= atcd.parser.ipd_len)
-      if(atcd.buff_pos >= atcd.parser.rx_data_len)
+      if(atcd.parser.buff_pos >= atcd.parser.rx_data_len)
       {
         atcd_dbg_inf("ATCD: CONN: Dosahli jsme konce IPD bloku.\r\n");
         atcd.parser.mode = ATCD_P_MODE_ATC;
 
-        atcd.buff_pos = 0;
-        atcd.line_pos = 0;
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
 
         conn->cb_events |= ATCD_CONN_EV_NEW_DATA;
         if(conn->callback != NULL) conn->callback(conn, ATCD_CONN_EV_NEW_DATA);
@@ -500,8 +489,8 @@ uint8_t atcd_conn_data_proc(char ch)
       atcd_dbg_err("ATCD: CONN: Rezim IPD, ale zadne prijimajici spojeni! - Prechazim do rezimu ATC.\r\n");
       atcd.parser.mode = ATCD_P_MODE_ATC;
 
-      atcd.buff_pos = 0;
-      atcd.line_pos = 0;
+      atcd.parser.buff_pos = 0;
+      atcd.parser.line_pos = 0;
     }
 	  return 1;
   }
