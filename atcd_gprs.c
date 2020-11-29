@@ -57,42 +57,25 @@ void atcd_gprs_proc()                    //gprs connection processing
   else if(atcd.gprs.state == ATCD_GPRS_STATE_DISCONNING)
   {
     // Opravdu?
-    atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+    //atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
   }
   else if(atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
   {
-    if(atcd.gprs.atc_seq.state == ATCD_ATC_SEQ_STATE_WAIT)
-    {
-      // Zahajime pripojovani...
-      atcd_atc_seq_run(&atcd.gprs.atc_seq);
-    }
-    else if(atcd.gprs.atc_seq.state == ATCD_ATC_SEQ_STATE_RUN)
-    {
-      // Zpracovani kroku pripojeni
-      atcd_atc_seq_proc(&atcd.gprs.atc_seq);
-    }
-    else if(atcd.gprs.atc_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
+
+    if(atcd.gprs.atc_seq.state == ATCD_ATC_SEQ_STATE_ERROR)
     {
       // Pri zpracovani doslo k chybe
-      atcd.gprs.atc_seq.state = ATCD_ATC_SEQ_STATE_WAIT;
-      atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
       // Spustime sekvenci znovu - ne
       //atcd_atc_seq_run(&atcd.gprs.atc_seq);
     }
-    else if(atcd.gprs.atc_seq.state == ATCD_ATC_SEQ_STATE_DONE)
-    {  
-      //Cekame na pripojeni - test stavu a timeoutu...
-      if(atcd_get_ms() - atcd.gprs.timer > 30000)
-      {
-        // Vyprsel timeout na spojeni
-        atcd.gprs.timer = atcd_get_ms();
-        atcd.gprs.atc_seq.state = ATCD_ATC_SEQ_STATE_WAIT;
-        atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
-      }
-      else
-      {
-        // Kontrola stavu?
-      }
+
+    //Cekame na pripojeni - test stavu a timeoutu...
+    if(atcd_get_ms() - atcd.gprs.timer > 30000)
+    {
+      // Vyprsel timeout na spojeni
+      atcd.gprs.timer = atcd_get_ms();
+      atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
     }
   }
   else if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
@@ -107,9 +90,6 @@ void atcd_gprs_connect()                    //connect gprs
   if(atcd.init_seq.state != ATCD_GPRS_STATE_CONN)
   {
     atcd_dbg_inf("GPRS: INIT: Zacina inicializace.\r\n");
-
-    atcd.gprs.atc_seq.make_step = &atcd_gprs_conn_seq_step();
-    atcd_atc_seq_run(&atcd.gprs.atc_seq);
 
     atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
     atcd.gprs.timer = atcd_get_ms();

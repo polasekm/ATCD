@@ -86,8 +86,7 @@
   #define ATCD_DBG_GPRS_DEINIT_ERR_R   atcd_dbg_err("GPRS: DEINIT: Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
   
 
-
-#else if
+#else
   #define ATCD_DBG_BUFF_OVERRUN
   #define ATCD_DBG_ATC_LN_BUFF_OV
   #define ATCD_DBG_BOOT_SEQ

@@ -68,7 +68,7 @@ typedef struct
   uint32_t timer;                 //current operation timer
 
   atcd_at_cmd_seq_t atc_seq;      //sekvence at prikazu
-  
+
   uint16_t proc_step;
   uint16_t err_cnt;
   uint16_t err_max;
@@ -107,11 +107,12 @@ void atcd_tx_complete();         //call on tx data complete
 void atcd_proc();                //data processing 
 //--------------------------------------------------------------
 // nemela by byt lokalni?
-uint8_t atcd_check_atc_proc(atcd_at_cmd_t *at_cmd);  //check AT command processing
+uint8_t atcd_check_atc_proc();  //check AT command processing
 //--------------------------------------------------------------
 // Implementace budou pro jednotlive modemy...
 
-void atcd_init_seq_step(atcd_at_cmd_seq_t *atc_seq);
+uint16_t atcd_proc_step();
+
 void atcd_restart_seq_step(atcd_at_cmd_seq_t *atc_seq);
 void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
 //--------------------------------------------
