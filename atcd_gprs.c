@@ -103,7 +103,7 @@ void atcd_gprs_disconnect()                //disconnect gprs
     atcd_dbg_inf("GPRS: DEINIT: Zacina deinicializace.\r\n");
 
     //atcd.gprs.atc_seq.make_step = &atcd_gprs_disconn_seq_step();
-    atcd_atc_seq_run(&atcd.gprs.atc_seq);
+    //atcd_atc_seq_run(&atcd.gprs.atc_seq);
 
     atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
     atcd.gprs.timer = atcd_get_ms();

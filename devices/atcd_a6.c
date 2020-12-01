@@ -154,6 +154,9 @@ uint16_t atcd_proc_step()
       ATCD_DBG_STAT_OK
       atcd.err_cnt = 0;
       return 200;
+
+      //Nemel by se testovat stav spojeni?
+
     case 199:
       // Dotazovani na stav selhalo
       ATCD_DBG_STAT_ERR
@@ -256,12 +259,12 @@ uint16_t atcd_proc_step()
 
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
-        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u \r\n", conn->num, conn->host, conn->port);
+        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else if(conn->protocol == ATCD_CONN_T_UDP)
       {
-        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"UDP\",\"%s\",%u \r\n", conn->num, conn->host, conn->port);
+        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"UDP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else
@@ -275,17 +278,17 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
         atcd_dbg_inf("CONN: Prikaz pro otevreni spojeni dokoncen - cekam na spojeni\r\n");
-        conn->state        = ATCD_CONN_STATE_OPENING;
-        conn->timer        = atcd_get_ms();
+        conn->state = ATCD_CONN_STATE_OPENING;
+        conn->timer = atcd_get_ms();
         // asi volat call back pokud je nastaven?
       }
       else
       {
         atcd_dbg_warn("CONN: Prikaz pro otevreni spojeni skoncil chybou!\r\n");
-        atcd.conns.conn[conn->num]  = NULL;
+        //atcd.conns.conn[conn->num]  = NULL;
 
-        conn->state        = ATCD_CONN_STATE_FAIL;
-        conn->num          = ATCD_CONN_NO_NUM;
+        //atcd_conn_free(conn);
+        //conn->state = ATCD_CONN_STATE_FAIL;
         // asi volat call back pokud je nastaven?
         return 499;
       }
@@ -294,7 +297,10 @@ uint16_t atcd_proc_step()
     case 499:
       //Otevreni spojeni selhalo
       //Zalogovat!
-      //conn->state        = ATCD_CONN_STATE_FAIL;
+      //bude volat call back od close, pozor...
+      //opravdu to neni reduncance - kde vsude se vola, projit..
+      atcd_conn_free(conn);
+      conn->state = ATCD_CONN_STATE_FAIL;
       return 400;
 
     case 500: 
@@ -355,7 +361,7 @@ uint16_t atcd_proc_step()
         //ne ne tady uz jsou data zadana
 
         //posunout ukazovatko dat
-        rbuff_seek(&conn->tx_rbuff, conn->at_cmd.data_len);
+        rbuff_seek(&conn->tx_rbuff, atcd.at_cmd.data_len);
 
         // asi volat call back pokud je nastaven?
       }
@@ -374,10 +380,69 @@ uint16_t atcd_proc_step()
 
       return 600;
     case 599:
-      //Otevreni spojeni selhalo
+      //Zapis do spojeni selhal
       //Zalogovat!
 
+      //-------------------------------
+      // CONN READ - Doplnit
+      //-------------------------------
+
     case 600:
+      //-------------------------------
+      // CONN CLOSE
+      //-------------------------------
+      if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
+      {
+        atcd.conns.conn_num_proc = 0;
+        return 700;
+      }
+      else
+      {
+        conn = atcd.conns.conn[atcd.conns.conn_num_proc];
+        atcd.conns.conn_num_proc++;
+      }
+
+      if(conn == NULL || conn->state != ATCD_CONN_STATE_W_CLOSE) return 600;
+
+      atcd_dbg_inf("CONN: Zaviram spojeni.\r\n");
+      //conn->state = ATCD_CONN_STATE_OPENING;
+      atcd.at_cmd.timeout = 15000;
+      atcd.at_cmd.cmd = atcd.at_cmd_buff;
+
+      sprintf(atcd.at_cmd.cmd, "AT+CIPCLOSE=%u\r\n", conn->num);
+      atcd_atc_exec(&atcd.at_cmd);
+
+    case 601:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 601;
+      if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
+      {
+        atcd_dbg_inf("CONN: Prikaz pro uzavreni spojeni dokoncen - cekam na ukonceni\r\n");
+        conn->state = ATCD_CONN_STATE_CLOSING;
+        conn->timer = atcd_get_ms();
+        // asi volat call back pokud je nastaven?
+      }
+      else
+      {
+        atcd_dbg_warn("CONN: Prikaz pro ukoceni spojeni skoncil chybou!\r\n");
+        //atcd.conns.conn[conn->num]  = NULL;
+
+        //atcd_conn_free(conn);
+        //conn->state = ATCD_CONN_STATE_FAIL;
+        // asi volat call back pokud je nastaven?
+        return 699;
+      }
+
+      return 700;
+    case 699:
+      //Uzavreni spojeni selhalo
+      //Zalogovat!
+      //bude volat call back od close, pozor...
+      //opravdu to neni reduncance - kde vsude se vola, projit..
+      atcd_conn_free(conn);
+      conn->state = ATCD_CONN_STATE_FAIL;
+      return 400;
+
+    case 700:
       //Konec, navrat na pocatek...
       return 100;
 
