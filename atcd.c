@@ -31,6 +31,9 @@ void atcd_init()                          //init AT command device
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
+  //at_cmd_sms.resp = atc_resp_buff;
+  //at_cmd_sms.resp_buff_size = sizeof(atc_resp_buff);
+
   //atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
@@ -75,6 +78,7 @@ void atcd_state_reset()                  //state machine reset
   atcd_conns_reset();
 
   atcd_atc_init(&atcd.at_cmd);
+  //at_cmd_sms.resp[0] = 0;
 
   atcd_atc_seq_init(&atcd.atc_seq);
   atcd.atc_seq.at_cmd    = &atcd.at_cmd;
@@ -135,8 +139,9 @@ void atcd_proc()               //data processing
     {
       // Zalogovat!
       // Prekrocen maximalni pocet chyb
-      atcd_reset();
-      return;
+      // Resit radeji timeoutem...
+      //atcd_reset();
+      //return;
     }
 
     atcd.proc_step = atcd_proc_step();

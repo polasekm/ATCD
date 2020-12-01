@@ -17,8 +17,7 @@ extern atcd_t atcd;
 uint16_t atcd_proc_step()
 {
   uint32_t tx_data_len;
-  uint8_t i;
-  atcd_conn_t *conn;
+  static atcd_conn_t *conn;
 
   switch(atcd.proc_step)
   {
@@ -56,7 +55,7 @@ uint16_t atcd_proc_step()
     case 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 99;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=1\r\n");    // Je vyzadovan PIN?
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN?\r\n");    // Je vyzadovan PIN?
     case 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 99;
@@ -67,7 +66,14 @@ uint16_t atcd_proc_step()
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
       {
         ATCD_DBG_PIN_REQ
-        atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\\r\n");            // Zadame PIN
+        atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\"\r\n");            // Zadame PIN
+      }
+      else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PUK, strlen(ATCD_STR_SIM_PUK)) == 0)
+      {
+        ATCD_DBG_PUK_REQ
+        //Bude to chtit PUK
+        //Co delat?
+        //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\\r\n");            // Zadame PUK
       }
       else
       {
@@ -230,20 +236,23 @@ uint16_t atcd_proc_step()
       //-------------------------------
       // CONN OPEN
       //-------------------------------
-      conn = atcd.conns.conn[atcd.conns.conn_num_proc];
-      atcd.conns.conn_num_proc++;
-
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;
         return 500;
       }
+      else
+      {
+        conn = atcd.conns.conn[atcd.conns.conn_num_proc];
+        atcd.conns.conn_num_proc++;
+      }
 
-      if(conn != NULL && conn->state != ATCD_CONN_STATE_W_OPEN) return 400;
+      if(conn == NULL || conn->state != ATCD_CONN_STATE_W_OPEN) return 400;
 
       atcd_dbg_inf("CONN: Otevitam spojeni.\r\n");
       //conn->state = ATCD_CONN_STATE_OPENING;
       atcd.at_cmd.timeout = 15000;
+      atcd.at_cmd.cmd = atcd.at_cmd_buff;
 
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
@@ -292,20 +301,22 @@ uint16_t atcd_proc_step()
       //-------------------------------
       // CONN WRITE
       //-------------------------------
-      conn = atcd.conns.conn[atcd.conns.conn_num_proc];
-      atcd.conns.conn_num_proc++;
 
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;
         return 600;
       }
-
-      if(conn != NULL && conn->state == ATCD_CONN_STATE_OPEN)
+      else
       {
-        tx_data_len = rbuff_size(&conn->tx_rbuff);
-        if(tx_data_len == 0) return 500;
-      } 
+        conn = atcd.conns.conn[atcd.conns.conn_num_proc];
+        atcd.conns.conn_num_proc++;
+      }
+
+      if(conn == NULL || conn->state != ATCD_CONN_STATE_OPEN) return 500;
+
+      tx_data_len = rbuff_size(&conn->tx_rbuff);
+      if(tx_data_len == 0) return 500;
 
       atcd.at_cmd.timeout = 30000;
 
@@ -314,15 +325,15 @@ uint16_t atcd_proc_step()
 
       if(tx_data_len > 512) tx_data_len = 512;
 
-      sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
+      atcd.at_cmd.cmd = atcd.at_cmd_buff;
       atcd.at_cmd.timeout = 30000;
-
       atcd.at_cmd.data = &conn->tx_rbuff;
       atcd.at_cmd.data_len = tx_data_len;
 
+      sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
+
       //je to jeste potreba?
       atcd.parser.tx_conn_num = conn->num;
-
 
       atcd_atc_exec(&atcd.at_cmd);
 

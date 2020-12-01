@@ -45,6 +45,7 @@
 
   #define ATCD_DBG_PIN_NONE             atcd_dbg_inf("ATCD: INIT: PIN neni treba.\r\n");
   #define ATCD_DBG_PIN_REQ              atcd_dbg_inf("ATCD: INIT: Je treba zadat PIN.\r\n");
+  #define ATCD_DBG_PUK_REQ              atcd_dbg_inf("ATCD: INIT: Je treba zadat PUK.\r\n");
   #define ATCD_DBG_PIN_ERR              atcd_dbg_err("ATCD: INIT: Na dotaz na PIN prisla neocekavana odpoved - zacinam znovu!\r\n");
 
   #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: Sekvence byla dokoncena.\r\n");
@@ -126,6 +127,9 @@ Casem smazat...
 
   #define ATCD_STR_SIM_READY        "+CPIN:READY"
   #define ATCD_STR_SIM_PIN          "+CPIN:SIM PIN"
+  #define ATCD_STR_SIM_PIN2         "+CPIN:SIM PIN2"
+  #define ATCD_STR_SIM_PUK          "+CPIN:SIM PUK"
+  #define ATCD_STR_SIM_PUK2         "+CPIN:SIM PUK2"
 
   #define ATCD_DATA_RX_NL
   #define ATCD_RX_NL_LEN  2
@@ -139,6 +143,7 @@ Casem smazat...
 
   #define ATCD_STR_SIM_READY        "+CPIN:READY"
   #define ATCD_STR_SIM_PIN          "+CPIN:SIM PIN"
+  #define ATCD_STR_SIM_PUK          "+CPIN: SIM PUK"
 
   #define ATCD_DATA_RX_NL
   #define ATCD_RX_NL_LEN  2
@@ -152,6 +157,7 @@ Casem smazat...
 
   #define ATCD_STR_SIM_READY        "+CPIN: READY"
   #define ATCD_STR_SIM_PIN          "+CPIN: SIM PIN"
+  #define ATCD_STR_SIM_PUK          "+CPIN: SIM PUK"
 
   #define ATCD_RX_NL_LEN  2
 
