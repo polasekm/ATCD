@@ -468,6 +468,7 @@ void atcd_init_seq()
       atcd.at_cmd_seq = 0;
     }
 
+
     switch(atcd.at_cmd_seq)
     {
       case 0: cmd = "ATE1\r\n";            break;   // Enable AT cmd echo
