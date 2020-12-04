@@ -48,9 +48,6 @@ typedef struct
   uint8_t state;                  //wifi state
   uint8_t mode;                   //wifi mode
 
-  atcd_at_cmd_t at_cmd;           //AT cmd for internal usage  
-  char at_cmd_buff[40];           //buffer pro sestaveny AT prikaz
-
   char *ssid;                     //SSID
   char *psswd;                    //password
   

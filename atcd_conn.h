@@ -17,7 +17,6 @@
 
 #include "atcd_atc.h"
 
-//#include "devices/atcd_a6.h"
 
 /* Exported functions ------------------------------------------------------- */
 
@@ -62,10 +61,6 @@ typedef struct atcd_conn
   char *host;
   uint16_t port;
   
-  //atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
-  //char at_cmd_buff[75];           //buffer pro sestaveny AT prikaz
-  
-  //uint8_t at_cmd_seq;
   uint16_t timeout;               //timeout in ms
   uint32_t timer;                 //connection timer
   

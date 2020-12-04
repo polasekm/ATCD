@@ -26,15 +26,8 @@ void atcd_conn_proc()                    //connections processing
       {
         atcd_dbg_warn("CONN: Spojeni vyprsel timeout - rusim jej.\r\n");
 
-        /*atcd.conns.conn[i] = NULL;
-        conn->state = ATCD_CONN_STATE_TIMEOUT;
-        conn->num   = ATCD_CONN_NO_NUM;*/
-
         conn->state = ATCD_CONN_STATE_W_CLOSE;
         conn->timer = atcd_get_ms();
-
-        //conn->at_cmd_seq = 0;
-        //if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
         if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
       }
@@ -55,7 +48,7 @@ void atcd_conn_reset_all()
     {
       conn->num    = ATCD_CONN_NO_NUM;
       conn->state  = ATCD_CONN_STATE_CLOSE;
-      //atcd_atc_init(&conn->at_cmd);
+
       atcd.conns.conn[i] = NULL;
 
       //Opravdu event na close? Spojeni je ruseno nasilne - nemuselo byt ani navazano, mozna spise novy priznak...
@@ -73,10 +66,6 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->host     = NULL;
   conn->port     = 0;
 
-  //atcd_atc_init(&conn->at_cmd);
-  //conn->at_cmd_buff[0] = 0;
-
-  //conn->at_cmd_seq = 0;
   conn->timeout    = 10000;
   conn->timer      = 0;
   
@@ -95,14 +84,6 @@ void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type) 
   conn->host     = dest;
   conn->port     = port;
 
-  //if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
-
-  // blbost - atc muze byt dale pouzivana...
-  //atcd_atc_init(&conn->at_cmd);
-  //conn->at_cmd_buff[0] = 0;
-  // opraveno jinde... ve spusteni init sekvence...
-
-  //conn->at_cmd_seq = 0;
   conn->timeout    = 10000;
   conn->timer      = atcd_get_ms();
   
@@ -130,14 +111,6 @@ void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type) 
   conn->state = ATCD_CONN_STATE_MAX_CONN;
   conn->num   = ATCD_CONN_NO_NUM;
   return;
-
-  /*if(i == ATCD_CONN_MAX_NUMBER)
-  {
-    atcd_dbg_warn("CONN neprirazeno - vycerpan max pocet...\r\n");
-    conn->state = ATCD_CONN_STATE_MAX_CONN;
-    conn->num   = ATCD_CONN_NO_NUM;
-    return;
-  }*/
 }
 //------------------------------------------------------------------------------
 void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len)   //write data to connection
@@ -167,7 +140,6 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
 
   conn->state = ATCD_CONN_STATE_CLOSE;
   conn->num   = ATCD_CONN_NO_NUM;
-  //atcd_atc_init(&conn->at_cmd);
   if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
 }
 //------------------------------------------------------------------------------
@@ -352,7 +324,6 @@ uint8_t atcd_conn_asc_msg()
           atcd.conns.conn[conn_id] = NULL;
           conn->state = ATCD_CONN_STATE_CLOSE;
           conn->num   = ATCD_CONN_NO_NUM;
-          //if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
           atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
@@ -380,7 +351,6 @@ uint8_t atcd_conn_asc_msg()
           atcd.conns.conn[conn_id] = NULL;
           conn->state = ATCD_CONN_STATE_CLOSE;
           conn->num   = ATCD_CONN_NO_NUM;
-          //if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
           atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
@@ -414,7 +384,6 @@ uint8_t atcd_conn_asc_msg()
             atcd.conns.conn[conn_id] = NULL;
             conn->state = ATCD_CONN_STATE_CLOSE;
             conn->num   = ATCD_CONN_NO_NUM;
-            //if(conn->at_cmd.state == ATCD_ATC_STATE_WAIT) atcd_atc_cancell(&conn->at_cmd);
 
             atcd.parser.buff_pos = atcd.parser.line_pos;
             if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);

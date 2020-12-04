@@ -27,12 +27,8 @@ void atcd_init()                          //init AT command device
   atc_dev_hw_init();                      //HW init
 
   atcd.state      = ATCD_STATE_OFF;
-  //atcd.init_state = ATCD_INIT_NONE;            // Prekryva se se stavem inicializacni sekvence...
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
-
-  //at_cmd_sms.resp = atc_resp_buff;
-  //at_cmd_sms.resp_buff_size = sizeof(atc_resp_buff);
 
   //atcd_sim_init();
   atcd_gsm_init();
@@ -78,16 +74,10 @@ void atcd_state_reset()                  //state machine reset
   atcd_conns_reset();
 
   atcd_atc_init(&atcd.at_cmd);
-  //at_cmd_sms.resp[0] = 0;
-
-  atcd_atc_seq_init(&atcd.atc_seq);
-  atcd.atc_seq.at_cmd    = &atcd.at_cmd;
-  atcd.atc_seq.err_max   = 10;            //0 znamena neomezene - pozor, uint8, casem pretece - realne tedy 256, osetrit!!!!
-  //atcd.atc_seq.make_step = &atcd_init_seq_step();              //mela by se nastavovat v init fce...
 
   atcd.proc_step = 0;
   atcd.err_cnt   = 0;
-  atcd.err_max   = 0;
+  atcd.err_max   = 10;
 
   atcd.at_cmd_buff[0] = 0;
 
@@ -98,11 +88,8 @@ void atcd_state_reset()                  //state machine reset
   atcd_wifi_reset();
 }
 //------------------------------------------------------------------------------
-void atcd_proc()               //data processing 
+void atcd_proc()                         //data processing
 {
-  uint32_t time_ms;
-  char *cmd;
-
   atcd_rx_proc();                        //Zpracovani prijatych dat
   atcd_atc_proc();                       //AT commands processing 
 
@@ -159,8 +146,6 @@ void atcd_proc()               //data processing
       return;
     }
 
-    //Vymyslet jak se zpracovanim sekci, jak ji restartovat a jak jit na dalsi...
-
     atcd.proc_step = atcd_proc_step();
 
     atcd_gsm_proc();
@@ -170,35 +155,6 @@ void atcd_proc()               //data processing
     atcd_gps_proc();
     atcd_wifi_proc();
   }
-  //----------------------------------------------
-}
-//------------------------------------------------------------------------------
-uint8_t atcd_check_atc_proc()  //check AT command processing
-{
-  //zatim nepouzivat, neni dokonceno
-
-  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_ERR;
-  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
-  {
-    atcd.err_cnt++;
-
-    if(atcd.err_cnt >= atcd.err_max)
-    {
-      // Prekrocen maximalni pocet chyb
-      ATCD_DBG_STAT_ERR
-      atcd.err_cnt = 0;
-
-      atcd.proc_step = atcd.proc_step / 100 + 99;
-      //Dopnit restart po opakovanem selhani
-
-      //mozno zacit opakovat cely init
-      //nebo jen posledni krok
-      //nebo skocit na chybu
-    }
-
-    return ATCD_ERR;
-  }
-  return ATCD_OK;
 }
 //------------------------------------------------------------------------------
 void atcd_rx_data(uint8_t *data, uint16_t len)
@@ -250,7 +206,8 @@ void atcd_rx_ch(char ch)
     if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
     {
       ATCD_DBG_ATC_LN_BUFF_OV
-      at_cmd->resp           = NULL;
+      //ten priznak se ztrati
+      //at_cmd->resp           = NULL;  //tohle je ultra nebezpecne!
       at_cmd->resp_len       = 0;
       at_cmd->resp_buff_size = 0;
 

@@ -6,9 +6,13 @@
  *      Author: Martin Polasek
  */
 /*-----------------------------------------------------------------------------*/
+/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef ATCD_H_INCLUDED
 #define ATCD_H_INCLUDED
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
 /* Includes ------------------------------------------------------------------*/
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
@@ -19,7 +23,6 @@
 #include "atcd_hw.h"
 
 #include "atcd_atc.h"
-#include "atcd_atc_seq.h"
 #include "atcd_parser.h"
 
 #include "atcd_sim.h"
@@ -45,11 +48,6 @@
 #define ATCD_STATE_SLEEP            3
 #define ATCD_STATE_ON               4
 
-// Prekryva se se stavem inicializacni sekvence...
-/*#define ATCD_INIT_NONE              0
-#define ATCD_INIT_RUN               1
-#define ATCD_INIT_DONE              2*/
-
 #define ATCD_EV_NONE                0x00
 #define ATCD_EV_STATE               0b00000001
 #define ATCD_EV_ASYNC_MSG           0b00000010
@@ -64,10 +62,7 @@
 typedef struct
 {
   uint8_t state;                  //device state
-  //uint8_t init_state;             //device init state    // Prekryva se se stavem inicializacni sekvence...
   uint32_t timer;                 //current operation timer
-
-  atcd_at_cmd_seq_t atc_seq;      //sekvence at prikazu
 
   uint16_t proc_step;
   uint16_t err_cnt;
@@ -76,7 +71,7 @@ typedef struct
   atcd_parser_t parser;           //AT cmd parser
 
   atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
-  char at_cmd_buff[64];           //buffer pro sestaveny AT prikaz
+  char at_cmd_buff[64];           //buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni...
 
   atcd_conns_t conns;             //TCP/UDP conections
 
@@ -107,26 +102,10 @@ void atcd_tx_complete();         //call on tx data complete
 void atcd_proc();                //data processing 
 //--------------------------------------------------------------
 // nemela by byt lokalni?
-uint8_t atcd_check_atc_proc();  //check AT command processing
-//--------------------------------------------------------------
-// Implementace budou pro jednotlive modemy...
-
-uint16_t atcd_proc_step();
-
-void atcd_restart_seq_step(atcd_at_cmd_seq_t *atc_seq);
-void atcd_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
-//--------------------------------------------
-void atcd_gprs_conn_seq_step(atcd_at_cmd_seq_t *atc_seq);
-void atcd_gprs_disconn_seq_step(atcd_at_cmd_seq_t *atc_seq);
-void atcd_gprs_check_state_seq_step(atcd_at_cmd_seq_t *atc_seq);
-//--------------------------------------------
-void atcd_conns_check_state_seq(atcd_at_cmd_seq_t *atc_seq);
-//--------------------------------------------
-void atcd_conn_open_seq(atcd_conn_t *conn);
-void atcd_conn_close_seq(atcd_conn_t *conn);
-void atcd_conn_check_state_seq(atcd_conn_t *conn);
-
-void atcd_conn_read_seq(atcd_conn_t *conn);
-void atcd_conn_write_seq(atcd_conn_t *conn);
+uint16_t atcd_proc_step();       //pruchod jednim krokem kolecka modemu
+//------------------------------------------------------------------------------
+#ifdef __cplusplus
+}
+#endif
 //------------------------------------------------------------------------------
 #endif /* ATCD_H_INCLUDED */

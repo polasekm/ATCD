@@ -355,9 +355,11 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 501;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
-        atcd_dbg_inf("CONN: Ocekavam vyzvu k zadani odesilanych dat.\r\n");
-        //conn->state = ATCD_CONN_STATE_OPENING;
+        //necekat na vyzvu az tady
+        //nemusi byt, u A6 je vyzva jeste v tele AT prikazu
+        //vetsinou v tele prijde i +IPD
 
+        //
         //ne ne tady uz jsou data zadana
 
         //posunout ukazovatko dat

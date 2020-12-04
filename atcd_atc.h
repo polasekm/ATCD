@@ -90,8 +90,9 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execut
 uint8_t atcd_atc_send_cmd();                     //send AT command
 uint8_t atcd_atc_send_data();                    //send AT command data
 
-uint8_t atcd_atc_ln_proc();                      //AT commant line processing
-uint8_t atcd_atc_prompt_tst();                   //prompt test processing
+   void atcd_atc_proc();                         //AT commands state machine processing
+uint8_t atcd_atc_ln_proc();                      //terminal line processing
+uint8_t atcd_atc_prompt_tst();                   //terminal prompt test processing
 
 uint8_t atcd_atc_set_defaults(atcd_at_cmd_t *at_cmd);                                 //set default AT commands values
    void atcd_atc_set_cmd(atcd_at_cmd_t *at_cmd, char *cmd);                           //set AT command

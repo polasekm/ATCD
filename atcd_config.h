@@ -109,11 +109,6 @@
 //-----------------------------
 #define ATCD_P_BUFF_SIZE 512
 
-/*
-Casem smazat...
-
-#define ATCD_FAIL 0
-#define ATCD_OK   1*/
 //-----------------------------
 
 #ifndef ATCD_USE_DEVICE

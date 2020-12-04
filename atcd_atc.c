@@ -12,7 +12,6 @@ extern atcd_t atcd;
 
 //------------------------------------------------------------------------------
 // AT commands
-void atcd_atc_proc();                         //AT commands processing 
 void atcd_atc_queue_proc();                   //AT commands queue processing 
 void atcd_atc_cancell_all();                  //cancel all AT commands in queue
 
@@ -83,8 +82,7 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
   //nejaky if, ne?
   atcd_atc_check_queue(at_cmd);
 
-
-  //tohle prepsat, radeji vzdy overovat, zza neni fe fronte?
+  //tohle prepsat, radeji vzdy overovat, ze neni fe fronte?
   if(at_cmd->state != ATCD_ATC_STATE_DONE)
   {
     return ATCD_ERR_LOCK;
@@ -233,6 +231,8 @@ uint8_t atcd_atc_send_cmd()                     //send AT command
 
   atcd.parser.timer = atcd_get_ms();
   atcd_hw_tx(&atcd.parser.tx_rbuff, len);
+
+  return 1;
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_send_data()                     //send AT command data
@@ -245,6 +245,8 @@ uint8_t atcd_atc_send_data()                     //send AT command data
   atcd.parser.tx_data_len = atcd.parser.at_cmd_top->data_len;
 
   atcd_hw_tx(&atcd.parser.tx_rbuff, atcd.parser.tx_data_len);
+
+  return 1;
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT command
@@ -262,7 +264,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
       {
         if(at_cmd_p->state != ATCD_ATC_STATE_WAIT)
         {
-          return;
+          return 2;
         }
 
         at_cmd_pp = NULL;
@@ -278,7 +280,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
       at_cmd->state = ATCD_ATC_STATE_DONE;
 
       if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
-      return;
+      return 0;
     }
 
     at_cmd_pp = at_cmd_p;
@@ -286,6 +288,8 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
   }
 
   atcd_dbg_warn("ATC: Ruseny AT prikaz neni ve fronte.\r\n");
+
+  return 1;
 }
 //------------------------------------------------------------------------------
 void atcd_atc_cancell_all()               //cancell all AT commands in queue
@@ -414,7 +418,8 @@ uint8_t atcd_atc_ln_proc()
           if(at_cmd->state == ATCD_ATC_STATE_W_END)
           {
             ATCD_DBG_ATC_LN_BUFF_OV
-            at_cmd->resp           = NULL;
+            //ten priznak se ztrati
+            //at_cmd->resp           = NULL;  //tohle je ultra nebezpecne!
             at_cmd->resp_len       = 0;
             at_cmd->resp_buff_size = 0;
 
@@ -454,6 +459,10 @@ uint8_t atcd_atc_prompt_tst()
     
     // SEM pripsat dalsi promenou ve ktere bude pocet byte co se maji posilat
     // a moyna a ikazayatel na data
+
+    //tohle úatri asi pro jiny modem
+    //atcd_dbg_inf("CONN: Ocekavam vyzvu k zadani odesilanych dat.\r\n");
+
     // po yaniku spojeni je nutno minimalne vedet kolik e toho melo posilat, pokud
     // uz se prikaz zacal provadet...
 
