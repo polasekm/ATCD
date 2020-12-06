@@ -44,7 +44,7 @@ uint8_t atcd_phone_asc_msg()
 {
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "RING\r\n", strlen("RING\r\n")) == 0)
   {
-    atcd_dbg_inf("PHONE: RING detect.\r\n");
+    ATCD_DBG_PHONE_RING_DET
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
@@ -53,7 +53,7 @@ uint8_t atcd_phone_asc_msg()
   
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMT: ", strlen("+CMT: ")) == 0)
   {
-    atcd_dbg_inf("PHONE: New SMS detected.\r\n");
+    ATCD_DBG_PHONE_SMS_DET
     // Bude nasledovat SMS - pocet znaku je uveden na konci...
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;

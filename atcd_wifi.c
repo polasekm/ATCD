@@ -32,7 +32,7 @@ uint8_t atcd_wifi_asc_msg()
 {
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "WIFI CONNECTED\r\n", strlen("WIFI CONNECTED\r\n")) == 0)
   {
-    atcd_dbg_inf("WIFI CONNECTED detect...\r\n");
+    ATCD_DBG_WIFI_CONN_DET
     atcd.wifi.state = ATCD_WIFI_STATE_W_DHCP;
     atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.wifi.callback != NULL && (atcd.wifi.events & ATCD_WIFI_EV_CONN) != 0) atcd.wifi.callback(ATCD_WIFI_EV_CONN);
@@ -41,7 +41,7 @@ uint8_t atcd_wifi_asc_msg()
   
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "WIFI GOT IP\r\n", strlen("WIFI GOT IP\r\n")) == 0)
   {
-    atcd_dbg_inf("WIFI GOT IP detect...\r\n");
+    ATCD_DBG_WIFI_GOT_IP
     atcd.wifi.state = ATCD_WIFI_STATE_CONN;
     atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.wifi.callback != NULL && (atcd.wifi.events & ATCD_WIFI_EV_GOT_IP) != 0) atcd.wifi.callback(ATCD_WIFI_EV_GOT_IP);
@@ -50,7 +50,7 @@ uint8_t atcd_wifi_asc_msg()
 
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "WIFI DISCONNECT\r\n", strlen("WIFI DISCONNECT\r\n")) == 0)
   {
-    atcd_dbg_inf("WIFI DISCONNECT detect...\r\n");
+    ATCD_DBG_WIFI_DISCONN_DET
     atcd.wifi.state = ATCD_WIFI_STATE_DISCONN;
     atcd.parser.buff_pos = atcd.parser.line_pos;
     atcd_conn_reset_all();

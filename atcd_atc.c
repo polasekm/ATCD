@@ -108,18 +108,18 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
     // If is possible tx data now
     if(atcd.parser.mode == ATCD_P_MODE_ATC)
     {
-      atcd_dbg_inf("ATC: Odesilam AT prikaz.\r\n");
+      ATCD_DBG_ATC_EXE
       atcd_atc_send_cmd();
     }
     else
     {
-      atcd_dbg_inf("ATC: Ve fronte neni zadny dalsi AT prikaz ale parser je zamestnan - cekam.\r\n");
+      ATCD_DBG_ATC_WAIT_P
       at_cmd->state = ATCD_ATC_STATE_WAIT;  
     }
   }
   else
   {
-    atcd_dbg_inf("ATC: Je fronta - cekam na konci.\r\n");
+    ATCD_DBG_ATC_WAIT_Q
     at_cmd->state  = ATCD_ATC_STATE_WAIT;                  
     
     atcd.parser.at_cmd_end->next = at_cmd;
@@ -148,12 +148,12 @@ void atcd_atc_proc()                     //AT commands processing
     {
       if(atcd.parser.echo_en == ATCD_P_ECHO_ON)
       {
-        atcd_dbg_inf("ATC: Odesilani bylo dokoceno - prechazime na W_ECHO.\r\n");
+        ATCD_DBG_ATC_W_ECHO
         atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_W_ECHO;
       }
       else
       {
-        atcd_dbg_inf("ATC: Odesilani bylo dokoceno - prechazime na W_END.\r\n");
+        ATCD_DBG_ATC_W_END
         atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_W_END;
 
         if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
@@ -165,13 +165,14 @@ void atcd_atc_proc()                     //AT commands processing
 
     if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
     {
-      atcd_dbg_inf("ATC: Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
+      //neni to duplicita s kodem nize?
+      ATCD_DBG_ATC_QUEUE_EXE
       atcd_atc_send_cmd();
     }
     // Kontola, zda nevyprsel timeout
     else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
     {
-      atcd_dbg_warn("ATC: Probihajicimu AT prikazu vyprsel timeout.\r\n");
+      ATCD_DBG_ATC_TIM
       at_cmd->result = ATCD_ATC_RESULT_TIMEOUT;
       at_cmd->resp_len = 0;
 
@@ -197,7 +198,7 @@ void atcd_atc_queue_proc()               //AT commands queue processing
   {
     if(atcd.parser.mode == ATCD_P_MODE_ATC && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_WAIT)
     {              
-      atcd_dbg_inf("ATC: Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
+      ATCD_DBG_ATC_QUEUE_EXE
       atcd_atc_send_cmd();
     }
   }
@@ -205,7 +206,7 @@ void atcd_atc_queue_proc()               //AT commands queue processing
   {
     if(atcd.parser.at_cmd_end != NULL)
     {
-      atcd_dbg_inf("ATC: Ve fronte neni zadny dalsi cekajici AT prikaz - aktualizuji konec fronty.\r\n");
+      ATCD_DBG_ATC_QUEUE_END
       atcd.parser.at_cmd_end = NULL;
     }
   }
@@ -215,7 +216,7 @@ uint8_t atcd_atc_send_cmd()                     //send AT command
 {
   uint16_t len;
 
-  atcd_dbg_inf("ATC: Odesilani prikazu bylo zahajeno.\r\n");
+  ATCD_DBG_ATC_SEND_CMD
   atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
   //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
   atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
@@ -237,7 +238,7 @@ uint8_t atcd_atc_send_cmd()                     //send AT command
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_send_data()                     //send AT command data
 {
-  atcd_dbg_inf("ATC: Odesilani dat bylo zahajeno.\r\n");
+  ATCD_DBG_ATC_SEND_DATA
   //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
   atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 
@@ -274,7 +275,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
       if(at_cmd_p == atcd.parser.at_cmd_end) atcd.parser.at_cmd_end = at_cmd_pp;
       if(at_cmd_pp != NULL) at_cmd_pp->next = at_cmd_p->next;
 
-      atcd_dbg_inf("ATC: Rusim AT prikaz.\r\n");
+      ATCD_DBG_ATC_CANCELL
 
       at_cmd->result = ATCD_ATC_RESULT_CANCELL;
       at_cmd->state = ATCD_ATC_STATE_DONE;
@@ -287,7 +288,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
     at_cmd_p = at_cmd_p->next;
   }
 
-  atcd_dbg_warn("ATC: Ruseny AT prikaz neni ve fronte.\r\n");
+  ATCD_DBG_ATC_CANCELL_EQ
 
   return 1;
 }
@@ -296,11 +297,12 @@ void atcd_atc_cancell_all()               //cancell all AT commands in queue
 {
   atcd_at_cmd_t *at_cmd;
 
-  atcd_dbg_inf("ATC: Budu zruseny vsechny AT prikazy fe fronte.\r\n");
+  ATCD_DBG_ATC_CANCELL_ALL
 
   while(atcd.parser.at_cmd_top != NULL)
   {
-    atcd_dbg_inf("ATC: Rusim AT prikaz.\r\n");
+    //nemela by se folat fce vyse
+    ATCD_DBG_ATC_CANCELL
 
     at_cmd = atcd.parser.at_cmd_top;
     at_cmd->result = ATCD_ATC_RESULT_CANCELL;
@@ -332,7 +334,7 @@ uint8_t atcd_atc_ln_proc()
       //if(strncmp(atcd.parser.buff + atcd.parser.line_pos, at_cmd->cmd, strlen(at_cmd->cmd)) == 0)
       if(strncmp(atcd.parser.buff + atcd.parser.line_pos, at_cmd->cmd, strlen(at_cmd->cmd) - 1) == 0)
       {
-        atcd_dbg_inf("ATC: ECHO detected.\r\n");
+        ATCD_DBG_ATC_ECHO_DET
         at_cmd->state = ATCD_ATC_STATE_W_END;
         if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
 
@@ -342,7 +344,7 @@ uint8_t atcd_atc_ln_proc()
         if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
         return 1;
       }
-      else atcd_dbg_warn("ATC: ECHO test FAIL.\r\n");
+      else ATCD_DBG_ATC_ECHO_T_FAIL
     } 
     else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
     {
@@ -356,28 +358,28 @@ uint8_t atcd_atc_ln_proc()
       // Test odpovedi a zpracovani dat
       if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "OK\r\n", strlen("OK\r\n")) == 0)
       {
-        atcd_dbg_inf("ATC: OK detected.\r\n");
+        ATCD_DBG_ATC_OK_DET
         at_cmd->result = ATCD_ATC_RESULT_OK;
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "ERROR\r\n", strlen("ERROR\r\n")) == 0)
       {
-        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        ATCD_DBG_ATC_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
       }
       // Neni tohle nahodou asynchorinni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
-        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        ATCD_DBG_ATC_CME_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMS ERROR:", strlen("+CMS ERROR:")) == 0)
       {
-        atcd_dbg_inf("ATC: ERROR detected.\r\n");
+        ATCD_DBG_ATC_CMS_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "FAIL\r\n", strlen("FAIL\r\n")) == 0)
       {
-        atcd_dbg_inf("ATC: FAIL detected.\r\n");
+        ATCD_DBG_ATC_FAIL_DET
         at_cmd->result = ATCD_ATC_RESULT_FAIL;
       }
 
@@ -448,7 +450,7 @@ uint8_t atcd_atc_prompt_tst()
   // "> " test
   if(atcd.parser.mode == ATCD_P_MODE_TX_PEND && strncmp(atcd.parser.buff + atcd.parser.line_pos, "> ", strlen("> ")) == 0)
   {
-    atcd_dbg_inf("ATCD: Prompt \">\" detected.\r\n");
+    ATCD_DBG_ATC_PROMT_DET
     atcd.parser.mode = ATCD_P_MODE_PROMPT;
 
     atcd.parser.buff_pos = 0;
@@ -474,7 +476,7 @@ uint8_t atcd_atc_prompt_tst()
     }
     else
     {
-      atcd_dbg_err("ATCD: ATC nema zadna data k odeslani!\r\n");
+      ATCD_DBG_ATC_SEND_DATA_ERR
     }
 
     atcd.parser.mode = ATCD_P_MODE_ATC;

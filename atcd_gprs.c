@@ -62,7 +62,7 @@ void atcd_gprs_connect()                    //connect gprs
 {
   if(atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
   {
-    atcd_dbg_inf("GPRS: INIT: Zacina inicializace.\r\n");
+    ATCD_DBG_GPRS_CONN_SET
 
     atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
     atcd.gprs.timer = atcd_get_ms();
@@ -73,7 +73,7 @@ void atcd_gprs_disconnect()                //disconnect gprs
 {
   if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
   {
-    atcd_dbg_inf("GPRS: DEINIT: Zacina deinicializace.\r\n");
+    ATCD_DBG_GPRS_DISCONN_SET
 
     atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
     atcd.gprs.timer = atcd_get_ms();

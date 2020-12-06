@@ -29,12 +29,12 @@ void atcd_hw_igt();               //HW ignition (GSM and LTE modem only)
 void atcd_hw_rx(uint8_t *data, uint16_t len);    //rx data
 void atcd_hw_tx(rbuff_t *rbuff, uint16_t len);   //tx data
 
-void atcd_dbg_inf(char *str);                //debug info print
-void atcd_dbg_warn(char *str);                //debug info print
-void atcd_dbg_err(char *str);                 //debug info print
-void atcd_dbg_in(char *str, uint16_t len);    //debug info print
-void atcd_dbg_out(char *str, uint16_t len);   //debug info print
-void atcd_dbg_out_rb(rbuff_t *rbuff, uint16_t len);  //debug info print - ring buffer
+void atcd_dbg_inf(char *header, char *str);   //debug info print
+void atcd_dbg_warn(char *header, char *str);  //debug warning print
+void atcd_dbg_err(char *header, char *str);   //debug error print
+void atcd_dbg_in(char *str, uint16_t len);    //debug data in print
+void atcd_dbg_out(char *str, uint16_t len);   //debug data out print
+void atcd_dbg_out_rb(rbuff_t *rbuff, uint16_t len);  //debug data out print - ring buffer
 
 void atcd_dbg_txt(char *str);                 //debug text print
 
