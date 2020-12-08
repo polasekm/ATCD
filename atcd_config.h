@@ -179,9 +179,11 @@
   #define ATCD_DBG_CONN_IPD_END        atcd_dbg_inf("ATCD: CONN: ", "Dosahli jsme konce IPD bloku.\r\n");
   #define ATCD_DBG_CONN_IPD_ERR        atcd_dbg_err("ATCD: CONN: ", "Je rezim IPD, ale nenastaveno prijimajici spojeni! - Prechazim do rezimu ATC.\r\n");
 
+  #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "$GPRMC detect\r\n");
+  #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "$GPGSA detect\r\n");
+  #define ATCD_DBG_GPS_GGA             atcd_dbg_inf("ATCD: GPS: ", "$GPGGA detect\r\n");
 
-
-
+  #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPRMC\r\n");
 
 #else
   #define ATCD_DBG_BUFF_OVERRUN

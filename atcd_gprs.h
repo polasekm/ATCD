@@ -45,13 +45,15 @@ typedef struct
 // Functions -------------------------------------------------------------------
 
 // GPRS
-void atcd_gprs_init();            //inializace gprs
+void atcd_gprs_init();                           //inializace gprs
 //--------------------------------------------------------------
-void atcd_gprs_connect();                    //connect gprs
-void atcd_gprs_disconnect();                 //disconnect gprs
+void atcd_gprs_connect();                        //connect gprs
+void atcd_gprs_disconnect();                     //disconnect gprs
 
-void atcd_gprs_proc();                    //gprs processing
-void atcd_gprs_reset();                   //gprs state reset
+void atcd_gprs_set_apn(char *apn, char *psswd);  //disconnect gprs
+
+void atcd_gprs_proc();                           //gprs processing
+void atcd_gprs_reset();                          //gprs state reset
 
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPRS_H_INCLUDED */

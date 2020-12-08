@@ -44,8 +44,8 @@
 typedef struct
 {
   uint8_t state;                  //registration state
-  //uint8_t roaming;                //roaming state
-  //uint8_t pin_state;              //pin state
+  //uint8_t roaming;              //roaming state
+  //uint8_t pin_state;            //pin state
 
   char *pin;                      //PIN
 

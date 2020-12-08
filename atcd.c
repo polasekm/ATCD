@@ -162,7 +162,7 @@ void atcd_proc()                         //data processing
     atcd_phone_proc();                     //phone processing
     atcd_gprs_proc();                      //gprs processing
     atcd_conn_proc();                      //connections processing  
-    atcd_gps_proc();
+    atcd_gps_proc();                       //gps processing
     atcd_wifi_proc();
   }
 }
@@ -252,6 +252,8 @@ void atcd_rx_ch(char ch)
   if(atcd_wifi_asc_msg() != 0) return;  // Zpracovani udalosti WLAN
   if(atcd_gsm_asc_msg() != 0) return;   // Zpracovani udalosti GSM site
   if(atcd_phone_asc_msg() != 0) return; // Zpracovani udalosti telefonu
+
+  if(atcd_gps_asc_msg() != 0) return;   // Zpracovani udalosti GPS
   //------------------------------
   // Zpracovani startovaci sekvence
   //------------------------------

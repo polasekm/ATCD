@@ -80,3 +80,9 @@ void atcd_gprs_disconnect()                //disconnect gprs
   }
 }
 //------------------------------------------------------------------------------
+void atcd_gprs_set_apn(char *apn, char *psswd)
+{
+  atcd.gprs.apn = apn;
+  atcd.gprs.psswd = psswd;
+}
+//------------------------------------------------------------------------------

@@ -92,14 +92,14 @@ void atcd_phone_set_pin(char *pin);          //set PIN
 
 void atcd_phone_call(char *numer);           //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
-void atcd_phone_call_down();                 //polozit hovor
+void atcd_phone_call_hang_up();              //polozit hovor
 
 void atcd_phone_send_sms();                  //poslat SMS
 void atcd_phone_call_down();                 //polozit hovor
 
 // PHONE
-void atcd_phone_proc();                    //phone processing
-void atcd_phone_reset();                   //phone state reset
+void atcd_phone_proc();                      //phone processing
+void atcd_phone_reset();                     //phone state reset
 
 uint8_t atcd_phone_asc_msg();
 //------------------------------------------------------------------------------
