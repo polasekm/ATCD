@@ -12,6 +12,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
+#include <string.h>
 
 #include "atcd_config.h"
 

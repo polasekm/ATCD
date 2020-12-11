@@ -184,6 +184,8 @@
   #define ATCD_DBG_GPS_GGA             atcd_dbg_inf("ATCD: GPS: ", "$GPGGA detect\r\n");
 
   #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPRMC\r\n");
+  #define ATCD_DBG_GPS_GSA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGSA\r\n");
+  #define ATCD_DBG_GPS_GGA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGGA\r\n");
 
 #else
   #define ATCD_DBG_BUFF_OVERRUN

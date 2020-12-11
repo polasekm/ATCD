@@ -251,7 +251,7 @@ uint16_t atcd_proc_step()
 
       if(conn == NULL || conn->state != ATCD_CONN_STATE_W_OPEN) return 400;
 
-      atcd_dbg_inf("CONN: Otevitam spojeni.\r\n");
+      ATCD_DBG_CONN_OPENING
       //conn->state = ATCD_CONN_STATE_OPENING;
       atcd.at_cmd.timeout = 15000;
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
@@ -268,7 +268,7 @@ uint16_t atcd_proc_step()
       }
       else
       {
-        atcd_dbg_err("CONN: Pokus otevrit spojeni nepodporovanym protokolem!\r\n");
+        ATCD_DBG_CONN_PROT_ERR
         // Osetrit ze to nastalo - call back, stav spojeni...
         return 499;
       }
@@ -276,14 +276,14 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 401;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
-        atcd_dbg_inf("CONN: Prikaz pro otevreni spojeni dokoncen - cekam na spojeni\r\n");
+        ATCD_DBG_CONN_W_CONN
         conn->state = ATCD_CONN_STATE_OPENING;
         conn->timer = atcd_get_ms();
         // asi volat call back pokud je nastaven?
       }
       else
       {
-        atcd_dbg_warn("CONN: Prikaz pro otevreni spojeni skoncil chybou!\r\n");
+        ATCD_DBG_CONN_OPENING_ERR
         //atcd.conns.conn[conn->num]  = NULL;
 
         //atcd_conn_free(conn);
@@ -325,7 +325,7 @@ uint16_t atcd_proc_step()
 
       atcd.at_cmd.timeout = 30000;
 
-      atcd_dbg_inf("CONN: Odesilam prikaz pro odeslani dat.\r\n");
+      ATCD_DBG_CONN_SEND
       //conn->state = ATCD_CONN_STATE_OPENING;
 
       if(tx_data_len > 512) tx_data_len = 512;
@@ -368,7 +368,7 @@ uint16_t atcd_proc_step()
       }
       else
       {
-        atcd_dbg_warn("CONN: Prikaz pro odeslani dat skoncil chybou.\r\n");
+        ATCD_DBG_CONN_SEND_ERR
         //conn->state = ATCD_CONN_STATE_FAIL;
 
         // asi volat call back pokud je nastaven?
@@ -405,7 +405,7 @@ uint16_t atcd_proc_step()
 
       if(conn == NULL || conn->state != ATCD_CONN_STATE_W_CLOSE) return 600;
 
-      atcd_dbg_inf("CONN: Zaviram spojeni.\r\n");
+      ATCD_DBG_CONN_CLOSING
       //conn->state = ATCD_CONN_STATE_OPENING;
       atcd.at_cmd.timeout = 15000;
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
@@ -417,14 +417,14 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 601;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
-        atcd_dbg_inf("CONN: Prikaz pro uzavreni spojeni dokoncen - cekam na ukonceni\r\n");
+        ATCD_DBG_CONN_W_CLOSE
         conn->state = ATCD_CONN_STATE_CLOSING;
         conn->timer = atcd_get_ms();
         // asi volat call back pokud je nastaven?
       }
       else
       {
-        atcd_dbg_warn("CONN: Prikaz pro ukoceni spojeni skoncil chybou!\r\n");
+        ATCD_DBG_CONN_CLOSING_ERR
         //atcd.conns.conn[conn->num]  = NULL;
 
         //atcd_conn_free(conn);
