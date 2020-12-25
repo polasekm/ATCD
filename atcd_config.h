@@ -182,10 +182,14 @@
   #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "$GPRMC detect\r\n");
   #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "$GPGSA detect\r\n");
   #define ATCD_DBG_GPS_GGA             atcd_dbg_inf("ATCD: GPS: ", "$GPGGA detect\r\n");
+  #define ATCD_DBG_GPS_GSV             atcd_dbg_inf("ATCD: GPS: ", "$GPGSV detect\r\n");
+  #define ATCD_DBG_GPS_ACC             atcd_dbg_inf("ATCD: GPS: ", "$GPACCURACY detect\r\n");
 
   #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPRMC\r\n");
   #define ATCD_DBG_GPS_GSA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGSA\r\n");
   #define ATCD_DBG_GPS_GGA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGGA\r\n");
+  #define ATCD_DBG_GPS_GSV_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGSV\r\n");
+  #define ATCD_DBG_GPS_ACC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPACCURACY\r\n");
 
 #else
   #define ATCD_DBG_BUFF_OVERRUN

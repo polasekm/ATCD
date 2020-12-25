@@ -172,34 +172,38 @@ uint16_t atcd_proc_step()
       } 
       ATCD_DBG_GPRS_INIT_START
       atcd.at_cmd.timeout = 40000;
-    case 201:
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
+    /*case 201:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");*/
     case 202:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 202;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
     case 203:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 203;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSTT=\"internet\",\"\",\"\"\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
     case 204:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 204;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGDCONT=1,\"IP\",\"internet\"\r\n");
-    /*case 205:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSTT=\"internet\",\"\",\"\"\r\n");
+    case 205:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 205;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGACT=1,1\r\n"); */
-    case 206:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGDCONT=1,\"IP\",\"internet\"\r\n");
+    /*case 206:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 206;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
-    /*case 207:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGACT=1,1\r\n"); */
+    case 207:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 207;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n"); */
-    case 208:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
+    /*case 208:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 208;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n"); */
+    case 209:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 209;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
       ATCD_DBG_GPRS_INIT_OK
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;

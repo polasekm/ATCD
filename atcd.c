@@ -37,6 +37,7 @@ void atcd_init()                          //init AT command device
   atcd_gps_init();
   atcd_wifi_init();
 
+  atcd_hw_reset();
   atcd_start();                          //Zvazit, zda nespoustte pozdeji manualne
 }
 //------------------------------------------------------------------------------
@@ -220,6 +221,8 @@ void atcd_rx_ch(char ch)
       //at_cmd->resp           = NULL;  //tohle je ultra nebezpecne!
       at_cmd->resp_len       = 0;
       at_cmd->resp_buff_size = 0;
+
+      // pozor, atc bude dale pokracovat, jak se pak se pak zjisti ze doslo k chybe?
 
       if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
     }

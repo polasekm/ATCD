@@ -40,8 +40,8 @@ typedef struct
   char date[16];
   char time[16];
 
-  float latitude;
-  float longitude;
+  double latitude;
+  double longitude;
 
   float height;
   float speed;
