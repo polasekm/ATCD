@@ -173,9 +173,11 @@ void atcd_atc_proc()                     //AT commands processing
     else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
     {
       ATCD_DBG_ATC_TIM
+
+      if(at_cmd->state == ATCD_ATC_STATE_W_ECHO) ATCD_DBG_ATC_ECHO_T_FAIL;
+
       at_cmd->result = ATCD_ATC_RESULT_TIMEOUT;
       at_cmd->resp_len = 0;
-
       at_cmd->state = ATCD_ATC_STATE_DONE;
 
       if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) 
@@ -344,7 +346,6 @@ uint8_t atcd_atc_ln_proc()
         if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
         return 1;
       }
-      else ATCD_DBG_ATC_ECHO_T_FAIL
     } 
     else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
     {
@@ -366,7 +367,7 @@ uint8_t atcd_atc_ln_proc()
         ATCD_DBG_ATC_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
       }
-      // Neni tohle nahodou asynchorinni zprava?
+      // Neni tohle nahodou i asynchorinni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
         ATCD_DBG_ATC_CME_ERR_DET

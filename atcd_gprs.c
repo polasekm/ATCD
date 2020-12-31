@@ -60,7 +60,7 @@ void atcd_gprs_proc()                    //gprs connection processing
 //------------------------------------------------------------------------------
 void atcd_gprs_connect()                    //connect gprs
 {
-  if(atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
+  if(atcd.gprs.state != ATCD_GPRS_STATE_CONN && atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
   {
     ATCD_DBG_GPRS_CONN_SET
 
@@ -71,7 +71,7 @@ void atcd_gprs_connect()                    //connect gprs
 //------------------------------------------------------------------------------
 void atcd_gprs_disconnect()                //disconnect gprs
 {
-  if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
+  if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONN && atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
   {
     ATCD_DBG_GPRS_DISCONN_SET
 

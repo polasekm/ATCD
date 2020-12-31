@@ -170,6 +170,7 @@ uint16_t atcd_proc_step()
       {
         return 300;
       } 
+
       ATCD_DBG_GPRS_INIT_START
       atcd.at_cmd.timeout = 40000;
     case 201:
@@ -219,6 +220,7 @@ uint16_t atcd_proc_step()
       {
         return 400;
       } 
+
       ATCD_DBG_GPRS_DEINIT_START
       atcd.at_cmd.timeout = 40000;
     case 301:
@@ -379,10 +381,12 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 502;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 599;
 
-      return 600;
+      return 500;
     case 599:
       //Zapis do spojeni selhal
       //Zalogovat!
+
+      return 500;
 
       //-------------------------------
       // CONN READ - Doplnit
@@ -433,7 +437,7 @@ uint16_t atcd_proc_step()
         return 699;
       }
 
-      return 700;
+      return 600;
     case 699:
       //Uzavreni spojeni selhalo
       //Zalogovat!
@@ -441,7 +445,7 @@ uint16_t atcd_proc_step()
       //opravdu to neni reduncance - kde vsude se vola, projit..
       atcd_conn_free(conn);
       conn->state = ATCD_CONN_STATE_FAIL;
-      return 400;
+      return 600;
 
     case 700:
       //Konec, navrat na pocatek...

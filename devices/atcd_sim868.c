@@ -170,13 +170,14 @@ uint16_t atcd_proc_step()
       {
         return 300;
       } 
+
       ATCD_DBG_GPRS_INIT_START
       atcd.at_cmd.timeout = 40000;
-    /*case 201:
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");*/
+    case 201:
+      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case 202:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 202;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 299;*/
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
     case 203:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 203;
@@ -223,6 +224,7 @@ uint16_t atcd_proc_step()
       {
         return 400;
       } 
+
       ATCD_DBG_GPRS_DEINIT_START
       atcd.at_cmd.timeout = 40000;
     case 301:
@@ -383,10 +385,11 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 502;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 599;
 
-      return 600;
+      return 500;
     case 599:
       //Zapis do spojeni selhal
       //Zalogovat!
+      return 500;
 
       //-------------------------------
       // CONN READ - Doplnit
@@ -437,7 +440,7 @@ uint16_t atcd_proc_step()
         return 699;
       }
 
-      return 700;
+      return 600;
     case 699:
       //Uzavreni spojeni selhalo
       //Zalogovat!
@@ -445,9 +448,59 @@ uint16_t atcd_proc_step()
       //opravdu to neni reduncance - kde vsude se vola, projit..
       atcd_conn_free(conn);
       conn->state = ATCD_CONN_STATE_FAIL;
-      return 400;
+      return 600;
 
-    case 700:
+  case 700:
+    //-------------------------------
+    // GPS START
+    //-------------------------------
+    if(atcd.gps.state != ATCD_GPS_STATE_W_SEARCH)
+    {
+      return 800;
+    }
+
+    ATCD_DBG_GPS_ENABLING
+    atcd.at_cmd.timeout = 5000;
+  case 701:
+    atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGNSTST=1\r\n");
+  case 702:
+    if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 702;
+    if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 799;
+    atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGNSPWR=1\r\n");
+  case 703:
+    if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 703;
+    if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 799;
+    ATCD_DBG_GPS_ENABLED
+    atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+    return 800;
+  case 799:
+    //GPS start selhalo
+    //Zalogovat!
+
+  case 800:
+    //-------------------------------
+    // GPS STOP
+    //-------------------------------
+    if(atcd.gps.state != ATCD_GPS_STATE_W_OFF)
+    {
+      return 900;
+    }
+
+    ATCD_DBG_GPS_DIABLING
+    atcd.at_cmd.timeout = 5000;
+  case 801:
+    atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGNSPWR=0\r\n");
+  case 802:
+    if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return 802;
+    if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return 899;
+    ATCD_DBG_GPS_DIABLED
+    atcd.gps.state = ATCD_GPS_STATE_OFF;
+    return 900;
+  case 899:
+    //GPRS deinit selhalo
+    //Zalogovat!
+
+    case 900:
       //Konec, navrat na pocatek...
       return 100;
 

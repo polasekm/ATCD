@@ -31,7 +31,6 @@ void atcd_gsm_proc()
 //------------------------------------------------------------------------------
 uint8_t atcd_gsm_asc_msg()
 {
-  uint16_t op;
   uint8_t val;
   uint8_t state_p;
 
@@ -39,16 +38,14 @@ uint8_t atcd_gsm_asc_msg()
   {
     val = (uint8_t)atoi(atcd.parser.buff + atcd.parser.buff_pos - ATCD_RX_NL_LEN - 1);
 
-    if(val >= 0 && val <= 10)
+    if(val <= 10)
     {
       ATCD_DBG_CREG
       state_p = atcd.gsm.state;
 
       atcd.gsm.state = val;
-      atcd.parser.buff_pos  = atcd.parser.line_pos;
 
-      //Pokud probihal ATC, nemazat z odpovedi...
-
+      //Prechod na roaming nemusi znamenat reset vsech spojeni - opravit.
       if(state_p != val)
       {
         atcd_conn_reset_all();
@@ -59,9 +56,16 @@ uint8_t atcd_gsm_asc_msg()
     {
       ATCD_DBG_CREG_ERR
       atcd_conn_reset_all();
-      atcd.parser.buff_pos = atcd.parser.line_pos;
     }
-    
+
+    //+CREG nesmi prijit v tele jineho ATC... pokud se ukaze dukaz ze prisel i jindy, dospecifikovat i konkretni ATC
+    //Zvazit zda nenapsat test, ktery by tyto situace vyhledaval...
+    if(atcd.parser.at_cmd_top == NULL || atcd.parser.at_cmd_top->state != ATCD_ATC_STATE_W_END)
+    {
+        return 0;
+    }
+
+    atcd.parser.buff_pos = atcd.parser.line_pos;
     return 1;
   }
 

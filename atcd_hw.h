@@ -15,7 +15,7 @@
 /* Exported functions ------------------------------------------------------- */
 
 /* Defines -------------------------------------------------------------------*/
-#define ATCD_RB_RX_BUFF_LEN 512
+#define ATCD_RB_RX_BUFF_LEN 4096
 
 #define ATCD_PWR_OFF   0
 #define ATCD_PWR_ON    1

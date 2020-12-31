@@ -179,17 +179,30 @@
   #define ATCD_DBG_CONN_IPD_END        atcd_dbg_inf("ATCD: CONN: ", "Dosahli jsme konce IPD bloku.\r\n");
   #define ATCD_DBG_CONN_IPD_ERR        atcd_dbg_err("ATCD: CONN: ", "Je rezim IPD, ale nenastaveno prijimajici spojeni! - Prechazim do rezimu ATC.\r\n");
 
-  #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "$GPRMC detect\r\n");
-  #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "$GPGSA detect\r\n");
-  #define ATCD_DBG_GPS_GGA             atcd_dbg_inf("ATCD: GPS: ", "$GPGGA detect\r\n");
-  #define ATCD_DBG_GPS_GSV             atcd_dbg_inf("ATCD: GPS: ", "$GPGSV detect\r\n");
-  #define ATCD_DBG_GPS_ACC             atcd_dbg_inf("ATCD: GPS: ", "$GPACCURACY detect\r\n");
+  #define ATCD_DBG_GPS_SENTECE         atcd_dbg_inf("ATCD: GPS: ", "$G detect - NMEA veta.\r\n");
+  #define ATCD_DBG_GPS_USENTECE        atcd_dbg_warn("ATCD: GPS: ", "Veta nebyla rozpoznana / neni podporovana.\r\n");
+  #define ATCD_DBG_GPS_SENTECE_OFF     atcd_dbg_warn("ATCD: GPS: ", "Byla prijata NMEA veta ale GPS je vypnuta.\r\n");
 
-  #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPRMC\r\n");
-  #define ATCD_DBG_GPS_GSA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGSA\r\n");
-  #define ATCD_DBG_GPS_GGA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGGA\r\n");
-  #define ATCD_DBG_GPS_GSV_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPGSV\r\n");
-  #define ATCD_DBG_GPS_ACC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GPACCURACY\r\n");
+  #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "RMC sentecne detect\r\n");
+  #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "GSA sentecne detect\r\n");
+  #define ATCD_DBG_GPS_GGA             atcd_dbg_inf("ATCD: GPS: ", "GGA sentecne detect\r\n");
+  #define ATCD_DBG_GPS_GSV             atcd_dbg_inf("ATCD: GPS: ", "GSV sentecne detect\r\n");
+  #define ATCD_DBG_GPS_VTG             atcd_dbg_inf("ATCD: GPS: ", "VTG sentecne detect\r\n");
+  #define ATCD_DBG_GPS_ACC             atcd_dbg_inf("ATCD: GPS: ", "ACCURACY sentecne detect\r\n");
+  #define ATCD_DBG_GPS_BIAS            atcd_dbg_inf("ATCD: GPS: ", "HWBIAS sentecne detect\r\n");
+
+  #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety RMC\r\n");
+  #define ATCD_DBG_GPS_GSA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GSA\r\n");
+  #define ATCD_DBG_GPS_GGA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GGA\r\n");
+  #define ATCD_DBG_GPS_GSV_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GSV\r\n");
+  #define ATCD_DBG_GPS_VTG_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety VTG\r\n");
+  #define ATCD_DBG_GPS_ACC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety ACCURACY\r\n");
+  #define ATCD_DBG_GPS_BIAS_ERR        atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety HWBIAS\r\n");
+
+  #define ATCD_DBG_GPS_ENABLING        atcd_dbg_inf("ATCD: GPS: ", "Enabling GPS receiver\r\n");
+  #define ATCD_DBG_GPS_ENABLED         atcd_dbg_inf("ATCD: GPS: ", "Enabled GPS receiver\r\n");
+  #define ATCD_DBG_GPS_DIABLING        atcd_dbg_inf("ATCD: GPS: ", "Disabling GPS receiver\r\n");
+  #define ATCD_DBG_GPS_DIABLED         atcd_dbg_inf("ATCD: GPS: ", "Disabled GPS receiver\r\n");
 
 #else
   #define ATCD_DBG_BUFF_OVERRUN
