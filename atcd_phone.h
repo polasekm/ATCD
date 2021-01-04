@@ -38,7 +38,6 @@
 #define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
-
 #define ATCD_SMS_EV_NONE          0x00
 #define ATCD_SMS_EV_SEND          0b00000001
 #define ATCD_SMS_EV_FAIL          0b00000010

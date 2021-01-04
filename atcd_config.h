@@ -29,8 +29,6 @@
 
 #include "atcd_user_config.h"
 
-//#define ATCD_USE_DEVICE    ATCD_A6
-
 #define ATCD_DBG 1
 
 #if(ATCD_DBG == 1)
@@ -120,6 +118,7 @@
   
   #define ATCD_DBG_PHONE_RING_DET      atcd_dbg_inf("ATCD: PHONE: ", "RING detect.\r\n");
   #define ATCD_DBG_PHONE_SMS_DET       atcd_dbg_inf("ATCD: PHONE: ", "New SMS detected.\r\n");
+  #define ATCD_DBG_PHONE_CALL_DET      atcd_dbg_inf("ATCD: PHONE: ", "Voice call detected.\r\n");
 
   #define ATCD_DBG_WIFI_CONN_DET       atcd_dbg_inf("ATCD: WIFI: ", "WIFI CONNECTED detect...\r\n");
   #define ATCD_DBG_WIFI_GOT_IP         atcd_dbg_inf("ATCD: WIFI: ", "WIFI GOT IP detect..\r\n");
@@ -235,6 +234,22 @@
 //-----------------------------
 #if(ATCD_USE_DEVICE == ATCD_A6)
   #define ATCD_STR_START_SEQ        "AT Ready\r\n"
+  #define ATCD_STR_DATA_RX          "+RECEIVE,"
+
+  #define ATCD_STR_SIM_READY        "+CPIN:READY"
+  #define ATCD_STR_SIM_PIN          "+CPIN:SIM PIN"
+  #define ATCD_STR_SIM_PIN2         "+CPIN:SIM PIN2"
+  #define ATCD_STR_SIM_PUK          "+CPIN:SIM PUK"
+  #define ATCD_STR_SIM_PUK2         "+CPIN:SIM PUK2"
+
+  #define ATCD_DATA_RX_NL
+  #define ATCD_RX_NL_LEN  2
+
+  #define ATCD_CONN_MAX_NUMBER 4
+#endif /* ATCD_USE_DEVICE */
+//-----------------------------
+#if(ATCD_USE_DEVICE == ATCD_A7)
+  #define ATCD_STR_START_SEQ        "^CINIT: 1, 0, 0\r\n"
   #define ATCD_STR_DATA_RX          "+RECEIVE,"
 
   #define ATCD_STR_SIM_READY        "+CPIN:READY"
