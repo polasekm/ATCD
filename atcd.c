@@ -55,10 +55,10 @@ void atcd_start()               //Spusteni zarizeni
 //------------------------------------------------------------------------------
 void atcd_reset()               //Reset zarizeni
 {
-  // SW reset
   ATCD_DBG_RESET
   atcd_state_reset();
 
+  atcd_sw_reset();
   atcd_hw_reset();
   atcd_hw_igt();
 

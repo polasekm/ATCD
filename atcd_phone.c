@@ -15,11 +15,8 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 void atcd_phone_init()   //inializace telefonu
 {
-  atcd.phone.state = ATCD_PHONE_STATE_UNREG;
+  atcd_phone_reset();
   atcd.phone.pin = NULL;
-
-  atcd.phone.flags = 0;
-  atcd.phone.miss_call_cnt = 0;
 
   atcd.phone.cb_events = ATCD_PHONE_EV_ALL;
   atcd.phone.callback = NULL;
@@ -27,7 +24,15 @@ void atcd_phone_init()   //inializace telefonu
 //------------------------------------------------------------------------------
 void atcd_phone_reset()                   //phone state reset
 {
-  atcd.phone.state = ATCD_PHONE_STATE_UNREG;
+  atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+  atcd.phone.ring_cnt = 0;
+
+  atcd.phone.dtmf_rx_tone = 0;
+  atcd.phone.dtmf_tx_tone = 0;
+  atcd.phone.dtmf_tx_dur = 1;
+
+  atcd.phone.flags = 0;
+  atcd.phone.miss_call_cnt = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
@@ -47,7 +52,10 @@ uint8_t atcd_phone_asc_msg()
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "RING\r\n", strlen("RING\r\n")) == 0)
   {
     ATCD_DBG_PHONE_RING_DET
-    //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
+
+    if(atcd.phone.state != ATCD_PHONE_STATE_RING_WA) atcd.phone.state = ATCD_PHONE_STATE_RING;
+    atcd.phone.ring_cnt++;
+
     atcd.parser.buff_pos = atcd.parser.line_pos;
     if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
     return 1;
@@ -74,17 +82,40 @@ uint8_t atcd_phone_asc_msg()
 
     if(val == 1)
     {
-      atcd.phone.state = ATCD_PHONE_STATE_RING;
-      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
+      atcd.phone.state = ATCD_PHONE_STATE_CALL;
+      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL);
     }
     else
     {
-      atcd.phone.state = ATCD_PHONE_STATE_READY;
+      atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+      atcd.phone.ring_cnt = 0;
+
       if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
     }
     return 1;
   }
 
   return 0;
+}
+//------------------------------------------------------------------------------
+void atcd_phone_call_answer()
+{
+  if(atcd.phone.state == ATCD_PHONE_STATE_RING) atcd.phone.state = ATCD_PHONE_STATE_RING_WA;
+}
+//------------------------------------------------------------------------------
+void atcd_phone_call(char *number)
+{
+  if(atcd.phone.state == ATCD_PHONE_STATE_IDLE)
+  {
+    strncpy(atcd.phone.number, number, 16);
+    atcd.phone.number[15] = 0;
+    atcd.phone.state = ATCD_PHONE_STATE_DIAL_W;
+  }
+}
+//------------------------------------------------------------------------------
+void atcd_phone_call_hang_up()
+{
+  if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) atcd.phone.state = ATCD_PHONE_STATE_HANG_W;
+  else if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) atcd.phone.state = ATCD_PHONE_STATE_IDLE;
 }
 //------------------------------------------------------------------------------

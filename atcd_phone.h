@@ -22,11 +22,14 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Phone
-#define ATCD_PHONE_STATE_UNREG      0
-#define ATCD_PHONE_STATE_READY      1
-#define ATCD_PHONE_STATE_RING       2
+#define ATCD_PHONE_STATE_IDLE       0
+#define ATCD_PHONE_STATE_RING       1
+#define ATCD_PHONE_STATE_RING_WA    2
 #define ATCD_PHONE_STATE_CALL       3
-#define ATCD_PHONE_STATE_GPRS       4
+#define ATCD_PHONE_STATE_HANG_W     4
+#define ATCD_PHONE_STATE_DIAL       5
+#define ATCD_PHONE_STATE_DIAL_W     6
+//#define ATCD_PHONE_STATE_GPRS       7
 
 #define ATCD_PHONE_EV_NONE          0x00
 #define ATCD_PHONE_EV_REG           0b00000001
@@ -34,7 +37,8 @@
 #define ATCD_PHONE_EV_RING          0b00000100
 #define ATCD_PHONE_EV_RING_END      0b00001000
 #define ATCD_PHONE_EV_SMS_IN        0b00010000
-#define ATCD_PHONE_EV_CALL_END      0b00100000
+#define ATCD_PHONE_EV_CALL          0b00100000
+#define ATCD_PHONE_EV_CALL_END      0b01000000
 #define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
@@ -73,6 +77,13 @@ typedef struct
   uint8_t state;                  //phone state
   char *pin;                      //PIN
 
+  char dtmf_rx_tone;              //DTMF TX tone
+  char dtmf_tx_tone;              //DTMF TX tone
+  uint8_t dtmf_tx_dur;            //DTMF TX tone duration
+
+  char number[16];                //src/dst phone number
+  uint8_t ring_cnt;               //ring counter
+
   uint8_t flags;                  //phone events
   uint8_t miss_call_cnt;          //missing call counter
 
@@ -89,7 +100,7 @@ void atcd_phone_init();                      //inializace telefonu
 
 void atcd_phone_set_pin(char *pin);          //set PIN
 
-void atcd_phone_call(char *numer);           //vytocit hovor
+void atcd_phone_call(char *number);          //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
 void atcd_phone_call_hang_up();              //polozit hovor
 

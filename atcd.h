@@ -58,6 +58,27 @@
 #define ATCD_ERR                    1
 #define ATCD_ERR_LOCK               2
 
+// Switch base offsets
+#define ATCD_SB_INIT                0
+#define ATCD_SB_STAT                100
+
+#define ATCD_SB_PHONE               200
+
+#define ATCD_SB_GPRS_INIT           300
+#define ATCD_SB_GPRS_DEINIT         400
+
+#define ATCD_SB_CONN_OPEN           500
+#define ATCD_SB_CONN_WRITE          600
+#define ATCD_SB_CONN_READ           700
+#define ATCD_SB_CONN_CLOSE          800
+
+#define ATCD_SB_GPS_START           900
+#define ATCD_SB_GPS_STOP            1000
+
+#define ATCD_SB_END                 1100
+
+#define ATCD_SO_ERR                 98
+#define ATCD_SO_END                 99
 //------------------------------------------------------------------------------
 typedef struct
 {
@@ -98,6 +119,8 @@ void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec
 void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
 
 void atcd_tx_complete();         //call on tx data complete
+
+void atcd_sw_reset();            //SW reset
 
 void atcd_proc();                //data processing 
 //--------------------------------------------------------------

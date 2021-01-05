@@ -222,10 +222,7 @@
 
 //#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 
-//-----------------------------
-#define ATCD_P_BUFF_SIZE 512
 
-//-----------------------------
 
 #ifndef ATCD_USE_DEVICE
   #define ATCD_USE_DEVICE  ATCD_A6

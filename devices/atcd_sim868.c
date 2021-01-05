@@ -35,7 +35,6 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.data           = NULL;
       atcd.at_cmd.data_len       = 0;
 
-
       atcd.at_cmd.timeout        = 5000;
     case 1:
       atcd_atc_exec_cmd(&atcd.at_cmd, "ATE1\r\n");         // Enable AT cmd echo
@@ -507,6 +506,22 @@ uint16_t atcd_proc_step()
     default:
       return 0;
   }
+}
+//------------------------------------------------------------------------------
+void atcd_sw_reset()            //SW reset
+{
+    uint16_t len;
+
+    //ATCD_DBG_ATC_SEND_CMD
+    //atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
+    //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
+    //atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
+
+    len = strlen("AT+CFUN=1,1\r\n");
+    rbuff_lin_space(&atcd.parser.tx_rbuff, (uint8_t*)"AT+CFUN=1,1\r\n", len);
+
+    //atcd.parser.timer = atcd_get_ms();
+    atcd_hw_tx(&atcd.parser.tx_rbuff, len);
 }
 //------------------------------------------------------------------------------
 #endif /* ATCD_SIM868 */
