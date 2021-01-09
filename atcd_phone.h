@@ -84,10 +84,11 @@ typedef struct
   char number[16];                //src/dst phone number
   uint8_t ring_cnt;               //ring counter
 
-  uint8_t flags;                  //phone events
   uint8_t miss_call_cnt;          //missing call counter
 
   atcd_sms_t sms;                 //SMS struct for internal usage
+  char sms_sender_buff[16];       //sms number buff
+  char sms_datetime_buff[32];     //sms datetime buff
 
   uint8_t cb_events;              //phone events
   void (*callback)(uint8_t);      //events callback

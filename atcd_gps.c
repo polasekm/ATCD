@@ -78,7 +78,7 @@ uint8_t atcd_gps_asc_msg()
             return 1;
         }
 
-        p    = atcd.parser.buff + atcd.parser.line_pos + strlen("$GP") ;
+        p    = atcd.parser.buff + atcd.parser.line_pos + strlen("$GP");
         endl = atcd.parser.buff + atcd.parser.buff_pos;
 
         if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "RMC,", strlen("RMC,")) == 0)

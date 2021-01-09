@@ -26,8 +26,9 @@
 // Mod parseru prichozich dat
 #define ATCD_P_MODE_ATC             0
 #define ATCD_P_MODE_IPD             1
-#define ATCD_P_MODE_TX_PEND         2
-#define ATCD_P_MODE_PROMPT          3
+#define ATCD_P_MODE_SMS             2
+#define ATCD_P_MODE_TX_PEND         3
+#define ATCD_P_MODE_PROMPT          4
 
 // Opravdu - s ohledem na stav vyse asi smazat
 #define ATCD_P_NO_TX_PENDING        0xFF

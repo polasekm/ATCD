@@ -120,6 +120,8 @@
   #define ATCD_DBG_PHONE_SMS_DET       atcd_dbg_inf("ATCD: PHONE: ", "New SMS detected.\r\n");
   #define ATCD_DBG_PHONE_CALL_DET      atcd_dbg_inf("ATCD: PHONE: ", "Voice call detected.\r\n");
 
+  #define ATCD_DBG_PHONE_SMS_DET_ERR   atcd_dbg_warn("ATCD: PHONE: ", "New SMS detected - parsing error\r\n");
+
   #define ATCD_DBG_WIFI_CONN_DET       atcd_dbg_inf("ATCD: WIFI: ", "WIFI CONNECTED detect...\r\n");
   #define ATCD_DBG_WIFI_GOT_IP         atcd_dbg_inf("ATCD: WIFI: ", "WIFI GOT IP detect..\r\n");
   #define ATCD_DBG_WIFI_DISCONN_DET    atcd_dbg_inf("ATCD: WIFI: ", "WIFI DISCONNECT detect...\r\n");
