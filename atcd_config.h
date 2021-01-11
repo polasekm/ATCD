@@ -46,7 +46,6 @@
   #define ATCD_DBG_PUK_REQ              atcd_dbg_inf("ATCD: INIT: ", "Je treba zadat PUK.\r\n");
   #define ATCD_DBG_PIN_ERR              atcd_dbg_err("ATCD: INIT: ", "Na dotaz na PIN prisla neocekavana odpoved - zacinam znovu!\r\n");
 
-
   #define ATCD_DBG_STAT_DONE            atcd_dbg_inf("ATCD: STAT: ", "Dotazovani na stav modemu bylo dokonceno.\r\n");
   
   #define ATCD_DBG_ATC_SEND_DATA        atcd_dbg_inf("ATCD: ATC: ", "Odesilani dat bylo zahajeno.\r\n");
@@ -75,7 +74,6 @@
   #define ATCD_DBG_ATC_CANCELL          atcd_dbg_inf("ATCD: ATC: ", "Rusim AT prikaz.\r\n");
   #define ATCD_DBG_ATC_CANCELL_EQ       atcd_dbg_warn("ATCD: ATC: ", "Ruseny AT prikaz neni ve fronte.\r\n");
   #define ATCD_DBG_ATC_CANCELL_ALL      atcd_dbg_inf("ATCD: ATC: ", "Budu zruseny vsechny AT prikazy fe fronte.\r\n");
-
 
   #define ATCD_DBG_SEQ_ERR              atcd_dbg_warn("ATCD: ATC_SEQ: ", "Krok sekvence skoncil chybou!\r\n");
   #define ATCD_DBG_SEQ_ERR_MAX          atcd_dbg_warn("ATCD: ATC_SEQ: ", "Dosazano maximalniho poctu chyb sekvence!\r\n");
@@ -119,8 +117,12 @@
   #define ATCD_DBG_PHONE_RING_DET      atcd_dbg_inf("ATCD: PHONE: ", "RING detect.\r\n");
   #define ATCD_DBG_PHONE_SMS_DET       atcd_dbg_inf("ATCD: PHONE: ", "New SMS detected.\r\n");
   #define ATCD_DBG_PHONE_CALL_DET      atcd_dbg_inf("ATCD: PHONE: ", "Voice call detected.\r\n");
+  #define ATCD_DBG_PHONE_CALL_N_DET    atcd_dbg_inf("ATCD: PHONE: ", "Voice call number detected.\r\n");
+  #define ATCD_DBG_PHONE_CALL_N_DET_E  atcd_dbg_warn("ATCD: PHONE: ", "SVoice call number detected error.\r\n");
 
   #define ATCD_DBG_PHONE_SMS_DET_ERR   atcd_dbg_warn("ATCD: PHONE: ", "New SMS detected - parsing error\r\n");
+  #define ATCD_DBG_PHONE_SMS_BUFF_E    atcd_dbg_err("ATCD: PHONE: ", "V bufferu sms neni dostatek mista pro dalsi prijem dat!\r\n");
+  #define ATCD_DBG_PHONE_SMS_END       atcd_dbg_inf("ATCD: PHONE: ", "Dosahli jsme konce SMS bloku.\r\n");
 
   #define ATCD_DBG_WIFI_CONN_DET       atcd_dbg_inf("ATCD: WIFI: ", "WIFI CONNECTED detect...\r\n");
   #define ATCD_DBG_WIFI_GOT_IP         atcd_dbg_inf("ATCD: WIFI: ", "WIFI GOT IP detect..\r\n");

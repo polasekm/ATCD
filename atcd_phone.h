@@ -88,7 +88,8 @@ typedef struct
 
   atcd_sms_t sms;                 //SMS struct for internal usage
   char sms_sender_buff[16];       //sms number buff
-  char sms_datetime_buff[32];     //sms datetime buff
+  char sms_datetime_buff[32];     //sms datetime buff)
+  char sms_message_buff[161];     //sms datetime buff
 
   uint8_t cb_events;              //phone events
   void (*callback)(uint8_t);      //events callback
@@ -113,5 +114,6 @@ void atcd_phone_proc();                      //phone processing
 void atcd_phone_reset();                     //phone state reset
 
 uint8_t atcd_phone_asc_msg();
+uint8_t atcd_phone_sms_proc(char ch);
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */

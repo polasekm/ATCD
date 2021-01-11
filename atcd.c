@@ -207,6 +207,8 @@ void atcd_rx_ch(char ch)
 
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni
+  //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
+  if(atcd_phone_sms_proc(ch) != 0) return;      // Zpracovani prichozich dat prijimane SMS zpravy
   //---------------------------------------
   // Test volneho mista v bufferu
   if(atcd.parser.buff_pos >= ATCD_P_BUFF_SIZE - 1)

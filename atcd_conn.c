@@ -480,7 +480,7 @@ uint8_t atcd_conn_data_proc(char ch)
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;
     }
-	  return 1;
+    return 1;
   }
 
   return 0;
