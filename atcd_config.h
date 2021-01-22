@@ -41,6 +41,8 @@
   #define ATCD_DBG_ATC_BUFF_OV          atcd_dbg_warn("ATCD: ", "V cilovem bufferu ATC neni dost mista!\r\n");
   #define ATCD_DBG_RESET                atcd_dbg_warn("ATCD: ", "Reset zarizeni.\r\n");
 
+  #define ATCD_DBG_SW_ERR               atcd_dbg_err("ATCD: ", "Neocekavana hodnota v SW hlavni smycky\r\n");
+
   #define ATCD_DBG_PIN_NONE             atcd_dbg_inf("ATCD: INIT: ", "PIN neni treba.\r\n");
   #define ATCD_DBG_PIN_REQ              atcd_dbg_inf("ATCD: INIT: ", "Je treba zadat PIN.\r\n");
   #define ATCD_DBG_PUK_REQ              atcd_dbg_inf("ATCD: INIT: ", "Je treba zadat PUK.\r\n");
@@ -115,10 +117,13 @@
   #define ATCD_DBG_GPRS_DEINIT_ERR_R   atcd_dbg_err("GPRS: DEINIT: ", "Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
   
   #define ATCD_DBG_PHONE_RING_DET      atcd_dbg_inf("ATCD: PHONE: ", "RING detect.\r\n");
+  #define ATCD_DBG_PHONE_BUSY_DET      atcd_dbg_inf("ATCD: PHONE: ", "BUSY detect.\r\n");
+  #define ATCD_DBG_PHONE_NO_CAR_DET    atcd_dbg_inf("ATCD: PHONE: ", "NO CARRIER detect.\r\n");
+
   #define ATCD_DBG_PHONE_SMS_DET       atcd_dbg_inf("ATCD: PHONE: ", "New SMS detected.\r\n");
   #define ATCD_DBG_PHONE_CALL_DET      atcd_dbg_inf("ATCD: PHONE: ", "Voice call detected.\r\n");
   #define ATCD_DBG_PHONE_CALL_N_DET    atcd_dbg_inf("ATCD: PHONE: ", "Voice call number detected.\r\n");
-  #define ATCD_DBG_PHONE_CALL_N_DET_E  atcd_dbg_warn("ATCD: PHONE: ", "SVoice call number detected error.\r\n");
+  #define ATCD_DBG_PHONE_CALL_N_DET_E  atcd_dbg_warn("ATCD: PHONE: ", "Voice call number detected error.\r\n");
 
   #define ATCD_DBG_PHONE_SMS_DET_ERR   atcd_dbg_warn("ATCD: PHONE: ", "New SMS detected - parsing error\r\n");
   #define ATCD_DBG_PHONE_SMS_BUFF_E    atcd_dbg_err("ATCD: PHONE: ", "V bufferu sms neni dostatek mista pro dalsi prijem dat!\r\n");
@@ -184,7 +189,7 @@
 
   #define ATCD_DBG_GPS_SENTECE         atcd_dbg_inf("ATCD: GPS: ", "$G detect - NMEA veta.\r\n");
   #define ATCD_DBG_GPS_USENTECE        atcd_dbg_warn("ATCD: GPS: ", "Veta nebyla rozpoznana / neni podporovana.\r\n");
-  #define ATCD_DBG_GPS_SENTECE_OFF     atcd_dbg_warn("ATCD: GPS: ", "Byla prijata NMEA veta ale GPS je vypnuta.\r\n");
+  #define ATCD_DBG_GPS_SENTECE_OFF     atcd_dbg_warn("ATCD: GPS: ", "Byla prijata NMEA veta ale GPS je vypnuta / vypina se.\r\n");
 
   #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "RMC sentecne detect\r\n");
   #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "GSA sentecne detect\r\n");

@@ -83,7 +83,6 @@ typedef struct
 
   char number[16];                //src/dst phone number
   uint8_t ring_cnt;               //ring counter
-
   uint8_t miss_call_cnt;          //missing call counter
 
   atcd_sms_t sms;                 //SMS struct for internal usage

@@ -70,7 +70,7 @@ uint8_t atcd_gps_asc_msg()
     {
         ATCD_DBG_GPS_SENTECE
 
-        if(atcd.gps.state == ATCD_GPS_STATE_OFF)
+        if(atcd.gps.state == ATCD_GPS_STATE_OFF || atcd.gps.state == ATCD_GPS_STATE_W_OFF)
         {
             ATCD_DBG_GPS_SENTECE_OFF
 
@@ -116,7 +116,7 @@ uint8_t atcd_gps_asc_msg()
             //NS
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.latitude = -atcd.gps.latitude;
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'N') atcd.gps.latitude = -atcd.gps.latitude;
             p = np + 1;
 
             //Longitude
@@ -128,7 +128,7 @@ uint8_t atcd_gps_asc_msg()
             //EW
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'E') atcd.gps.longitude = -atcd.gps.longitude;
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'W') atcd.gps.longitude = -atcd.gps.longitude;
             p = np + 1;
 
             //Speed    --- neni to v uzlech?
@@ -306,7 +306,7 @@ uint8_t atcd_gps_asc_msg()
             //NS
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc3;
-            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.latitude = -atcd.gps.latitude;
+            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'N') atcd.gps.latitude = -atcd.gps.latitude;
             p = np + 1;
 
             //Longitude
@@ -318,7 +318,7 @@ uint8_t atcd_gps_asc_msg()
             //EW
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc3;
-            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'E') atcd.gps.longitude = -atcd.gps.longitude;
+            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'W') atcd.gps.longitude = -atcd.gps.longitude;
             p = np + 1;
 
             //Status - rezim urceni polohy - Fix quality

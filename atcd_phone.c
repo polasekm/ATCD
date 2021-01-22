@@ -236,6 +236,37 @@ uint8_t atcd_phone_asc_msg()
     return 1;
   }
 
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "BUSY\r\n", strlen("BUSY\r\n")) == 0)
+  {
+    ATCD_DBG_PHONE_BUSY_DET
+
+    atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+    atcd.phone.ring_cnt = 0;
+    atcd.phone.number[0] = 0;
+
+    //neulozit nekam zmeskane cislo?
+    //neinkrementovat pocet zmeskanych hovoru?
+
+    atcd.parser.buff_pos = atcd.parser.line_pos;
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+    return 1;
+  }
+
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "NO CARRIER\r\n", strlen("NO CARRIER\r\n")) == 0)
+  {
+    ATCD_DBG_PHONE_NO_CAR_DET
+
+    atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+    atcd.phone.ring_cnt = 0;
+    atcd.phone.number[0] = 0;
+
+    //neindikovat odmitnuty hovor?
+
+    atcd.parser.buff_pos = atcd.parser.line_pos;
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+    return 1;
+  }
+
   return 0;
 }
 //------------------------------------------------------------------------------

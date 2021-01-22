@@ -98,10 +98,10 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSDH=1\r\n");           //
-    case ATCD_SB_INIT + 12:
+    /*case ATCD_SB_INIT + 12:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 12;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CNMI=0,2,0,0,0\r\n");          // Rezim nakladani s novymi SMS
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CNMI=0,2,0,0,0\r\n");          // Rezim nakladani s novymi SMS*/
     /*case ATCD_SB_INIT + 13:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 13;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -130,7 +130,7 @@ uint16_t atcd_proc_step()
       // ---- Pocatek pravidelneho kolecka ----
       //------------------------------------------------------------------------
     case ATCD_SB_STAT:
-      // Zarizeni je pripraveno k praci, pripadne spi...
+      /*// Zarizeni je pripraveno k praci, pripadne spi...
       // Pripadne testy stavu a dalsi cinnosti na pozadi...
       if(atcd_get_ms() - atcd.timer < 7500)
       {
@@ -172,7 +172,7 @@ uint16_t atcd_proc_step()
         //nekde resit reset pri prekroceni poctu pokusu
       }
 
-    case ATCD_SB_STAT + ATCD_SO_END:
+    case ATCD_SB_STAT + ATCD_SO_END:*/
       //------------------------------------------------------------------------
       // PHONE
       //------------------------------------------------------------------------
@@ -574,6 +574,7 @@ uint16_t atcd_proc_step()
       //------------------------------------------------------------------------
     default:
       //Chyba, alogovat
+      ATCD_DBG_SW_ERR
       return ATCD_SB_INIT;
   }
 }
