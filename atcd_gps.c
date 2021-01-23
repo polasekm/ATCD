@@ -110,19 +110,29 @@ uint8_t atcd_gps_asc_msg()
             //Latitude
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.latitude = atof(p);
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+            {
+              atcd.gps.latitude = atof(p + 2) / (double)60.f;
+              *(p + 2) = 0;
+              atcd.gps.latitude += atof(p);
+            }
             p = np + 1;
 
             //NS
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'N') atcd.gps.latitude = -atcd.gps.latitude;
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.latitude = -atcd.gps.latitude;
             p = np + 1;
 
             //Longitude
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.longitude = atof(p);
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+            {
+              atcd.gps.longitude = atof(p + 3) / (double)60.f;
+              *(p + 3) = 0;
+              atcd.gps.longitude += atof(p);
+            }
             p = np + 1;
 
             //EW
@@ -131,10 +141,10 @@ uint8_t atcd_gps_asc_msg()
             if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'W') atcd.gps.longitude = -atcd.gps.longitude;
             p = np + 1;
 
-            //Speed    --- neni to v uzlech?
+            //Speed - je v uzlech - nutno nasobit
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc;
-            if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.speed = atof(p);
+            if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.speed = atof(p) * 1.852;
             p = np + 1;
 
             //Course
@@ -300,19 +310,29 @@ uint8_t atcd_gps_asc_msg()
             //Latitude
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc3;
-            //if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.latitude = atof(p);
+            /*if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+            {
+              atcd.gps.latitude = atof(p + 2) / (double)60.f;
+              *(p + 2) = 0;
+              atcd.gps.latitude += atof(p);
+            }*/
             p = np + 1;
 
             //NS
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc3;
-            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'N') atcd.gps.latitude = -atcd.gps.latitude;
+            //if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.latitude = -atcd.gps.latitude;
             p = np + 1;
 
             //Longitude
             np = (char*)memchr(p, ',', endl - p);
             if(np == NULL) goto skip_proc3;
-            //if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.longitude = atof(p);
+            /*if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+            {
+              atcd.gps.longitude = atof(p + 3) / (double)60.f;
+              *(p + 3) = 0;
+              atcd.gps.longitude += atof(p);
+            }*/
             p = np + 1;
 
             //EW

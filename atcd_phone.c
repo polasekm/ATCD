@@ -320,7 +320,7 @@ uint8_t atcd_phone_sms_proc(char ch)
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;
 
-      atcd.phone.sms.message[atcd.phone.sms.len + 1] = 0;
+      atcd.phone.sms.message[atcd.phone.sms.len] = 0;
 
       atcd.phone.sms.cb_events |= ATCD_SMS_EV_SMS_IN;
       if(atcd.phone.sms.callback != NULL) atcd.phone.sms.callback(ATCD_SMS_EV_SMS_IN);

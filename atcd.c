@@ -92,13 +92,12 @@ void atcd_state_reset()                  //state machine reset
 void atcd_proc()                         //data processing
 {
   atcd_atc_proc();                       //AT commands processing
-  //mozna radku vyse prohodit - atc se pred echem musi prenastavit
+  // mozna radku vyse prohodit - atc se pred echem musi prenastavit
   // docasne opraveno takto, dole byt take musi - po prijmu se musi reagovat na pripadne udalosti
   // potiz je s dokoncenym vysilanim, kdy tak separovat...
 
   atcd_rx_proc();                        //Zpracovani prijatych dat
   atcd_atc_proc();                       //AT commands processing 
-
 
   // -- Nepatri to do jine _proc funkce?
   // Test timeoutu v rezimu prijmu dat
@@ -128,7 +127,7 @@ void atcd_proc()                         //data processing
 
     #if(ATCD_USE_DEVICE == ATCD_SIM868)
       atcd.state = ATCD_STATE_NO_INIT;
-    #endif /* ATCD_SIM868 */
+    #endif
   }
   else if(atcd.state == ATCD_STATE_NO_INIT)
   {
