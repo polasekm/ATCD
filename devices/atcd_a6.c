@@ -60,10 +60,13 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
       {
         ATCD_DBG_PIN_NONE
+        atcd.sim.state = ATCD_SIM_STATE_OK;
       }
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
       {
         ATCD_DBG_PIN_REQ
+        atcd.sim.state = ATCD_SIM_STATE_PIN;
+
         strcpy(atcd.at_cmd_buff, "AT+CPIN=\"");
         strcat(atcd.at_cmd_buff, atcd.sim.pin);
         strcat(atcd.at_cmd_buff, "\"\r\n");
@@ -73,13 +76,15 @@ uint16_t atcd_proc_step()
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PUK, strlen(ATCD_STR_SIM_PUK)) == 0)
       {
         ATCD_DBG_PUK_REQ
+        atcd.sim.state = ATCD_SIM_STATE_PUK;
         //Bude to chtit PUK
         //Co delat?
-        //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\\r\n");            // Zadame PUK
+        //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\\r\n");      // Zadame PUK
       }
       else
       {
         ATCD_DBG_PIN_ERR
+        atcd.sim.state = ATCD_SIM_STATE_ERROR;
         return ATCD_SB_INIT + ATCD_SO_ERR;
       }
     case ATCD_SB_INIT + 7:

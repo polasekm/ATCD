@@ -44,10 +44,6 @@
 typedef struct
 {
   uint8_t state;                  //registration state
-  //uint8_t roaming;              //roaming state
-  //uint8_t pin_state;            //pin state
-
-  //char *pin;                      //PIN
 
   uint8_t cb_events;              //GSM events
   void (*callback)(uint8_t);      //events callback
@@ -60,5 +56,6 @@ void atcd_gsm_reset();
 void atcd_gsm_proc();
 uint8_t atcd_gsm_asc_msg();
 
+uint8_t atcd_gsm_state();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GSM_H_INCLUDED */

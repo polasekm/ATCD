@@ -94,3 +94,8 @@ void atcd_gprs_set_apn(char *apn, char *name, char *psswd)
   atcd.gprs.psswd = psswd;
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_gprs_state()
+{
+  return atcd.gprs.state;
+}
+//------------------------------------------------------------------------------

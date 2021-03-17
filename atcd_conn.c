@@ -143,6 +143,11 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
   if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_conn_state(atcd_conn_t *conn)
+{
+  return conn->state;
+}
+//------------------------------------------------------------------------------
 uint8_t atcd_conn_ipd_tst()
 {
   #ifndef ATCD_DATA_RX_NL

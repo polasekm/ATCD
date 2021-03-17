@@ -1,6 +1,6 @@
 /*-----------------------------------------------------------------------------*/
 /*
- * usart.h
+ * atcd_conn.h
  *
  *  Created on: Apr 9, 2011
  *      Author: Martin Polasek
@@ -16,7 +16,6 @@
 #include "../rbuff/rbuff.h"
 
 #include "atcd_atc.h"
-
 
 /* Exported functions ------------------------------------------------------- */
 
@@ -49,17 +48,17 @@
 #define ATCD_CONN_T_UDP             1
 
 // Cislo spojeni
-#define ATCD_CONN_NO_NUM           0xFF
+#define ATCD_CONN_NO_NUM            0xFF
 
 //------------------------------------------------------------------------------
 typedef struct atcd_conn
 {
-  uint8_t num;                    //connection number
-  uint8_t state;                  //connection state
+  uint8_t num;                    //number
+  uint8_t state;                  //state
   
-  uint8_t protocol;               //connection protocol
-  char *host;
-  uint16_t port;
+  uint8_t protocol;               //protocol (TCP/UDP)
+  char *host;                     //destination host
+  uint16_t port;                  //destinaion port
   
   uint16_t timeout;               //timeout in ms
   uint32_t timer;                 //connection timer
@@ -80,6 +79,8 @@ void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type);
 void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len);            //write data to connection
 void atcd_conn_close(atcd_conn_t *conn);                                         //close connection
 void atcd_conn_free(atcd_conn_t *conn);                                          //free connection
+
+uint8_t atcd_conn_state(atcd_conn_t *conn);
 
 // Connections
 void atcd_conn_proc();                    //connections processing

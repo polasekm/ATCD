@@ -289,3 +289,8 @@ void atcd_tx_complete()                  //call on tx data complete
   atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_state()
+{
+  return atcd.state;
+}
+//------------------------------------------------------------------------------

@@ -74,6 +74,5 @@ typedef struct
 void atcd_parser_init();         //init AT command device
 
 
-
 //------------------------------------------------------------------------------
 #endif /* ATCD_PARSER_H_INCLUDED */

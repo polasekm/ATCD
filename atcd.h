@@ -120,10 +120,11 @@ void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec
 void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
 
 void atcd_tx_complete();         //call on tx data complete
-
 void atcd_sw_reset();            //SW reset
 
 void atcd_proc();                //data processing 
+
+uint8_t atcd_state();
 //--------------------------------------------------------------
 // nemela by byt lokalni?
 uint16_t atcd_proc_step();       //pruchod jednim krokem kolecka modemu

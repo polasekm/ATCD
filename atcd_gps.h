@@ -48,6 +48,7 @@ typedef struct
   char date[16];
   char time[16];
   char time_fix[16];
+  uint32_t last_fix;
 
   uint8_t sats;
 
@@ -80,5 +81,8 @@ void atcd_gps_disable();                       //disable gps
 void atcd_gps_put_nmea(char *str);
 
 uint8_t atcd_gps_asc_msg();
+
+uint8_t atcd_gps_state();
+uint32_t atcd_gps_last_fix();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPS_H_INCLUDED */

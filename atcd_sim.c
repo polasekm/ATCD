@@ -13,18 +13,18 @@ extern atcd_t atcd;
 //------------------------------------------------------------------------------
 void atcd_sim_init()
 {
-  atcd.sim.pin_state = ATCD_PIN_STATE_UNKNOWN;
+  atcd.sim.state = ATCD_SIM_STATE_UNKNOWN;
   atcd.sim.pin = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_sim_reset()
 {
-  atcd.sim.pin_state = ATCD_PIN_STATE_UNKNOWN;
+  atcd.sim.state = ATCD_SIM_STATE_UNKNOWN;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_sim_get_pin_state()
+uint8_t atcd_sim_state()
 {
-  return atcd.sim.pin_state;
+  return atcd.sim.state;
 }
 //------------------------------------------------------------------------------
 void atcd_sim_set_pin(char *pin)

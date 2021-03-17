@@ -56,5 +56,6 @@ void atcd_gprs_set_apn(char *apn, char *name, char *psswd);  //set apn, name and
 void atcd_gprs_proc();                           //gprs processing
 void atcd_gprs_reset();                          //gprs state reset
 
+uint8_t atcd_gprs_state();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPRS_H_INCLUDED */

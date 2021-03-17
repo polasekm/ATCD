@@ -26,6 +26,7 @@ void atcd_gps_reset()
     atcd.gps.date[0] = 0;
     atcd.gps.time[0] = 0;
     atcd.gps.time_fix[0] = 0;
+    atcd.gps.last_fix = 0;
 
     atcd.gps.sats = 0;
 
@@ -103,6 +104,7 @@ uint8_t atcd_gps_asc_msg()
             {
                 atcd.gps.state = ATCD_GPS_STATE_FIX;
                 strcpy(atcd.gps.time_fix, atcd.gps.time);
+                atcd.gps.last_fix = atcd_get_ms();
             }
             else atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
             p = np + 1;
@@ -486,3 +488,13 @@ void atcd_gps_disable()
     if(atcd.gps.state != ATCD_GPS_STATE_OFF && atcd.gps.state != ATCD_GPS_STATE_W_OFF) atcd.gps.state = ATCD_GPS_STATE_W_OFF;
 }
 //------------------------------------------------------------------------------
+uint8_t atcd_gps_state()
+{
+  return atcd.gps.state;
+}
+//------------------------------------------------------------------------------
+uint32_t atcd_gps_last_fix()
+{
+  return atcd.gps.last_fix;
+}
+//-----------------------------------------------------------------------------

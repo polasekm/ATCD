@@ -22,17 +22,18 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Stav GSM registrace zazeni
-#define ATCD_PIN_STATE_NONE         0
-#define ATCD_PIN_STATE_REQ          1
-#define ATCD_PIN_STATE_WAIT         2
-#define ATCD_PIN_STATE_OK           3
-#define ATCD_PIN_STATE_WRONG        4
-#define ATCD_PIN_STATE_UNKNOWN      5
+#define ATCD_SIM_STATE_NONE         0
+#define ATCD_SIM_STATE_WAIT         2
+#define ATCD_SIM_STATE_OK           3
+#define ATCD_SIM_STATE_PIN          4
+#define ATCD_SIM_STATE_PUK          5
+#define ATCD_SIM_STATE_ERROR        6
+#define ATCD_SIM_STATE_UNKNOWN      7
 
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t pin_state;              //PIN state
+  uint8_t state;                  //state
   char *pin;                      //PIN
 
 } atcd_sim_t;
@@ -41,7 +42,8 @@ typedef struct
 void atcd_sim_init();
 void atcd_sim_reset();
 
-uint8_t atcd_sim_get_pin_state();
+uint8_t atcd_sim_state();
+
 void atcd_sim_set_pin(char *pin);
 
 void atcd_sim_proc();

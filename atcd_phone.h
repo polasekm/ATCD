@@ -114,5 +114,7 @@ void atcd_phone_reset();                     //phone state reset
 
 uint8_t atcd_phone_asc_msg();
 uint8_t atcd_phone_sms_proc(char ch);
+
+uint8_t atcd_phone_state();
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */
