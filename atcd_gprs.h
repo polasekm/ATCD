@@ -26,7 +26,7 @@
 #define ATCD_GPRS_STATE_CONNECTING    3
 
 // GPRS Events
-#define ATCD_GPRS_EV_NONE           0
+#define ATCD_GPRS_EV_NONE             0
 
 //------------------------------------------------------------------------------
 typedef struct
@@ -34,8 +34,9 @@ typedef struct
   uint8_t state;                  //gprs state
   uint32_t timer;                 //current operation timer
 
-  char *apn;                      //APN
-  char *psswd;                    //APN password
+  char *apn;                      //GPRS access point name
+  char *name;                     //GPRS user name
+  char *psswd;                    //GPRS password
   
   uint8_t cb_events;              //gprs events
   void (*callback)(uint8_t);      //events callback
@@ -50,7 +51,7 @@ void atcd_gprs_init();                           //inializace gprs
 void atcd_gprs_connect();                        //connect gprs
 void atcd_gprs_disconnect();                     //disconnect gprs
 
-void atcd_gprs_set_apn(char *apn, char *psswd);  //disconnect gprs
+void atcd_gprs_set_apn(char *apn, char *name, char *psswd);  //set apn, name and psswd
 
 void atcd_gprs_proc();                           //gprs processing
 void atcd_gprs_reset();                          //gprs state reset

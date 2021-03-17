@@ -16,7 +16,7 @@ extern atcd_t atcd;
 void atcd_phone_init()   //inializace telefonu
 {
   atcd_phone_reset();
-  atcd.phone.pin = NULL;
+  //atcd.phone.pin = NULL;
 
   atcd.phone.cb_events = ATCD_PHONE_EV_ALL;
   atcd.phone.callback = NULL;
@@ -61,10 +61,10 @@ void atcd_phone_proc()                    //phone processing
 
 }
 //------------------------------------------------------------------------------
-void atcd_phone_set_pin(char *pin)       //set PIN
+/*void atcd_phone_set_pin(char *pin)       //set PIN
 {
   atcd.phone.pin = pin;
-}
+}*/
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_asc_msg()
 {

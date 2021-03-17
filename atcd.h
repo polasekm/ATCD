@@ -97,6 +97,7 @@ typedef struct
   atcd_conns_t conns;             //TCP/UDP conections
 
   // Podmineny preklad
+  atcd_sim_t sim;                 //
   atcd_gsm_t gsm;                 //
   atcd_phone_t phone;             //
   atcd_gprs_t gprs;               //

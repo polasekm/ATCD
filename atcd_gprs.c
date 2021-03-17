@@ -19,6 +19,7 @@ void atcd_gprs_init()      //inializace gprs
   atcd.gprs.timer = 0;
 
   atcd.gprs.apn = NULL;
+  atcd.gprs.name = NULL;
   atcd.gprs.psswd = NULL;
   
   atcd.gprs.cb_events = ATCD_GPRS_EV_NONE;
@@ -48,8 +49,11 @@ void atcd_gprs_proc()                    //gprs connection processing
     if(atcd_get_ms() - atcd.gprs.timer > 30000)
     {
       // Vyprsel timeout na spojeni
-      atcd.gprs.timer = atcd_get_ms();
-      atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
+      ATCD_DBG_GPRS_TIMEOUT
+
+      //atcd.gprs.timer = atcd_get_ms();
+      //atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
+      atcd_gprs_disconnect();
     }
   }
   else if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
@@ -60,7 +64,8 @@ void atcd_gprs_proc()                    //gprs connection processing
 //------------------------------------------------------------------------------
 void atcd_gprs_connect()                    //connect gprs
 {
-  if(atcd.gprs.state != ATCD_GPRS_STATE_CONN && atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
+  if(atcd.gprs.state == ATCD_GPRS_STATE_DISCONN || atcd.gprs.state == ATCD_GPRS_STATE_DISCONNING)
+  //if(atcd.gprs.stat == ATCD_GPRS_STATE_DISCONN)
   {
     ATCD_DBG_GPRS_CONN_SET
 
@@ -71,7 +76,9 @@ void atcd_gprs_connect()                    //connect gprs
 //------------------------------------------------------------------------------
 void atcd_gprs_disconnect()                //disconnect gprs
 {
-  if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONN && atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
+  //if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONN && atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
+  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN || atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
+  //if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
   {
     ATCD_DBG_GPRS_DISCONN_SET
 
@@ -80,9 +87,10 @@ void atcd_gprs_disconnect()                //disconnect gprs
   }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_set_apn(char *apn, char *psswd)
+void atcd_gprs_set_apn(char *apn, char *name, char *psswd)
 {
   atcd.gprs.apn = apn;
+  atcd.gprs.name = name;
   atcd.gprs.psswd = psswd;
 }
 //------------------------------------------------------------------------------

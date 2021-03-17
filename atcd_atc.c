@@ -362,6 +362,11 @@ uint8_t atcd_atc_ln_proc()
         ATCD_DBG_ATC_OK_DET
         at_cmd->result = ATCD_ATC_RESULT_OK;
       }
+      else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "SHUT OK\r\n", strlen("SHUT OK\r\n")) == 0)
+      {
+        ATCD_DBG_ATC_OK_DET
+        at_cmd->result = ATCD_ATC_RESULT_OK;
+      }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "ERROR\r\n", strlen("ERROR\r\n")) == 0)
       {
         ATCD_DBG_ATC_ERR_DET

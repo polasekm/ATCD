@@ -47,7 +47,7 @@ typedef struct
   //uint8_t roaming;              //roaming state
   //uint8_t pin_state;            //pin state
 
-  char *pin;                      //PIN
+  //char *pin;                      //PIN
 
   uint8_t cb_events;              //GSM events
   void (*callback)(uint8_t);      //events callback

@@ -30,7 +30,7 @@ void atcd_init()                          //init AT command device
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
-  //atcd_sim_init();
+  atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
   atcd_gprs_init();
@@ -82,6 +82,7 @@ void atcd_state_reset()                  //state machine reset
 
   atcd.at_cmd_buff[0] = 0;
 
+  atcd_sim_reset();
   atcd_gsm_reset();
   atcd_phone_reset();
   atcd_gprs_reset();
@@ -125,7 +126,7 @@ void atcd_proc()                         //data processing
       return;
     }
 
-    #if(ATCD_USE_DEVICE == ATCD_SIM868)
+    #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
       atcd.state = ATCD_STATE_NO_INIT;
     #endif
   }

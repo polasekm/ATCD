@@ -107,14 +107,15 @@
   
   #define ATCD_DBG_GPRS_CONN_SET       atcd_dbg_inf("GPRS: ", "Zahajuji pripojeni ke GPRS.\r\n");
   #define ATCD_DBG_GPRS_DISCONN_SET    atcd_dbg_inf("GPRS: ", "Zahajuji odpojeni od GPRS.\r\n");
+  #define ATCD_DBG_GPRS_TIMEOUT        atcd_dbg_warn("GPRS: ", "Vyprsel cas pripojeni nebo odpojeni od GPRS.\r\n");
 
   #define ATCD_DBG_GPRS_INIT_START     atcd_dbg_inf("GPRS: INIT: ", "Zacinam s inicializaci GPRS.\r\n");
   #define ATCD_DBG_GPRS_INIT_OK        atcd_dbg_inf("GPRS: INIT: ", "Init sekvence dokoncena - cekam na pripojeni.\r\n");
-  #define ATCD_DBG_GPRS_INIT_ERR_R     atcd_dbg_err("GPRS: INIT: ", "Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+  #define ATCD_DBG_GPRS_INIT_ERR       atcd_dbg_warn("GPRS: INIT: ", "Pri init sekvenci doslo k chybe - odpojuji se.\r\n");
 
   #define ATCD_DBG_GPRS_DEINIT_START   atcd_dbg_inf("GPRS: DEINIT: ", "Zacinam s deinicializaci GPRS.\r\n");
   #define ATCD_DBG_GPRS_DEINIT_OK      atcd_dbg_inf("GPRS: DEINIT: ", "Deinit sekvence dokoncena.\r\n");
-  #define ATCD_DBG_GPRS_DEINIT_ERR_R   atcd_dbg_err("GPRS: DEINIT: ", "Sekvence ma neplatne cislo kroku - zacinam znovu!\r\n");
+  #define ATCD_DBG_GPRS_DEINIT_ERR     atcd_dbg_warn("GPRS: DEINIT: ", "Pri deinit sekvenci doslo k chybe - nastavuji odpojeno.\r\n");
   
   #define ATCD_DBG_PHONE_RING_DET      atcd_dbg_inf("ATCD: PHONE: ", "RING detect.\r\n");
   #define ATCD_DBG_PHONE_BUSY_DET      atcd_dbg_inf("ATCD: PHONE: ", "BUSY detect.\r\n");

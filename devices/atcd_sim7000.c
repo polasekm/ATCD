@@ -64,7 +64,11 @@ uint16_t atcd_proc_step()
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
       {
         ATCD_DBG_PIN_REQ
-        atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\"\r\n");            // Zadame PIN
+        strcpy(atcd.at_cmd_buff, "AT+CPIN=\"");
+        strcat(atcd.at_cmd_buff, atcd.sim.pin);
+        strcat(atcd.at_cmd_buff, "\"\r\n");
+
+        atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);  // Zadame PIN
       }
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PUK, strlen(ATCD_STR_SIM_PUK)) == 0)
       {
@@ -79,9 +83,6 @@ uint16_t atcd_proc_step()
         return ATCD_SB_INIT + ATCD_SO_ERR;
       }
     case ATCD_SB_INIT + 7:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLIP=1\r\n");           // Zobrazovat cislo volajiciho
     case ATCD_SB_INIT + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -126,7 +127,7 @@ uint16_t atcd_proc_step()
       // ---- Pocatek pravidelneho kolecka ----
       //------------------------------------------------------------------------
     case ATCD_SB_STAT:
-      /*// Zarizeni je pripraveno k praci, pripadne spi...
+      // Zarizeni je pripraveno k praci, pripadne spi...
       // Pripadne testy stavu a dalsi cinnosti na pozadi...
       if(atcd_get_ms() - atcd.timer < 7500)
       {
@@ -149,6 +150,8 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 3;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
+      //CGREG, IP ADRESA....
+
       //Zpracovat stav PDP kontextu
 
       // Pravidelne kolecko bylo dokonceno
@@ -168,7 +171,7 @@ uint16_t atcd_proc_step()
         //nekde resit reset pri prekroceni poctu pokusu
       }
 
-    case ATCD_SB_STAT + ATCD_SO_END:*/
+    case ATCD_SB_STAT + ATCD_SO_END:
       //------------------------------------------------------------------------
       // PHONE
       //------------------------------------------------------------------------
@@ -219,51 +222,67 @@ uint16_t atcd_proc_step()
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
       }
 
+      //testovat v jakem stavu je registrace do site
+      //pokud neni registrovan, nasledujici ATC se mohou na dlouho zamyslet...
+      // desitky sekudn...
+
       ATCD_DBG_GPRS_INIT_START
-      atcd.at_cmd.timeout = 40000;
+
     case ATCD_SB_GPRS_INIT + 1:
-      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
-    case ATCD_SB_GPRS_INIT + 2:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 2;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;*/
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
-    case ATCD_SB_GPRS_INIT + 3:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 3;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
+      atcd.at_cmd.timeout = 40000;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_INIT + 4:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 4;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSTT=\"internet\",\"\",\"\"\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_INIT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGDCONT=1,\"IP\",\"internet\"\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
     case ATCD_SB_GPRS_INIT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGACT=1,1\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
     case ATCD_SB_GPRS_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
-    /*case ATCD_SB_GPRS_INIT + 8:
+
+      strcpy(atcd.at_cmd_buff, "AT+CSTT=\"");
+      strcat(atcd.at_cmd_buff, atcd.gprs.apn);
+      strcat(atcd.at_cmd_buff, "\",\"");
+      strcat(atcd.at_cmd_buff, atcd.gprs.name);
+      strcat(atcd.at_cmd_buff, "\",\"");
+      strcat(atcd.at_cmd_buff, atcd.gprs.psswd);
+      strcat(atcd.at_cmd_buff, "\"\r\n");
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);     // Zadame PIN
+
+    case ATCD_SB_GPRS_INIT + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");*/
-    case ATCD_SB_GPRS_INIT + 9:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
+    /*case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");*/
+    case ATCD_SB_GPRS_INIT + 10:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+
       ATCD_DBG_GPRS_INIT_OK
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
-      // Opravdu? Neceka se asznc?
+      // Opravdu? Neceka se async?
       atcd.gprs.state = ATCD_GPRS_STATE_CONN;
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
     case ATCD_SB_GPRS_INIT + ATCD_SO_ERR:
       //GPRS init selhalo
-      //Zalogovat!
-      atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      ATCD_DBG_GPRS_INIT_ERR
+      //atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atcd_gprs_disconnect();
+
     case ATCD_SB_GPRS_INIT + ATCD_SO_END:
       //------------------------------------------------------------------------
       // GPRS DEINIT
@@ -275,19 +294,28 @@ uint16_t atcd_proc_step()
       }
 
       ATCD_DBG_GPRS_DEINIT_START
-      atcd.at_cmd.timeout = 40000;
+
     case ATCD_SB_GPRS_DEINIT + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 1;
+      atcd.at_cmd.timeout = 40000;
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_DEINIT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+GATT=0\r\n");
+    case ATCD_SB_GPRS_DEINIT + 3:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 3;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
+
       ATCD_DBG_GPRS_DEINIT_OK
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
       return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR:
       //GPRS deinit selhalo
-      //Zalogovat!
+      ATCD_DBG_GPRS_DEINIT_ERR
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_END:

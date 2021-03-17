@@ -38,11 +38,12 @@ typedef struct
 } atcd_sim_t;
 
 // Functions -------------------------------------------------------------------
-void atcd_sim_init(atcd_sim_t *atcd_sim);
+void atcd_sim_init();
+void atcd_sim_reset();
 
-uint8_t atcd_sim_get_pin_state(atcd_sim_t *atcd_sim);
-void atcd_sim_set_pin(atcd_sim_t *atcd_sim, char *pin);
+uint8_t atcd_sim_get_pin_state();
+void atcd_sim_set_pin(char *pin);
 
-void atcd_sim_proc(atcd_sim_t *atcd_sim);
+void atcd_sim_proc();
 //------------------------------------------------------------------------------
 #endif /* ATCD_SIM_H_INCLUDED */

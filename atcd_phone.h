@@ -75,7 +75,7 @@ typedef struct atcd_sms
 typedef struct
 {
   uint8_t state;                  //phone state
-  char *pin;                      //PIN
+  //char *pin;                      //PIN
 
   char dtmf_rx_tone;              //DTMF TX tone
   char dtmf_tx_tone;              //DTMF TX tone
@@ -99,7 +99,7 @@ typedef struct
 // Phone
 void atcd_phone_init();                      //inializace telefonu
 
-void atcd_phone_set_pin(char *pin);          //set PIN
+//void atcd_phone_set_pin(char *pin);          //set PIN
 
 void atcd_phone_call(char *number);          //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
