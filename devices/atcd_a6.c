@@ -288,10 +288,11 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
+      // SIM7000 bez CIFSR neni schopen otevrit spojeni, takze pro jistotu i tady!
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
     case ATCD_SB_GPRS_INIT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;*/
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       ATCD_DBG_GPRS_INIT_OK
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
       // Opravdu? Neceka se async?

@@ -111,6 +111,9 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 14:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 14;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      // Vypnout auto bauding
+
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
@@ -150,9 +153,19 @@ uint16_t atcd_proc_step()
 
       //Zpracovat stav registrace...
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT?\r\n");    // GPRS registration status
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT?\r\n");    // stav PDP kontextu
     case ATCD_SB_STAT + 3:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 3;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSREX\r\n");    // Check IP address
+    case ATCD_SB_STAT + 4:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 4;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r\n");  // TCP/UDP connections status
+    case ATCD_SB_STAT + 5:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //CGREG, IP ADRESA....
@@ -268,12 +281,20 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
-    /*case ATCD_SB_GPRS_INIT + 9:
+    case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");*/
+      // SIM7000 bez CIFSR neni schopen otevrit spojeni!
+      // Navic nevraci OK po provedeni!!!! Jen IP adresa!
+
+      // Hack! Kratky timeout + vypnuta kontrola stavu
+      //atcd.at_cmd.timeout = 500;
+
+      //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSREX\r\n");
     case ATCD_SB_GPRS_INIT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
+      //Zakomentiovat pokud bude hacknuta varianta s CIFSR
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
       ATCD_DBG_GPRS_INIT_OK
@@ -405,8 +426,7 @@ uint16_t atcd_proc_step()
       }
       else
       {
-        conn = atcd.conns.conn[atcd.conns.conn_num_proc];
-        atcd.conns.conn_num_proc++;
+        conn = atcd.conns.conn[atcd.conns.conn_num_proc++];
       }
 
       if(conn == NULL || conn->state != ATCD_CONN_STATE_OPEN) return ATCD_SB_CONN_WRITE;
@@ -426,6 +446,7 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.data = &conn->tx_rbuff;
       atcd.at_cmd.data_len = tx_data_len;
 
+      //nahradit za variantu bez printf
       sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
 
       //je to jeste potreba?
@@ -466,15 +487,15 @@ uint16_t atcd_proc_step()
         return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;
       }
 
-    case ATCD_SB_CONN_WRITE + 2:
+    /*case ATCD_SB_CONN_WRITE + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 2;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;*/
 
       return ATCD_SB_CONN_WRITE;
 
     case ATCD_SB_CONN_WRITE + ATCD_SO_ERR:
       //Zapis do spojeni selhal
-      //Zalogovat!
+      //Zalogovat! - Je zalogovano vyse...
       return ATCD_SB_CONN_WRITE;
 
     case ATCD_SB_CONN_WRITE + ATCD_SO_END:

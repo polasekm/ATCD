@@ -42,7 +42,8 @@ uint8_t atcd_atc_set_defaults(atcd_at_cmd_t *at_cmd)  //set default AT commands 
     return ATCD_ERR_LOCK;
   }
 
-  at_cmd->cmd = NULL;         
+  at_cmd->cmd    = NULL;
+  at_cmd->ok_str = NULL;
   
   at_cmd->resp           = NULL;
   at_cmd->resp_len       = 0;
@@ -466,12 +467,12 @@ uint8_t atcd_atc_prompt_tst()
     // eventualne budou nasypana z proc funkce
     
     // SEM pripsat dalsi promenou ve ktere bude pocet byte co se maji posilat
-    // a moyna a ikazayatel na data
+    // a mozna a ikazazatel na data
 
-    //tohle úatri asi pro jiny modem
+    //tohle patri asi pro jiny modem
     //atcd_dbg_inf("CONN: Ocekavam vyzvu k zadani odesilanych dat.\r\n");
 
-    // po yaniku spojeni je nutno minimalne vedet kolik e toho melo posilat, pokud
+    // po zaniku spojeni je nutno minimalne vedet kolik se toho melo posilat, pokud
     // uz se prikaz zacal provadet...
 
     // tohle by se melo prepsat - bez dat k odeslani by nemel jit nastavit prompt, nejlepe jej zahodit a rozhodovat dle dat...

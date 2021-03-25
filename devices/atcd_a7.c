@@ -251,10 +251,10 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
-    /*case ATCD_SB_GPRS_INIT + 8:
+    case ATCD_SB_GPRS_INIT + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");*/
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;

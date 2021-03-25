@@ -13,7 +13,7 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 
-#include "../rbuff/rbuff.h" 
+#include "rbuff/rbuff.h"
 
 /* Exported functions ------------------------------------------------------- */
 
@@ -54,6 +54,7 @@
 typedef struct atcd_at_cmd
 {
   char *cmd;                      //AT command
+  char *ok_str;                   //OK string
 
   char *resp;                     //response buffer
   uint16_t resp_len;              //response size

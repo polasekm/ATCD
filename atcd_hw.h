@@ -11,7 +11,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include "../rbuff/rbuff.h"
+#include "rbuff/rbuff.h"
 
 //#include "atcd_config.h"
 /* Exported functions ------------------------------------------------------- */
