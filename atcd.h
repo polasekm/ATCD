@@ -48,6 +48,10 @@
 #define ATCD_STATE_SLEEP            3
 #define ATCD_STATE_ON               4
 
+#define ATCD_SM_OFF                 0
+#define ATCD_SM_AUTO                1
+#define ATCD_SM_MANUAL              2
+
 #define ATCD_EV_NONE                0x00
 #define ATCD_EV_STATE               0b00000001
 #define ATCD_EV_ASYNC_MSG           0b00000010
@@ -83,6 +87,7 @@
 typedef struct
 {
   uint8_t state;                  //device state
+  uint8_t sleep_mode;             //device sleep mode
   uint32_t timer;                 //current operation timer
 
   uint16_t proc_step;
@@ -114,6 +119,8 @@ typedef struct
 void atcd_init();                //init AT command device
 void atcd_reset();               //reset AT command device
 void atcd_start();               //start AT command device
+
+void atcd_set_sleep_mode(uint8_t mode);          //set sleep mode
  
 void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data
 void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec

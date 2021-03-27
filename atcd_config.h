@@ -300,7 +300,7 @@
   #define ATCD_DATA_RX_NL
   #define ATCD_RX_NL_LEN  2
 
-  #define ATCD_CONN_MAX_NUMBER 4
+  #define ATCD_CONN_MAX_NUMBER 8
 #endif /* ATCD_USE_DEVICE */
 //----------------------------------------
 #if(ATCD_USE_DEVICE == ATCD_BGS5E)

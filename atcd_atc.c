@@ -42,8 +42,8 @@ uint8_t atcd_atc_set_defaults(atcd_at_cmd_t *at_cmd)  //set default AT commands 
     return ATCD_ERR_LOCK;
   }
 
-  at_cmd->cmd    = NULL;
-  at_cmd->ok_str = NULL;
+  at_cmd->cmd     = NULL;
+  at_cmd->res_str = NULL;
   
   at_cmd->resp           = NULL;
   at_cmd->resp_len       = 0;
@@ -133,6 +133,14 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
 uint8_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd)    //execute and set AT command
 {
   at_cmd->cmd = cmd;
+  at_cmd->res_str = NULL;
+  return atcd_atc_exec(at_cmd);
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res)   //execute and set AT command with result string
+{
+  at_cmd->cmd = cmd;
+  at_cmd->res_str = res;
   return atcd_atc_exec(at_cmd);
 }
 //------------------------------------------------------------------------------
@@ -251,6 +259,27 @@ uint8_t atcd_atc_send_data()                     //send AT command data
   atcd_hw_tx(&atcd.parser.tx_rbuff, atcd.parser.tx_data_len);
 
   return 1;
+}
+//------------------------------------------------------------------------------
+void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete after result change
+{
+  if(at_cmd->resp_len == 0)
+    at_cmd->resp_len = 0;
+  else
+    at_cmd->resp_len -= 2;
+
+  at_cmd->resp[at_cmd->resp_len] = 0;
+  at_cmd->state  = ATCD_ATC_STATE_DONE;
+
+  if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) atcd.parser.mode = ATCD_P_MODE_ATC;
+
+  atcd.parser.buff_pos = 0;
+  atcd.parser.line_pos = 0;
+
+  atcd.parser.at_cmd_top = at_cmd->next;
+  atcd_atc_queue_proc();
+
+  if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT command
@@ -373,6 +402,11 @@ uint8_t atcd_atc_ln_proc()
         ATCD_DBG_ATC_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
       }
+      else if(at_cmd->res_str != NULL && strncmp(atcd.parser.buff + atcd.parser.line_pos, at_cmd->res_str, strlen(at_cmd->res_str)) == 0)
+      {
+        ATCD_DBG_ATC_OK_DET
+        at_cmd->result = ATCD_ATC_RESULT_OK;
+      }
       // Neni tohle nahodou i asynchorinni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
@@ -393,23 +427,7 @@ uint8_t atcd_atc_ln_proc()
       if(at_cmd->result != ATCD_ATC_RESULT_UNKNOWN)
       {
         // AT prikaz byl v casti vyse dokoncen
-        if(at_cmd->resp_len == 0)
-          at_cmd->resp_len = 0;
-        else
-          at_cmd->resp_len -= 2;
-
-        at_cmd->resp[at_cmd->resp_len] = 0;
-        at_cmd->state  = ATCD_ATC_STATE_DONE;
-
-        if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) atcd.parser.mode = ATCD_P_MODE_ATC;
-
-        atcd.parser.buff_pos = 0;
-        atcd.parser.line_pos = 0;
-
-        atcd.parser.at_cmd_top = at_cmd->next;
-        atcd_atc_queue_proc(); 
-
-        if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
+        atcd_atc_complete(at_cmd);
         return 1;
       }
 

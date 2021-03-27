@@ -54,7 +54,7 @@
 typedef struct atcd_at_cmd
 {
   char *cmd;                      //AT command
-  char *ok_str;                   //OK string
+  char *res_str;                  //OK result string
 
   char *resp;                     //response buffer
   uint16_t resp_len;              //response size
@@ -86,10 +86,14 @@ uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd);  //check AT command state
 
 uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);                   //execute AT command
 uint8_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd);    //execute and set AT command
+uint8_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res);   //execute and set AT command with result string
+
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execute AT command
 
 uint8_t atcd_atc_send_cmd();                     //send AT command
 uint8_t atcd_atc_send_data();                    //send AT command data
+
+   void atcd_atc_complete(atcd_at_cmd_t *at_cmd);  //AT command complete after result change
 
    void atcd_atc_proc();                         //AT commands state machine processing
 uint8_t atcd_atc_ln_proc();                      //terminal line processing

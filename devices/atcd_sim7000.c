@@ -153,6 +153,9 @@ uint16_t atcd_proc_step()
 
       //Zpracovat stav registrace...
 
+
+      // Doplnit sleepmode...
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT?\r\n");    // stav PDP kontextu
     case ATCD_SB_STAT + 3:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 3;
@@ -448,6 +451,7 @@ uint16_t atcd_proc_step()
 
       //nahradit za variantu bez printf
       sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, tx_data_len);
+      //strcat(atcd.at_cmd.res_str, "SEND OK")
 
       //je to jeste potreba?
       atcd.parser.tx_conn_num = conn->num;

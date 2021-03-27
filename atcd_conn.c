@@ -414,6 +414,16 @@ uint8_t atcd_conn_asc_msg()
 
       atcd.parser.buff_pos = atcd.parser.line_pos;   //vymaze prijaty radek
 
+      #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
+      if(atcd.parser.at_cmd_top != NULL)
+      {
+        // AT prikaz byl v casti vyse dokoncen
+        ATCD_DBG_ATC_OK_DET
+        atcd.parser.at_cmd_top->result = ATCD_ATC_RESULT_OK;
+        atcd_atc_complete(atcd.parser.at_cmd_top);
+      }
+      #endif
+
       // nad jakym spojenim to bude?
       //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_SEND_OK) != 0) conn->callback(conn, ATCD_CONN_EV_SEND_OK);
       return 1;

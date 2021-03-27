@@ -27,6 +27,7 @@ void atcd_init()                          //init AT command device
   atc_dev_hw_init();                      //HW init
 
   atcd.state      = ATCD_STATE_OFF;
+  atcd.sleep_mode = ATCD_SM_OFF;
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
@@ -88,6 +89,11 @@ void atcd_state_reset()                  //state machine reset
   atcd_gprs_reset();
   atcd_gps_reset();
   atcd_wifi_reset();
+}
+//------------------------------------------------------------------------------
+void atcd_set_sleep_mode(uint8_t mode)          //set sleep mode
+{
+  atcd.sleep_mode = mode;
 }
 //------------------------------------------------------------------------------
 void atcd_proc()                         //data processing
