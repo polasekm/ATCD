@@ -68,6 +68,8 @@ typedef struct
   uint8_t cb_events;              //GPS events
   void (*callback)(uint8_t);      //events callback
 
+  uint32_t cs_err;
+
 } atcd_gps_t;
 
 // Functions -------------------------------------------------------------------

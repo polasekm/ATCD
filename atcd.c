@@ -197,6 +197,8 @@ void atcd_rx_proc()                       //proc rx data
   uint16_t n;
   uint8_t ch;
 
+  // Pozor, hrozi ztrata data pokud atc / spojnei nemely vlastni buffer rbuff se nastradalo mnoho dat, zpracuje nekoklik dotazu v tomto jednom volani
+
   n = rbuff_read_b(&atcd_rx_ring_buff, &ch);
   while(n == 1)
   {

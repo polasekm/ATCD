@@ -200,6 +200,8 @@
   #define ATCD_DBG_GPS_ACC             atcd_dbg_inf("ATCD: GPS: ", "ACCURACY sentecne detect\r\n");
   #define ATCD_DBG_GPS_BIAS            atcd_dbg_inf("ATCD: GPS: ", "HWBIAS sentecne detect\r\n");
 
+  #define ATCD_DBG_GPS_CS_ERR          atcd_dbg_err("ATCD: GPS: ", "Chybny checksum vety\r\n");
+
   #define ATCD_DBG_GPS_RMC_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety RMC\r\n");
   #define ATCD_DBG_GPS_GSA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GSA\r\n");
   #define ATCD_DBG_GPS_GGA_ERR         atcd_dbg_err("ATCD: GPS: ", "Chyba parsovani vety GGA\r\n");

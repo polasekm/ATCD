@@ -8,41 +8,45 @@
 #include "atcd_gps.h"
 #include "atcd.h"
 
+#include <stdlib.h>
+
 extern atcd_t atcd;
 
 //------------------------------------------------------------------------------
-int atcd_gps_checksum(const char *s);
+uint8_t atcd_gps_checksum(const char *s);
 //------------------------------------------------------------------------------
 void atcd_gps_init()
 {
-    atcd_gps_reset();
+  atcd_gps_reset();
 
-    atcd.gps.cb_events = ATCD_GPS_EV_NONE;
-    atcd.gps.callback = NULL;
+  atcd.gps.cb_events = ATCD_GPS_EV_NONE;
+  atcd.gps.callback = NULL;
+
+  atcd.gps.cs_err = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_gps_reset()
 {
-    atcd.gps.state = ATCD_GPS_STATE_OFF;
+  atcd.gps.state = ATCD_GPS_STATE_OFF;
 
-    atcd.gps.date[0] = 0;
-    atcd.gps.time[0] = 0;
-    atcd.gps.time_fix[0] = 0;
-    atcd.gps.last_fix = 0;
+  atcd.gps.date[0] = 0;
+  atcd.gps.time[0] = 0;
+  atcd.gps.time_fix[0] = 0;
+  atcd.gps.last_fix = 0;
 
-    atcd.gps.sats = 0;
+  atcd.gps.sats = 0;
 
-    atcd.gps.latitude = 0;
-    atcd.gps.longitude = 0;
-    atcd.gps.altitude = 0;
-    atcd.gps.undulation = 0;
-    atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+  atcd.gps.latitude = 0;
+  atcd.gps.longitude = 0;
+  atcd.gps.altitude = 0;
+  atcd.gps.undulation = 0;
+  atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
 
-    atcd.gps.speed = 0;
-    atcd.gps.course = 0;
+  atcd.gps.speed = 0;
+  atcd.gps.course = 0;
 
-    atcd.gps.pdop = 0;
-    atcd.gps.hdop = 0;
+  atcd.gps.pdop = 0;
+  atcd.gps.hdop = 0;
     atcd.gps.vdop = 0;
 }
 //------------------------------------------------------------------------------
@@ -59,6 +63,7 @@ void atcd_gps_put_nmea(char *str)
 uint8_t atcd_gps_asc_msg()
 {
   char *p, *np, *endl;
+  uint8_t cs, scs;
 
   // u moemu A7 je prvni veta uvozena sekvenci nize...
   // asi osetrit co kdyby pak nebyla NMEA veta...
@@ -77,7 +82,6 @@ uint8_t atcd_gps_asc_msg()
     if(atcd.gps.state == ATCD_GPS_STATE_OFF || atcd.gps.state == ATCD_GPS_STATE_W_OFF)
     {
       ATCD_DBG_GPS_SENTECE_OFF
-
       atcd.gps.state = ATCD_GPS_STATE_W_OFF;
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
@@ -85,6 +89,17 @@ uint8_t atcd_gps_asc_msg()
 
     p    = atcd.parser.buff + atcd.parser.line_pos + strlen("$GP");
     endl = atcd.parser.buff + atcd.parser.buff_pos;
+
+    cs = atcd_gps_checksum(atcd.parser.buff + atcd.parser.line_pos + 1);
+    scs = strtoul(endl - 4, NULL, 16);
+
+    if(cs != scs)
+    {
+      ATCD_DBG_GPS_CS_ERR
+      atcd.gps.cs_err++;
+      atcd.parser.buff_pos = atcd.parser.line_pos;
+      return 1;
+    }
 
     if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "RMC,", strlen("RMC,")) == 0)
     {
@@ -472,11 +487,11 @@ uint8_t atcd_gps_asc_msg()
   return 0;
 }
 //------------------------------------------------------------------------------
-int atcd_gps_checksum(const char *s)
+uint8_t atcd_gps_checksum(const char *s)
 {
-  int c = 0;
+  uint8_t c = 0;
 
-  while(*s) c ^= *s++;
+  while(*s != '*' && *s != '\n') c ^= *s++;
 
   return c;
 }
