@@ -40,7 +40,6 @@ void atcd_dbg_out_rb(rbuff_t *rbuff, uint16_t len);  //debug data out print - ri
 void atcd_dbg_txt(char *str);                 //debug text print
 
 void atcd_it_proc();              //Ostranit - pouzivat jen RX a TX fce
-void atcd_log_it_proc();
 
 uint32_t atcd_get_ms();           //get time in ms
 //------------------------------------------------------------------------------

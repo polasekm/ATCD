@@ -278,7 +278,7 @@ uint16_t atcd_proc_step()
       strcat(atcd.at_cmd_buff, atcd.gprs.psswd);
       strcat(atcd.at_cmd_buff, "\"\r\n");
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);     // Zadame PIN
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
 
     case ATCD_SB_GPRS_INIT + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;

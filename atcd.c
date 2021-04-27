@@ -38,6 +38,7 @@ void atcd_init()                          //init AT command device
   atcd_gps_init();
   atcd_wifi_init();
 
+  //tohle ma byt v jinem poradi, delat reset na vypnutem modemu nedeava smzysl
   atcd_hw_reset();
   atcd_start();                          //Zvazit, zda nespoustte pozdeji manualne
 }
