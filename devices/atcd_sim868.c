@@ -113,6 +113,27 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 14:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 14;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=75\r\n");
+    case ATCD_SB_INIT + 15:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=75\r\n");
+    case ATCD_SB_INIT + 16:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC=0,15\r\n");
+    case ATCD_SB_INIT + 17:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO=0,40000,40000,40000,40000,1\r\n");
+    case ATCD_SB_INIT + 18:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 18;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
@@ -167,6 +188,11 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r\n");  // TCP/UDP connections status
     case ATCD_SB_STAT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 5;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSQ\r\n");      // Signal quality
+    case ATCD_SB_STAT + 6:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //CGREG, IP ADRESA....
@@ -281,10 +307,12 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+
+      atcd.at_cmd.timeout = 1500;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
     case ATCD_SB_GPRS_INIT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      //if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
       ATCD_DBG_GPRS_INIT_OK
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;

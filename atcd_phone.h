@@ -22,14 +22,25 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Phone
-#define ATCD_PHONE_STATE_IDLE       0
+/*#define ATCD_PHONE_STATE_IDLE       0
 #define ATCD_PHONE_STATE_RING       1
 #define ATCD_PHONE_STATE_RING_WA    2
 #define ATCD_PHONE_STATE_CALL       3
 #define ATCD_PHONE_STATE_HANG_W     4
 #define ATCD_PHONE_STATE_DIAL       5
 #define ATCD_PHONE_STATE_DIAL_W     6
-//#define ATCD_PHONE_STATE_GPRS       7
+//#define ATCD_PHONE_STATE_GPRS       7*/
+
+typedef enum {
+  ATCD_PHONE_STATE_IDLE             = 0,
+  ATCD_PHONE_STATE_RING,
+  ATCD_PHONE_STATE_RING_WA,
+  ATCD_PHONE_STATE_CALL,
+  ATCD_PHONE_STATE_HANG_W,
+  ATCD_PHONE_STATE_DIAL,
+  ATCD_PHONE_STATE_DIAL_W
+} atcd_phone_state_t;
+
 
 #define ATCD_PHONE_EV_NONE          0x00
 #define ATCD_PHONE_EV_REG           0b00000001
@@ -74,7 +85,7 @@ typedef struct atcd_sms
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //phone state
+  atcd_phone_state_t state;       //phone state
   //char *pin;                      //PIN
 
   char dtmf_rx_tone;              //DTMF TX tone
@@ -82,8 +93,8 @@ typedef struct
   uint8_t dtmf_tx_dur;            //DTMF TX tone duration
 
   char number[16];                //src/dst phone number
-  uint8_t ring_cnt;               //ring counter
-  uint8_t miss_call_cnt;          //missing call counter
+  uint16_t ring_cnt;              //ring counter
+  uint16_t miss_call_cnt;         //missing call counter
 
   atcd_sms_t sms;                 //SMS struct for internal usage
   char sms_sender_buff[16];       //sms number buff
@@ -116,5 +127,6 @@ uint8_t atcd_phone_asc_msg();
 uint8_t atcd_phone_sms_proc(char ch);
 
 uint8_t atcd_phone_state();
+uint16_t atcd_phone_ring_cnt();
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */

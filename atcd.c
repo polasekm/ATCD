@@ -9,9 +9,6 @@
 
 atcd_t atcd;
 
-//char *strs[NUMBER_OF_STRINGS] = {"foo", "bar", "bletch", ...};
-//char *strs[4] = {"foo", "bar", "bletch", ""};
-
 extern rbuff_t atcd_rx_ring_buff;         //kruhovy buffer pro prijimana data
 
 //------------------------------------------------------------------------------
@@ -38,9 +35,7 @@ void atcd_init()                          //init AT command device
   atcd_gps_init();
   atcd_wifi_init();
 
-  //tohle ma byt v jinem poradi, delat reset na vypnutem modemu nedeava smzysl
-  atcd_hw_reset();
-  atcd_start();                          //Zvazit, zda nespoustte pozdeji manualne
+  atcd_state_reset();
 }
 //------------------------------------------------------------------------------
 void atcd_start()               //Spusteni zarizeni
@@ -49,7 +44,12 @@ void atcd_start()               //Spusteni zarizeni
   atcd_state_reset();
 
   atcd_hw_pwr(ATCD_PWR_ON);
-  atcd_hw_igt();
+
+	#if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
+		atcd_hw_reset();
+	#elif
+		atcd_hw_igt();
+	#endif
 
   atcd.timer = atcd_get_ms();
   atcd.state = ATCD_STATE_STARTING;
@@ -62,7 +62,7 @@ void atcd_reset()               //Reset zarizeni
 
   atcd_sw_reset();
   atcd_hw_reset();
-  atcd_hw_igt();
+  //atcd_hw_igt();
 
   atcd.timer = atcd_get_ms();
   atcd.state = ATCD_STATE_STARTING;
