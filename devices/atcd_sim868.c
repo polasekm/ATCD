@@ -114,24 +114,29 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 14;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=75\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=60\r\n");
     case ATCD_SB_INIT + 15:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=75\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
     case ATCD_SB_INIT + 16:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC=0,15\r\n");
-    case ATCD_SB_INIT + 17:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO=0,40000,40000,6200,6200,1\r\n");
+    case ATCD_SB_INIT + 19:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 19;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO=0,40000,40000,40000,40000,1\r\n");
-    case ATCD_SB_INIT + 18:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 18;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC=0,12\r\n");
+    case ATCD_SB_INIT + 20:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 20;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+SIDET=0,0\r\n");
+    case ATCD_SB_INIT + 21:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 21;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
       // Inicializace byla dokoncena
@@ -166,9 +171,16 @@ uint16_t atcd_proc_step()
       atcd.timer = atcd_get_ms();
       atcd.at_cmd.timeout = 5000;
     case ATCD_SB_STAT + 1:
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG?\r\n");    // Network registration status
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT\r\n");           // Test response
     case ATCD_SB_STAT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 2;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG?\r\n");    // Network registration status
+    case ATCD_SB_STAT + 3:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 3;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //Zpracovat stav registrace...
@@ -176,23 +188,33 @@ uint16_t atcd_proc_step()
       // Doplnit sleepmode...
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT?\r\n");    // stav PDP kontextu
-    case ATCD_SB_STAT + 3:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 3;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
-
-      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");     // Check IP address
     case ATCD_SB_STAT + 4:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 4;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
-*/
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r\n");  // TCP/UDP connections status
+
+      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");     // Check IP address
     case ATCD_SB_STAT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
-
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSQ\r\n");      // Signal quality
+*/
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r\n");  // TCP/UDP connections status
     case ATCD_SB_STAT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 6;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSQ\r\n");      // Signal quality
+    case ATCD_SB_STAT + 7:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 7;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r\n");
+    case ATCD_SB_STAT + 10:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");
+    case ATCD_SB_STAT + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 11;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //CGREG, IP ADRESA....

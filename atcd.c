@@ -149,6 +149,14 @@ void atcd_proc()                         //data processing
       //return;
     }
 
+    if(atcd_get_ms() - atcd.timer > 20000)
+    {
+      // Restart modemu
+      ATCD_DBG_INIT_TIM;
+      atcd_reset();
+      return;
+    }
+
     atcd.proc_step = atcd_proc_step();
   }
   else if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)

@@ -22,15 +22,18 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Stav spojeni
-#define ATCD_CONN_STATE_CLOSE       0
-#define ATCD_CONN_STATE_FAIL        1
-#define ATCD_CONN_STATE_TIMEOUT     2
-#define ATCD_CONN_STATE_MAX_CONN    3
-#define ATCD_CONN_STATE_CLOSING     4
-#define ATCD_CONN_STATE_W_CLOSE     5
-#define ATCD_CONN_STATE_OPENING     6
-#define ATCD_CONN_STATE_W_OPEN      7
-#define ATCD_CONN_STATE_OPEN        8
+typedef enum
+{
+	ATCD_CONN_STATE_CLOSE       =0,
+    ATCD_CONN_STATE_FAIL        =1,
+	ATCD_CONN_STATE_TIMEOUT     =2,
+	ATCD_CONN_STATE_MAX_CONN    =3,
+	ATCD_CONN_STATE_CLOSING     =4,
+	ATCD_CONN_STATE_W_CLOSE     =5,
+	ATCD_CONN_STATE_OPENING     =6,
+	ATCD_CONN_STATE_W_OPEN      =7,
+	ATCD_CONN_STATE_OPEN        =8
+} atcd_conn_state_e;
 
 // Udalosti spojeni
 #define ATCD_CONN_EV_NONE           0x00
@@ -44,8 +47,11 @@
 #define ATCD_CONN_EV_ALL            0xFF
 
 // Typ spojeni
-#define ATCD_CONN_T_TCP             0
-#define ATCD_CONN_T_UDP             1
+typedef enum
+{
+	ATCD_CONN_T_TCP             =0,
+	ATCD_CONN_T_UDP             =1
+} atcd_conn_type_e;
 
 // Cislo spojeni
 #define ATCD_CONN_NO_NUM            0xFF
@@ -54,9 +60,9 @@
 typedef struct atcd_conn
 {
   uint8_t num;                    //number
-  uint8_t state;                  //state
+  atcd_conn_state_e state;                  //state
   
-  uint8_t protocol;               //protocol (TCP/UDP)
+  atcd_conn_type_e protocol;               //protocol (TCP/UDP)
   char *host;                     //destination host
   uint16_t port;                  //destinaion port
   
@@ -75,12 +81,12 @@ typedef struct atcd_conn
 
 // Connections
 void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size);  //init connection
-void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type); //open conenction
+void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, atcd_conn_type_e type); //open conenction
 void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len);            //write data to connection
 void atcd_conn_close(atcd_conn_t *conn);                                         //close connection
 void atcd_conn_free(atcd_conn_t *conn);                                          //free connection
 
-uint8_t atcd_conn_state(atcd_conn_t *conn);
+atcd_conn_state_e atcd_conn_state(atcd_conn_t *conn);
 
 // Connections
 void atcd_conn_proc();                    //connections processing

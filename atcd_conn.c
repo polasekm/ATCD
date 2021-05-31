@@ -76,7 +76,7 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->callback   = NULL;
 }
 //------------------------------------------------------------------------------
-void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, uint8_t type) //open conenction
+void atcd_conn_open(atcd_conn_t *conn, char* dest, uint16_t port, atcd_conn_type_e type) //open conenction
 {
   uint8_t i;
 
@@ -143,7 +143,7 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
   if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_conn_state(atcd_conn_t *conn)
+atcd_conn_state_e atcd_conn_state(atcd_conn_t *conn)
 {
   return conn->state;
 }
