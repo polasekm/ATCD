@@ -46,19 +46,19 @@ typedef enum {
 #define ATCD_PHONE_EV_REG           0b00000001
 #define ATCD_PHONE_EV_UNREG         0b00000010
 #define ATCD_PHONE_EV_RING          0b00000100
-#define ATCD_PHONE_EV_RING_END      0b00001000
-#define ATCD_PHONE_EV_SMS_IN        0b00010000
-#define ATCD_PHONE_EV_CALL          0b00100000
-#define ATCD_PHONE_EV_CALL_END      0b01000000
+#define ATCD_PHONE_EV_RING_END      0b00001000 //never happens
+#define ATCD_PHONE_EV_SMS_IN        0b00010000 //+CMT: only, sms incomplete, ATCD_SMS_EV_SMS_IN will follow
+#define ATCD_PHONE_EV_CALL          0b00100000 //muze chodit opakovane pro in i out
+#define ATCD_PHONE_EV_CALL_END      0b01000000 //muze chodit opakovane pro in i out
 #define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
 #define ATCD_SMS_EV_NONE          0x00
 #define ATCD_SMS_EV_SEND          0b00000001
 #define ATCD_SMS_EV_FAIL          0b00000010
-#define ATCD_SMS_EV_CALL_IN       0b00000100
+#define ATCD_SMS_EV_CALL_IN       0b00000100 //never happens
 #define ATCD_SMS_EV_CALL_DW       0b00001000
-#define ATCD_SMS_EV_SMS_IN        0b00010000
+#define ATCD_SMS_EV_SMS_IN        0b00010000 //+CMT only
 #define ATCD_SMS_EV_ALL           0xFF
 
 //------------------------------------------------------------------------------
@@ -98,8 +98,8 @@ typedef struct
 
   atcd_sms_t sms;                 //SMS struct for internal usage
   char sms_sender_buff[16];       //sms number buff
-  char sms_datetime_buff[32];     //sms datetime buff)
-  char sms_message_buff[161];     //sms datetime buff
+  char sms_datetime_buff[32];     //sms datetime buff
+  char sms_message_buff[161];     //sms text buff
 
   uint8_t cb_events;              //phone events
   void (*callback)(uint8_t);      //events callback
@@ -109,6 +109,10 @@ typedef struct
 // Functions -------------------------------------------------------------------
 // Phone
 void atcd_phone_init();                      //inializace telefonu
+//zatim nepouzivam void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t));
+void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t));
+  //nejde dat do init ani do reset
+  //sms.cb_events funguji nejak divne, sam si to nastavuje
 
 //void atcd_phone_set_pin(char *pin);          //set PIN
 

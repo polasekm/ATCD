@@ -56,6 +56,12 @@ void atcd_phone_reset()                   //phone state reset
   atcd.phone.sms.message[0] = 0;
 }
 //------------------------------------------------------------------------------
+void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t))
+{
+	atcd.phone.sms.cb_events = doesNotUnderstand;
+	atcd.phone.sms.callback = sms_callback;
+}
+//------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
 {
 
@@ -170,7 +176,7 @@ uint8_t atcd_phone_asc_msg()
 
     //length
 
-    atcd.phone.sms.len = atof(p);
+    atcd.phone.sms.len = atof(p); //2021-05-31 why atoF?
     atcd.parser.mode = ATCD_P_MODE_SMS;
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
@@ -289,6 +295,11 @@ void atcd_phone_call_hang_up()
 {
   if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) atcd.phone.state = ATCD_PHONE_STATE_HANG_W;
   else if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+}
+//------------------------------------------------------------------------------
+void atcd_phone_send_sms()                  //poslat SMS
+{
+	//TODO: proste cele vymyslet a udelat
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_sms_proc(char ch)
