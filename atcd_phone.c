@@ -56,6 +56,12 @@ void atcd_phone_reset()                   //phone state reset
   atcd.phone.sms.message[0] = 0;
 }
 //------------------------------------------------------------------------------
+void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t))
+{
+	atcd.phone.cb_events = enable_events;
+	atcd.phone.callback = callback;
+}
+//------------------------------------------------------------------------------
 void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t))
 {
 	atcd.phone.sms.cb_events = doesNotUnderstand;

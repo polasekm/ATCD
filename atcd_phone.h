@@ -109,7 +109,7 @@ typedef struct
 // Functions -------------------------------------------------------------------
 // Phone
 void atcd_phone_init();                      //inializace telefonu
-//zatim nepouzivam void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t));
+void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t));
 void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t));
   //nejde dat do init ani do reset
   //sms.cb_events funguji nejak divne, sam si to nastavuje
