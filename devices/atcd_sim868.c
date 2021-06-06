@@ -11,6 +11,8 @@
 #if(ATCD_USE_DEVICE == ATCD_SIM868)
 //------------------------------------------------------------------------------
 extern atcd_t atcd;
+uint32_t init_time_inner;
+uint32_t init_time_outer;
 
 //------------------------------------------------------------------------------
 uint16_t atcd_proc_step()
@@ -101,10 +103,23 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 10;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      init_time_inner=atcd_get_ms();
+      init_time_outer=init_time_inner;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");           // --- Test vyuziti pametovych prostoru na SMS
     case ATCD_SB_INIT + 11:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.resultcode==302))
+      {
+        if (atcd_get_ms()-init_time_outer>=12000)
+          return ATCD_SB_INIT + ATCD_SO_ERR;
+        if (atcd_get_ms()-init_time_inner>=500)
+        {
+          init_time_inner=atcd_get_ms();
+          atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");           // --- Test vyuziti pametovych prostoru na SMS
+        }
+        return ATCD_SB_INIT + 11;
+      }
+      else if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMGD=1,4\r\n");           // Smaze vsechny SMS na karte
     case ATCD_SB_INIT + 12:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 12;
@@ -373,7 +388,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+GATT=0\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_DEINIT + 3:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 3;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
