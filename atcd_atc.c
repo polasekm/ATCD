@@ -401,22 +401,25 @@ uint8_t atcd_atc_ln_proc()
       {
         ATCD_DBG_ATC_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
+        at_cmd->resultcode = 0;
       }
       else if(at_cmd->res_str != NULL && strncmp(atcd.parser.buff + atcd.parser.line_pos, at_cmd->res_str, strlen(at_cmd->res_str)) == 0)
       {
         ATCD_DBG_ATC_OK_DET
         at_cmd->result = ATCD_ATC_RESULT_OK;
       }
-      // Neni tohle nahodou i asynchorinni zprava?
+      // Neni tohle nahodou i asynchronni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
         ATCD_DBG_ATC_CME_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
+        at_cmd->resultcode = atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("+CME ERROR:"));
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMS ERROR:", strlen("+CMS ERROR:")) == 0)
       {
         ATCD_DBG_ATC_CMS_ERR_DET
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
+        at_cmd->resultcode = atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("+CMS ERROR:"));
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "FAIL\r\n", strlen("FAIL\r\n")) == 0)
       {

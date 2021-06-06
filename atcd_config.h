@@ -67,10 +67,10 @@
   #define ATCD_DBG_ATC_ECHO_DET         atcd_dbg_inf("ATCD: ATC: ", "ECHO detected.\r\n");
   #define ATCD_DBG_ATC_ECHO_T_FAIL      atcd_dbg_warn("ATCD: ATC: ", "ECHO test FAIL.\r\n");
   #define ATCD_DBG_ATC_OK_DET           atcd_dbg_inf("ATCD: ATC: ", "OK detected.\r\n");
-  #define ATCD_DBG_ATC_ERR_DET          atcd_dbg_inf("ATCD: ATC: ", "ERROR detected.\r\n");
-  #define ATCD_DBG_ATC_CMS_ERR_DET      atcd_dbg_inf("ATCD: ATC: ", "CMS ERROR detected.\r\n");
-  #define ATCD_DBG_ATC_CME_ERR_DET      atcd_dbg_inf("ATCD: ATC: ", "CME ERROR detected.\r\n");
-  #define ATCD_DBG_ATC_FAIL_DET         atcd_dbg_inf("ATCD: ATC: ", "FAIL detected.\r\n");
+  #define ATCD_DBG_ATC_ERR_DET          atcd_dbg_warn("ATCD: ATC: ", "ERROR detected.\r\n");
+  #define ATCD_DBG_ATC_CMS_ERR_DET      atcd_dbg_warn("ATCD: ATC: ", "CMS ERROR detected.\r\n");
+  #define ATCD_DBG_ATC_CME_ERR_DET      atcd_dbg_warn("ATCD: ATC: ", "CME ERROR detected.\r\n");
+  #define ATCD_DBG_ATC_FAIL_DET         atcd_dbg_warn("ATCD: ATC: ", "FAIL detected.\r\n");
   #define ATCD_DBG_ATC_PROMT_DET        atcd_dbg_inf("ATCD: ATC: ", "Prompt \">\" detected.\r\n");
 
   #define ATCD_DBG_ATC_CANCELL          atcd_dbg_inf("ATCD: ATC: ", "Rusim AT prikaz.\r\n");

@@ -62,6 +62,7 @@ typedef struct atcd_at_cmd
 
   uint8_t state;                  //execute state
   uint8_t result;                 //AT command result
+  uint16_t resultcode;            //pouze pokud chyba +CME ERROR/+CMS ERROR
 
   rbuff_t *data;                  //optional tx data in AT command body
   uint16_t data_len;              //optional tx data size
