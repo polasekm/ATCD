@@ -48,6 +48,7 @@ typedef struct
 // GPRS
 void atcd_gprs_init();                           //inializace gprs
 //--------------------------------------------------------------
+void atcd_gprs_autoconn();
 void atcd_gprs_connect();                        //connect gprs
 void atcd_gprs_disconnect();                     //disconnect gprs
 

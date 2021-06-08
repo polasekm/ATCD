@@ -111,6 +111,7 @@ uint16_t atcd_proc_step()
       if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.resultcode==302))
       {
         //mozna cekat na SMS Ready\r\n ? V tomhle systemu se unso nedelaji tak snadno
+        //a predtim taky prijde Call Ready\r\n, mozna proste mit priznak ze prisly?
         if (atcd_get_ms()-init_time_outer>=12000)
           return ATCD_SB_INIT + ATCD_SO_ERR;
         if (atcd_get_ms()-init_time_inner>=500)
@@ -345,6 +346,7 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      //podle doc az 85s ale prakticky pod 1s; jednou odpoved neprisla vubec ani OK ani ERR ani nic
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
@@ -353,6 +355,18 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.timeout = 1500;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
     case ATCD_SB_GPRS_INIT + 10:
+      if(atcd.at_cmd.resp_len>0)
+      {
+        size_t iplen;
+        atcd.at_cmd.resp[atcd.at_cmd.resp_len]='\0';
+        iplen=strspn(atcd.at_cmd.resp, "1234567890.");
+        if (iplen>=7)
+          if (strcmp(atcd.at_cmd.resp+iplen, "\r\n")==0)
+          {
+            atcd.at_cmd.result = ATCD_ATC_RESULT_OK;
+            atcd_atc_complete(&atcd.at_cmd);
+          };
+      }
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
       //if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
@@ -360,6 +374,7 @@ uint16_t atcd_proc_step()
       //atcd.gprs.state = ATCD_GPRS_STATE_CONNECTING;
       // Opravdu? Neceka se async?
       atcd.gprs.state = ATCD_GPRS_STATE_CONN;
+      atcd_gprs_autoconn(); //kdyz jsme chteli disco behem initu tak se pozadavek zahodil
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
     case ATCD_SB_GPRS_INIT + ATCD_SO_ERR:
@@ -396,12 +411,14 @@ uint16_t atcd_proc_step()
 
       ATCD_DBG_GPRS_DEINIT_OK
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atcd_gprs_autoconn(); //kdyz jsme chteli conn behem deinitu tak se pozadavek zahodil
       return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR:
       //GPRS deinit selhalo
       ATCD_DBG_GPRS_DEINIT_ERR
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atcd_gprs_autoconn();
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_END:
       //------------------------------------------------------------------------

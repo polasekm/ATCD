@@ -22,29 +22,25 @@ void atcd_conn_proc()                    //connections processing
 
     if(conn != NULL)
     {
-      if((conn->state == ATCD_CONN_STATE_W_OPEN1 || conn->state == ATCD_CONN_STATE_W_OPENFAILED || conn->state == ATCD_CONN_STATE_OPENING || conn->state == ATCD_CONN_STATE_CLOSING) && atcd_get_ms() - conn->timer > 15000)
+      if((conn->state == ATCD_CONN_STATE_W_OPEN1 ||
+          conn->state == ATCD_CONN_STATE_W_OPENFAILED ||
+          conn->state == ATCD_CONN_STATE_OPENING ||
+          conn->state == ATCD_CONN_STATE_CLOSING))
       {
-        ATCD_DBG_CONN_TIM
+        if (atcd.gprs.state==ATCD_GPRS_STATE_CONNECTING) //na _CLOSING by to nemelo mit vliv
+          conn->timer = atcd_get_ms();
+        else if (atcd_get_ms() - conn->timer > 15000)
+        {
+          ATCD_DBG_CONN_TIM
 
-        conn->state = ATCD_CONN_STATE_W_CLOSE;
-        conn->timer = atcd_get_ms();
+          conn->state = ATCD_CONN_STATE_W_CLOSE;
+          conn->timer = atcd_get_ms();
 
-        if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+        }
       }
     }
   }
-}
-//------------------------------------------------------------------------------
-static void checkForAutoClose()
-{
-  uint8_t i;
-
-  for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
-  {
-    if (atcd.conns.conn[i])
-    	return;
-  }
-  atcd_gprs_disconnect();
 }
 //------------------------------------------------------------------------------
 void atcd_conn_reset_all()
@@ -67,7 +63,7 @@ void atcd_conn_reset_all()
       if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
     }
   }
-  checkForAutoClose();
+  atcd_gprs_autoconn();
 }
 //------------------------------------------------------------------------------
 void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size)     //init connection
@@ -117,7 +113,7 @@ void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_con
       
       conn->state = ATCD_CONN_STATE_W_OPEN1;
 
-      atcd_gprs_connect();
+      atcd_gprs_autoconn();
       return;
     }
   }
@@ -166,7 +162,7 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
   conn->state = ATCD_CONN_STATE_CLOSE;
   conn->num   = ATCD_CONN_NO_NUM;
   if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
-  checkForAutoClose();
+  atcd_gprs_autoconn();
 }
 //------------------------------------------------------------------------------
 atcd_conn_state_e atcd_conn_state(atcd_conn_t *conn)
@@ -358,7 +354,7 @@ uint8_t atcd_conn_asc_msg()
 
           atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
-          checkForAutoClose();
+          atcd_gprs_autoconn();
         }
         else
         {
@@ -395,7 +391,7 @@ uint8_t atcd_conn_asc_msg()
 
           atcd.parser.buff_pos = atcd.parser.line_pos;
           if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
-          checkForAutoClose();
+          atcd_gprs_autoconn();
         }
         else
         {
@@ -429,7 +425,7 @@ uint8_t atcd_conn_asc_msg()
 
             atcd.parser.buff_pos = atcd.parser.line_pos;
             if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
-            checkForAutoClose();
+            atcd_gprs_autoconn();
           }
           else
           {

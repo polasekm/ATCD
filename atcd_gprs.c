@@ -46,7 +46,7 @@ void atcd_gprs_proc()                    //gprs connection processing
   else if(atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
   {
     //Cekame na pripojeni - test stavu a timeoutu...
-    if(atcd_get_ms() - atcd.gprs.timer > 30000)
+    if(atcd_get_ms() - atcd.gprs.timer > 90000) //jen prikaz AT+CIICR ma podle dokumentace az 85s
     {
       // Vyprsel timeout na spojeni
       ATCD_DBG_GPRS_TIMEOUT
@@ -59,6 +59,32 @@ void atcd_gprs_proc()                    //gprs connection processing
   else if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
   {
     // Kontrola stavu?
+  }
+}
+//------------------------------------------------------------------------------
+void atcd_gprs_autoconn()
+{
+  if (atcd.gprs.state == ATCD_GPRS_STATE_CONN)
+  {
+    uint8_t i;
+    for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
+    {
+      if (atcd.conns.conn[i])
+          return;
+    }
+    atcd_gprs_disconnect();
+  }
+  else if (atcd.gprs.state == ATCD_GPRS_STATE_DISCONN)
+  {
+    uint8_t i;
+    for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
+    {
+      if (atcd.conns.conn[i])
+      {
+        atcd_gprs_connect();
+        return;
+      };
+    }
   }
 }
 //------------------------------------------------------------------------------

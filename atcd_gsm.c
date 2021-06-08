@@ -46,11 +46,25 @@ uint8_t atcd_gsm_asc_msg()
       atcd.gsm.state = val;
 
       //Prechod na roaming nemusi znamenat reset vsech spojeni - opravit.
+      //prev  new  ->              prev in [1,5]
+      //init  0,2,3   (reset)         f
+      //init  1,5     NO RESET        f
+      //0,2,3 0,2,3   (reset)         f
+      //0,2,3 1       no reset        f
+      //0,2,3 5       no reset        f
+      //1     0,2,3   reset           t
+      //1     5       reset           t
+      //5     0,2,3   reset           t
+      //5     1       reset           t
+      //prvni AT+CREG? se dela az po otevreni GPRS a po tomhle bych si zavolal atcd_gprs_disconnect
       if(state_p != val)
-      {
-        atcd_conn_reset_all();
-        if(atcd.gsm.callback != NULL && (atcd.gsm.cb_events & ATCD_GSM_EV_REG) != 0) atcd.gsm.callback(ATCD_GSM_EV_REG);
-      }
+        if ((state_p==1) ||
+            (state_p==5) ||
+            ((val!=1) && (val!=5)))
+        {
+          atcd_conn_reset_all();
+          if(atcd.gsm.callback != NULL && (atcd.gsm.cb_events & ATCD_GSM_EV_REG) != 0) atcd.gsm.callback(ATCD_GSM_EV_REG);
+        }
     }
     else
     {
