@@ -84,6 +84,7 @@ typedef struct atcd_conn
 void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size);  //init connection
 void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_e type); //open conenction
 void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len);            //write data to connection
+uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data);
 void atcd_conn_close(atcd_conn_t *conn);                                         //close connection
 void atcd_conn_free(atcd_conn_t *conn);                                          //free connection
 

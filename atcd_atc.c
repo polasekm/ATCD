@@ -178,7 +178,7 @@ void atcd_atc_proc()                     //AT commands processing
       ATCD_DBG_ATC_QUEUE_EXE
       atcd_atc_send_cmd();
     }
-    // Kontola, zda nevyprsel timeout
+    // Kontrola, zda nevyprsel timeout
     else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
     {
       ATCD_DBG_ATC_TIM

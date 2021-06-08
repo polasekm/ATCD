@@ -105,11 +105,12 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       init_time_inner=atcd_get_ms();
       init_time_outer=init_time_inner;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");           // --- Test vyuziti pametovych prostoru na SMS
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");//system nerozlisi skutecny OK od _res , "SMS Ready\r\n"); // --- Test vyuziti pametovych prostoru na SMS
     case ATCD_SB_INIT + 11:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
       if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.resultcode==302))
       {
+        //mozna cekat na SMS Ready\r\n ? V tomhle systemu se unso nedelaji tak snadno
         if (atcd_get_ms()-init_time_outer>=12000)
           return ATCD_SB_INIT + ATCD_SO_ERR;
         if (atcd_get_ms()-init_time_inner>=500)
@@ -587,10 +588,11 @@ uint16_t atcd_proc_step()
       ATCD_DBG_CONN_CLOSING
       //conn->state = ATCD_CONN_STATE_OPENING;
       atcd.at_cmd.timeout = 15000;
-      atcd.at_cmd.cmd = atcd.at_cmd_buff;
 
-      sprintf(atcd.at_cmd.cmd, "AT+CIPCLOSE=%u\r\n", conn->num);
-      atcd_atc_exec(&atcd.at_cmd);
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPCLOSE=%u\r\n", conn->num);
+      snprintf(atcd.at_cmd_resbuff, sizeof(atcd.at_cmd_resbuff), "%u, CLOSE OK\r\n", conn->num);
+      //ja se zabiju, , CLOSE OK\r\n se odchytava
+      atcd_atc_exec_cmd_res(&atcd.at_cmd, atcd.at_cmd_buff, atcd.at_cmd_resbuff);
 
     case ATCD_SB_CONN_CLOSE + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_CLOSE + 1;
@@ -617,7 +619,7 @@ uint16_t atcd_proc_step()
       //Uzavreni spojeni selhalo
       //Zalogovat!
       //bude volat call back od close, pozor...
-      //opravdu to neni reduncance - kde vsude se vola, projit..
+      //opravdu to neni redundance - kde vsude se vola, projit..
       atcd_conn_free(conn);
       conn->state = ATCD_CONN_STATE_FAIL;
       return ATCD_SB_CONN_CLOSE;

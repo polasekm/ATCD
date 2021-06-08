@@ -134,6 +134,16 @@ void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len)   //write d
   rbuff_write(&conn->tx_rbuff, data, len);
 }
 //------------------------------------------------------------------------------
+uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data)   //write data to connection
+{
+  ATCD_DBG_CONN_WRITE
+  uint32_t len=rbuff_size(data);
+  if (rbuff_write_rb(&conn->tx_rbuff, data, len))
+    return len;
+  else
+    return 0;
+}
+//------------------------------------------------------------------------------
 void atcd_conn_close(atcd_conn_t *conn)                       //close connection
 {
   ATCD_DBG_CONN_CLOSE_W
@@ -370,6 +380,15 @@ uint8_t atcd_conn_asc_msg()
         conn = atcd.conns.conn[conn_id];
         if(conn != NULL)
         {
+          if (conn->state==ATCD_CONN_STATE_W_CLOSE)
+          {
+            if (strncmp(atcd.at_cmd_resbuff, atcd.parser.buff+atcd.parser.line_pos, strlen("0, CLOSE OK\r\n"))==0)
+            {
+              atcd.at_cmd.result = ATCD_ATC_RESULT_OK;
+              atcd_atc_complete(&atcd.at_cmd);
+            };
+          };
+
           atcd.conns.conn[conn_id] = NULL;
           conn->state = ATCD_CONN_STATE_CLOSE;
           conn->num   = ATCD_CONN_NO_NUM;
