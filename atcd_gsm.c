@@ -16,6 +16,7 @@ void atcd_gsm_init()
   atcd.gsm.state     = ATCD_REG_STATE_OFF;
   atcd.gsm.cb_events = ATCD_GSM_EV_ALL;
   atcd.gsm.callback  = NULL;
+  atcd.gsm.gsm_sig = -1;
 }
 //------------------------------------------------------------------------------
 void atcd_gsm_reset()
@@ -89,5 +90,10 @@ uint8_t atcd_gsm_asc_msg()
 uint8_t atcd_gsm_state()
 {
   return atcd.gsm.state;
+}
+//------------------------------------------------------------------------------
+int8_t atcd_gsm_sig()
+{
+  return atcd.gsm.gsm_sig;
 }
 //------------------------------------------------------------------------------

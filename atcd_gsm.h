@@ -48,6 +48,7 @@ typedef struct
   uint8_t cb_events;              //GSM events
   void (*callback)(uint8_t);      //events callback
 
+  int8_t gsm_sig; //-1, 0..100
 } atcd_gsm_t;
 
 // Functions -------------------------------------------------------------------
@@ -57,5 +58,6 @@ void atcd_gsm_proc();
 uint8_t atcd_gsm_asc_msg();
 
 uint8_t atcd_gsm_state();
+int8_t atcd_gsm_sig();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GSM_H_INCLUDED */

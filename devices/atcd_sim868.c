@@ -227,6 +227,17 @@ uint16_t atcd_proc_step()
     case ATCD_SB_STAT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 7;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+      if (atcd.at_cmd.resp_len>=8) //+CSQ:9\r\n i kdyz spis +CSQ: 9,0\r\n
+      { //diky cekani na echo sem nechodi STATE: IP INITIAL aspol.
+        if (strncmp(atcd.at_cmd.resp, "+CSQ:", 5)==0)
+        {
+          int csq=atoi(atcd.at_cmd.resp+5);
+          if ((csq<0) || (csq>=32)) //hlavne 99
+            atcd.gsm.gsm_sig=-1;
+          else
+            atcd.gsm.gsm_sig=csq*100/31;
+        };
+      };
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r\n");
     case ATCD_SB_STAT + 10:
