@@ -50,7 +50,8 @@ typedef struct
   uint16_t line_pos;              //last line position in buffer
 
   uint8_t mode;                   //parser mode
-  uint8_t echo_en;                //AT cmd echo enable  
+  uint8_t echo_en;                //AT cmd echo enable
+  uint32_t mode_time;             //plati mimo ATCD_P_MODE_ATC; fix: kdyz neprijde text SMS, zasekne se to uplne vsechno naporad
 
   uint32_t timer;                 //current operation timer
 

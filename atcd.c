@@ -109,6 +109,7 @@ void atcd_proc()                         //data processing
 
   // -- Nepatri to do jine _proc funkce?
   // Test timeoutu v rezimu prijmu dat
+  //MV: davam to do atcd_atc_proc()
   if(atcd.parser.mode == ATCD_P_MODE_IPD)
   {
     if(atcd_get_ms() - atcd.parser.timer > 4000)

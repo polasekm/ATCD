@@ -342,6 +342,12 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
     case ATCD_SB_GPRS_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
+      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) &&
+          (atcd.at_cmd.resultcode==4))
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_GPRS_INIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
       strcpy(atcd.at_cmd_buff, "AT+CSTT=\"");
@@ -388,6 +394,9 @@ uint16_t atcd_proc_step()
       atcd_gprs_autoconn(); //kdyz jsme chteli disco behem initu tak se pozadavek zahodil
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
+    case ATCD_SB_GPRS_INIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
+      if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_INIT + 90;
+
     case ATCD_SB_GPRS_INIT + ATCD_SO_ERR:
       //GPRS init selhalo
       ATCD_DBG_GPRS_INIT_ERR
@@ -418,12 +427,21 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_DEINIT + 3:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 3;
+      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) &&
+          (atcd.at_cmd.resultcode==4))
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_GPRS_DEINIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
 
       ATCD_DBG_GPRS_DEINIT_OK
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
       atcd_gprs_autoconn(); //kdyz jsme chteli conn behem deinitu tak se pozadavek zahodil
       return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
+
+    case ATCD_SB_GPRS_DEINIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
+      if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_DEINIT + 90;
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR:
       //GPRS deinit selhalo

@@ -224,7 +224,8 @@ uint8_t atcd_conn_asc_msg()
       if(atcd.parser.rx_data_len != 0)
       {
         ATCD_DBG_CONN_DATA_RX_DET
-        atcd.parser.mode  = ATCD_P_MODE_IPD;
+        atcd.parser.mode = ATCD_P_MODE_IPD;
+        atcd.parser.mode_time = atcd_get_ms();
         atcd.parser.timer = atcd_get_ms();
 
         atcd.parser.buff_pos = 0;

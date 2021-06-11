@@ -150,6 +150,10 @@ void atcd_atc_proc()                     //AT commands processing
  
   at_cmd = atcd.parser.at_cmd_top;
 
+  if (atcd.parser.mode != ATCD_P_MODE_ATC) //pro ATCD_P_MODE_IPD duplo v atcd_proc
+    if (atcd_get_ms()-atcd.parser.mode_time>20000)
+      atcd.parser.mode = ATCD_P_MODE_ATC;
+
   // Pokud je nejaky prikaz na vrcholu fronty
   if(at_cmd != NULL)
   {             
@@ -165,7 +169,11 @@ void atcd_atc_proc()                     //AT commands processing
         ATCD_DBG_ATC_W_END
         atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_W_END;
 
-        if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+        if(atcd.parser.at_cmd_top->data != NULL)
+        {
+          atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+          atcd.parser.mode_time = atcd_get_ms();
+        };
       }
     }
 
@@ -189,7 +197,7 @@ void atcd_atc_proc()                     //AT commands processing
       at_cmd->resp_len = 0;
       at_cmd->state = ATCD_ATC_STATE_DONE;
 
-      if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) 
+      if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
       {
         atcd_hw_tx(NULL, at_cmd->data_len);
         atcd.parser.mode = ATCD_P_MODE_ATC;
@@ -368,7 +376,11 @@ uint8_t atcd_atc_ln_proc()
       {
         ATCD_DBG_ATC_ECHO_DET
         at_cmd->state = ATCD_ATC_STATE_W_END;
-        if(atcd.parser.at_cmd_top->data != NULL) atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+        if(atcd.parser.at_cmd_top->data != NULL)
+        {
+          atcd.parser.mode = ATCD_P_MODE_TX_PEND;
+          atcd.parser.mode_time = atcd_get_ms();
+        }
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;

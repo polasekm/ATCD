@@ -182,8 +182,9 @@ uint8_t atcd_phone_asc_msg()
 
     //length
 
-    atcd.phone.sms.len = atof(p); //2021-05-31 why atoF?
+    atcd.phone.sms.len = atoi(p);
     atcd.parser.mode = ATCD_P_MODE_SMS;
+    atcd.parser.mode_time = atcd_get_ms();
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.parser.buff_pos = atcd.parser.line_pos;
@@ -349,7 +350,7 @@ uint8_t atcd_phone_sms_proc(char ch)
   return 0;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_phone_state()
+atcd_phone_state_t atcd_phone_state()
 {
   return atcd.phone.state;
 }
