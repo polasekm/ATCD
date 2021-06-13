@@ -81,8 +81,7 @@ struct atcd_sms_ts
   uint8_t cb_events;              //AT commands events
   void (*callback)(uint8_t event, const atcd_sms_t *sms);      //events callback
   
-  struct atcd_sms *next;          //next SMS in queue
-  
+  atcd_sms_t *next;               //next SMS in queue
 };
 //------------------------------------------------------------------------------
 typedef struct
