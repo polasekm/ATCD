@@ -334,6 +334,12 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_INIT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 5;
+      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) &&
+          (atcd.at_cmd.resultcode==4))
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_GPRS_INIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
     case ATCD_SB_GPRS_INIT + 6:

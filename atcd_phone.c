@@ -62,7 +62,7 @@ void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t))
 	atcd.phone.callback = callback;
 }
 //------------------------------------------------------------------------------
-void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t))
+void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms))
 {
 	atcd.phone.sms.cb_events = doesNotUnderstand;
 	atcd.phone.sms.callback = sms_callback;
@@ -341,7 +341,7 @@ uint8_t atcd_phone_sms_proc(char ch)
       atcd.phone.sms.message[atcd.phone.sms.len] = 0;
 
       atcd.phone.sms.cb_events |= ATCD_SMS_EV_SMS_IN;
-      if(atcd.phone.sms.callback != NULL) atcd.phone.sms.callback(ATCD_SMS_EV_SMS_IN);
+      if(atcd.phone.sms.callback != NULL) atcd.phone.sms.callback(ATCD_SMS_EV_SMS_IN, &atcd.phone.sms);
     }
 
     return 1;

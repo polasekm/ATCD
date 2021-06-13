@@ -62,7 +62,9 @@ typedef enum {
 #define ATCD_SMS_EV_ALL           0xFF
 
 //------------------------------------------------------------------------------
-typedef struct atcd_sms
+typedef struct atcd_sms_ts atcd_sms_t;
+
+struct atcd_sms_ts
 {
   char *sender;                   //Message sender
   char *datetime;                 //Message date time
@@ -77,11 +79,11 @@ typedef struct atcd_sms
   uint16_t timeout;               //timeout in s
 
   uint8_t cb_events;              //AT commands events
-  void (*callback)(uint8_t);      //events callback
+  void (*callback)(uint8_t event, const atcd_sms_t *sms);      //events callback
   
   struct atcd_sms *next;          //next SMS in queue
   
-} atcd_sms_t;
+};
 //------------------------------------------------------------------------------
 typedef struct
 {
@@ -109,8 +111,8 @@ typedef struct
 // Functions -------------------------------------------------------------------
 // Phone
 void atcd_phone_init();                      //inializace telefonu
-void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t));
-void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t));
+void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t event));
+void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms));
   //nejde dat do init ani do reset
   //sms.cb_events funguji nejak divne, sam si to nastavuje
 
