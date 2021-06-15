@@ -90,6 +90,7 @@ uint8_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd);    //execute and se
 uint8_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res);   //execute and set AT command with result string
 
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execute AT command
+void atcd_atc_cancel_all();                             //cancel all AT commands in queue
 
 uint8_t atcd_atc_send_cmd();                     //send AT command
 uint8_t atcd_atc_send_data();                    //send AT command data

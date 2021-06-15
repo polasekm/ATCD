@@ -73,7 +73,7 @@ void atcd_state_reset()                  //state machine reset
   atcd_parser_init();
   atcd.timer = atcd_get_ms(); 
 
-  atcd_atc_cancell_all();
+  atcd_atc_cancel_all();
   atcd_conns_reset();
 
   atcd_atc_init(&atcd.at_cmd);

@@ -181,7 +181,7 @@ uint8_t atcd_gps_asc_msg()
       atcd.gps.date[np - p] = 0;
       p = np + 1;
 
-      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE);
+      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE, &atcd.gps);
 
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
@@ -300,11 +300,14 @@ uint8_t atcd_gps_asc_msg()
 
       //VDOP
       np = (char*)memchr(p, ',', endl - p);
+      //chodi jen $GPGSA,A,1", ',' <repeats 15 times>, "*1E\r\n,M,,*5C\r\n0,,,N*59\r\n coz je o polozku mene
+      //$GPGSA,A,1,,,,,,,,,,,,,,,*1E
+      //$GPGSA,A,1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,pdop,hdop,*1E  tak nekdo urcite nechodi
       if(np == NULL) goto skip_proc2;
       if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.vdop = atof(p);
       p = np + 1;
 
-      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE);
+      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE, &atcd.gps);
 
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
@@ -405,7 +408,7 @@ uint8_t atcd_gps_asc_msg()
       //if(*p == 'E') atcd.gps.longitude = -atcd.gps.longitude;
       p = np + 1;
 
-      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE);
+      if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE, &atcd.gps);
 
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
@@ -514,5 +517,11 @@ uint8_t atcd_gps_state()
 uint32_t atcd_gps_last_fix()
 {
   return atcd.gps.last_fix;
+}
+//-----------------------------------------------------------------------------
+void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps))
+{
+  atcd.gps.cb_events=events;
+  atcd.gps.callback=gps_callback;
 }
 //-----------------------------------------------------------------------------

@@ -36,12 +36,13 @@
 // GPS Events
 #define ATCD_GPS_EV_NONE             0x00
 #define ATCD_GPS_EV_FIX              0b00000001
-#define ATCD_GPS_EV_UPDATE           0b00000010
+#define ATCD_GPS_EV_UPDATE           0b00000010 //RMC, GSA, GGA
 #define ATCD_GPS_EV_ALL              0xFF
 
 //------------------------------------------------------------------------------
+typedef struct atcd_gps_ts atcd_gps_t;
 
-typedef struct
+struct atcd_gps_ts
 {
   uint8_t state;                  //GPS state
 
@@ -66,11 +67,11 @@ typedef struct
   float vdop;
 
   uint8_t cb_events;              //GPS events
-  void (*callback)(uint8_t);      //events callback
+  void (*callback)(uint8_t event, const atcd_gps_t *gps);      //events callback
 
   uint32_t cs_err;
 
-} atcd_gps_t;
+};
 
 // Functions -------------------------------------------------------------------
 void atcd_gps_init();
@@ -86,5 +87,6 @@ uint8_t atcd_gps_asc_msg();
 
 uint8_t atcd_gps_state();
 uint32_t atcd_gps_last_fix();
+void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps));
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPS_H_INCLUDED */

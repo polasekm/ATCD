@@ -83,7 +83,7 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
   //nejaky if, ne?
   atcd_atc_check_queue(at_cmd);
 
-  //tohle prepsat, radeji vzdy overovat, ze neni fe fronte?
+  //tohle prepsat, radeji vzdy overovat, ze neni ve fronte?
   if(at_cmd->state != ATCD_ATC_STATE_DONE)
   {
     return ATCD_ERR_LOCK;
@@ -151,8 +151,12 @@ void atcd_atc_proc()                     //AT commands processing
   at_cmd = atcd.parser.at_cmd_top;
 
   if (atcd.parser.mode != ATCD_P_MODE_ATC) //pro ATCD_P_MODE_IPD duplo v atcd_proc
-    if (atcd_get_ms()-atcd.parser.mode_time>20000)
+    if ((atcd_get_ms()-atcd.parser.mode_time>20000) && (atcd_get_ms()-atcd.parser.mode_time>at_cmd->timeout+1))
+    { //vlastne by se nemelo stavat, timeout je nize, mozna jen tam nastavit ATCD_P_MODE_ATC
       atcd.parser.mode = ATCD_P_MODE_ATC;
+      at_cmd->data=NULL;
+      at_cmd->data_len=0;
+    }
 
   // Pokud je nejaky prikaz na vrcholu fronty
   if(at_cmd != NULL)
@@ -202,6 +206,9 @@ void atcd_atc_proc()                     //AT commands processing
         atcd_hw_tx(NULL, at_cmd->data_len);
         atcd.parser.mode = ATCD_P_MODE_ATC;
       }
+      if (atcd.parser.mode != ATCD_P_MODE_ATC)
+        atcd.parser.mode = ATCD_P_MODE_ATC;
+      //nemuzu ale jen tak sahat na cizi at_cmd at_cmd->data_=NULL; at_cmd->data_len_=0;
 
       atcd.parser.at_cmd_top = at_cmd->next;
       atcd_atc_queue_proc();
@@ -333,7 +340,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
   return 1;
 }
 //------------------------------------------------------------------------------
-void atcd_atc_cancell_all()               //cancell all AT commands in queue
+void atcd_atc_cancel_all()               //cancel all AT commands in queue
 {
   atcd_at_cmd_t *at_cmd;
 
@@ -341,7 +348,8 @@ void atcd_atc_cancell_all()               //cancell all AT commands in queue
 
   while(atcd.parser.at_cmd_top != NULL)
   {
-    //nemela by se folat fce vyse
+    //nemela by se volat fce vyse
+    //to by musel nekdo rozhodnout co delat v state != ATCD_ATC_STATE_WAIT
     ATCD_DBG_ATC_CANCELL
 
     at_cmd = atcd.parser.at_cmd_top;

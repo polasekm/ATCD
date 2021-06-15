@@ -27,8 +27,8 @@
 #define ATCD_P_MODE_ATC             0
 #define ATCD_P_MODE_IPD             1
 #define ATCD_P_MODE_SMS             2
-#define ATCD_P_MODE_TX_PEND         3
-#define ATCD_P_MODE_PROMPT          4
+#define ATCD_P_MODE_TX_PEND         3 //cekani na prompt protoze cmd->data!=NULL
+#define ATCD_P_MODE_PROMPT          4 //jen uvnitr funkce; posilani cmd->data
 
 // Opravdu - s ohledem na stav vyse asi smazat
 #define ATCD_P_NO_TX_PENDING        0xFF

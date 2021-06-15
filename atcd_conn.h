@@ -88,7 +88,7 @@ uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data);
 void atcd_conn_close(atcd_conn_t *conn);                                         //close connection
 void atcd_conn_free(atcd_conn_t *conn);                                          //free connection
 
-atcd_conn_state_e atcd_conn_state(atcd_conn_t *conn);
+atcd_conn_state_e atcd_conn_state(const atcd_conn_t *conn);
 
 // Connections
 void atcd_conn_proc();                    //connections processing

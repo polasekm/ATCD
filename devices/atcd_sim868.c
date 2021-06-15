@@ -13,6 +13,7 @@
 extern atcd_t atcd;
 uint32_t init_time_inner;
 uint32_t init_time_outer;
+atcd_at_cmd_t at_cmd2; //kdyz mam data k odesilani, pouziju jiny at_cmd aby tam ty data nezustaly pro nesouvisejici prikaz
 
 //------------------------------------------------------------------------------
 uint16_t atcd_proc_step()
@@ -36,6 +37,8 @@ uint16_t atcd_proc_step()
 
       atcd.at_cmd.data           = NULL;
       atcd.at_cmd.data_len       = 0;
+
+      atcd_atc_init(&at_cmd2);
 
       atcd.at_cmd.timeout        = 5000;
     case ATCD_SB_INIT + 1:
@@ -550,24 +553,24 @@ uint16_t atcd_proc_step()
       tx_data_len = rbuff_size(&conn->tx_rbuff);
       if(tx_data_len == 0) return ATCD_SB_CONN_WRITE;
 
-      atcd.at_cmd.timeout = 30000;
+      at_cmd2.timeout = 30000;
 
       ATCD_DBG_CONN_SEND
       //conn->state = ATCD_CONN_STATE_OPENING;
 
       if(tx_data_len > 512) tx_data_len = 512;
 
-      atcd.at_cmd.cmd = atcd.at_cmd_buff;
-      atcd.at_cmd.timeout = 30000;
-      atcd.at_cmd.data = &conn->tx_rbuff;
-      atcd.at_cmd.data_len = tx_data_len;
+      at_cmd2.cmd = atcd.at_cmd_buff;
+      at_cmd2.timeout = 30000;
+      at_cmd2.data = &conn->tx_rbuff;
+      at_cmd2.data_len = tx_data_len;
 
-      sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, (unsigned int)tx_data_len);
+      sprintf(at_cmd2.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, (unsigned int)tx_data_len);
 
       //je to jeste potreba?
       atcd.parser.tx_conn_num = conn->num;
 
-      atcd_atc_exec(&atcd.at_cmd);
+      atcd_atc_exec(&at_cmd2);
 
       // ze by se mel nastavit stav parseru na conn tx pending
       // to ovsem nejde - musi se provest az ke konkretnimu atc
@@ -578,8 +581,8 @@ uint16_t atcd_proc_step()
       //0, SEND OK
 
     case ATCD_SB_CONN_WRITE + 1:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 1;
-      if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
+      if(at_cmd2.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 1;
+      if(at_cmd2.result == ATCD_ATC_RESULT_OK)
       {
         //necekat na vyzvu az tady
         //nemusi byt, u A6 je vyzva jeste v tele AT prikazu
@@ -589,7 +592,7 @@ uint16_t atcd_proc_step()
         //ne ne tady uz jsou data zadana
 
         //posunout ukazovatko dat
-        rbuff_seek(&conn->tx_rbuff, atcd.at_cmd.data_len);
+        rbuff_seek(&conn->tx_rbuff, at_cmd2.data_len);
 
         // asi volat call back pokud je nastaven?
       }
@@ -603,6 +606,8 @@ uint16_t atcd_proc_step()
       }
 
     case ATCD_SB_CONN_WRITE + 2:
+      //at_cmd nebo at_cmd2? Nedela nic tak dam return
+      return ATCD_SB_CONN_WRITE;
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;
 
