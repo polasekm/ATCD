@@ -133,5 +133,6 @@ uint8_t atcd_phone_sms_proc(char ch);
 
 uint8_t atcd_phone_state();
 uint16_t atcd_phone_ring_cnt();
+const char *atcd_phone_ring_number(); //nikdy nevraci NULL ale muze ""
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */

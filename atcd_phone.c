@@ -93,6 +93,7 @@ uint8_t atcd_phone_asc_msg()
       {
         atcd.phone.state = ATCD_PHONE_STATE_RING;
         atcd.phone.ring_cnt = 0;
+        atcd.phone.number[0] = '\0';
       }
     }
 
@@ -358,5 +359,10 @@ atcd_phone_state_t atcd_phone_state()
 uint16_t atcd_phone_ring_cnt()
 {
   return atcd.phone.ring_cnt;
+}
+//------------------------------------------------------------------------------
+const char *atcd_phone_ring_number() //nikdy nevraci NULL ale muze ""
+{
+  return atcd.phone.number;
 }
 //------------------------------------------------------------------------------
