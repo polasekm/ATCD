@@ -513,7 +513,11 @@ uint16_t atcd_proc_step()
       {
         ATCD_DBG_CONN_OPENING_ERR
         //atcd.conns.conn[conn->num]  = NULL;
-
+        if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) &&
+            (atcd.at_cmd.resultcode==3))
+        { //mohlo se podelat GPRS, udelej reinit
+          atcd_gprs_disconnect(); //po dokonceni disco by se mel udelat autoconnect
+        };
         //atcd_conn_free(conn);
         conn->state = ATCD_CONN_STATE_W_OPENFAILED;
         conn->timer = atcd_get_ms();
