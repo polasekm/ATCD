@@ -14,6 +14,7 @@ extern atcd_t atcd;
 uint32_t init_time_inner;
 uint32_t init_time_outer;
 atcd_at_cmd_t at_cmd2; //kdyz mam data k odesilani, pouziju jiny at_cmd aby tam ty data nezustaly pro nesouvisejici prikaz
+rbuff_t at_rbuff2; //tak to je slepici ulet
 
 //------------------------------------------------------------------------------
 uint16_t atcd_proc_step()
@@ -316,12 +317,14 @@ uint16_t atcd_proc_step()
 
       strcpy(atcd.at_cmd_buff, "AT+CMGS=");
       strcat(atcd.at_cmd_buff, atcd.phone.sms_tx.sender);
-      strcat(atcd.at_cmd_buff, ";\r\n");
+      strcat(atcd.at_cmd_buff, ",145\r");
 
-      atcd.at_cmd.data = atcd.phone.sms_tx.message;
-      atcd.at_cmd.data_len = atcd.phone.sms_tx.len;
+      at_cmd2.timeout=60000;
+      rbuff_lin_space(&at_rbuff2, (uint8_t *)atcd.phone.sms_tx.message, atcd.phone.sms_tx.len); //const message nevyresis
+      at_cmd2.data = &at_rbuff2;//to nepujde atcd.phone.sms_tx.message;
+      at_cmd2.data_len = atcd.phone.sms_tx.len;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+      atcd_atc_exec_cmd(&at_cmd2, atcd.at_cmd_buff);
     case ATCD_SB_PHONE + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)

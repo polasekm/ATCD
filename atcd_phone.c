@@ -322,7 +322,12 @@ void atcd_phone_send_sms(char *number, char *msg)  //poslat SMS
   atcd.phone.sms_tx.message = msg;
   atcd.phone.sms_tx.len = strlen(msg);
 
-  atcd.phone.state = ATCD_PHONE_SMS_STATE_SEND_W;
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic warning "-Wenum-conversion" //compiler neumi
+//#pragma GCC diagnostic warning "-Wextra" //nefunguje
+  atcd.phone.sms.state = ATCD_PHONE_SMS_STATE_SEND_W;
+//#pragma GCC diagnostic pop
+
   atcd.phone.sms.result = 0;
 }
 //------------------------------------------------------------------------------
