@@ -23,6 +23,9 @@ void atcd_phone_init()   //inializace telefonu
 
   atcd.phone.sms.cb_events = ATCD_SMS_EV_ALL;
   atcd.phone.sms.callback = NULL;
+
+  atcd.phone.sms_tx.cb_events = ATCD_SMS_EV_ALL;
+  atcd.phone.sms_tx.callback = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_phone_reset()                   //phone state reset
@@ -36,24 +39,36 @@ void atcd_phone_reset()                   //phone state reset
   atcd.phone.dtmf_tx_tone = 0;
   atcd.phone.dtmf_tx_dur = 1;
 
-  atcd.phone.sms.sender = NULL;
-  atcd.phone.sms.datetime = NULL;
-  atcd.phone.sms.message = NULL;
-
-  atcd.phone.sms.len = 0;
-  atcd.phone.sms.index = 0;
-  atcd.phone.sms.state = 0;
-  atcd.phone.sms.result = 0;
-
-  atcd.phone.sms.timeout = 0;
-  atcd.phone.sms.next = NULL;
-
+  //----------------------------
+  // RX SMS
   atcd.phone.sms.sender = atcd.phone.sms_sender_buff;
   atcd.phone.sms.sender[0] = 0;
   atcd.phone.sms.datetime = atcd.phone.sms_datetime_buff;
   atcd.phone.sms.datetime[0] = 0;
   atcd.phone.sms.message = atcd.phone.sms_message_buff;
   atcd.phone.sms.message[0] = 0;
+
+  atcd.phone.sms.len = 0;
+  atcd.phone.sms.index = 0;
+  atcd.phone.sms.state = ATCD_PHONE_SMS_STATE_IDLE;
+  atcd.phone.sms.result = 0;
+
+  atcd.phone.sms.timeout = 0;
+  atcd.phone.sms.next = NULL;
+
+  //----------------------------
+  // TX SMS
+  atcd.phone.sms_tx.sender = NULL;
+  atcd.phone.sms_tx.datetime = NULL;
+  atcd.phone.sms_tx.message = NULL;
+
+  atcd.phone.sms_tx.len = 0;
+  atcd.phone.sms_tx.index = 0;
+  atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_IDLE;
+  atcd.phone.sms_tx.result = 0;
+
+  atcd.phone.sms_tx.timeout = 0;
+  atcd.phone.sms_tx.next = NULL;
 }
 //------------------------------------------------------------------------------
 void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t))
@@ -72,11 +87,6 @@ void atcd_phone_proc()                    //phone processing
 {
 
 }
-//------------------------------------------------------------------------------
-/*void atcd_phone_set_pin(char *pin)       //set PIN
-{
-  atcd.phone.pin = pin;
-}*/
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_asc_msg()
 {
@@ -305,9 +315,15 @@ void atcd_phone_call_hang_up()
   else if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) atcd.phone.state = ATCD_PHONE_STATE_IDLE;
 }
 //------------------------------------------------------------------------------
-void atcd_phone_send_sms()                  //poslat SMS
+void atcd_phone_send_sms(char *number, char *msg)  //poslat SMS
 {
-	//TODO: proste cele vymyslet a udelat
+  atcd.phone.sms_tx.sender = number;
+
+  atcd.phone.sms_tx.message = msg;
+  atcd.phone.sms_tx.len = strlen(msg);
+
+  atcd.phone.state = ATCD_PHONE_SMS_STATE_SEND_W;
+  atcd.phone.sms.result = 0;
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_sms_proc(char ch)
@@ -329,7 +345,7 @@ uint8_t atcd_phone_sms_proc(char ch)
 
     atcd.parser.buff_pos++;
 
-    // Pokud jsme dosahli komce IPD bloku
+    // Pokud jsme dosahli komce bloku s textem SMS
     //if(atcd.buff_pos >= atcd.parser.ipd_len)
     if(atcd.parser.buff_pos - atcd.parser.line_pos >= atcd.phone.sms.len)
     {

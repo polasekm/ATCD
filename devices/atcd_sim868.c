@@ -312,6 +312,28 @@ uint16_t atcd_proc_step()
       atcd.phone.state = ATCD_PHONE_STATE_DIAL;
 
     case ATCD_SB_PHONE + 7:
+      if(atcd.phone.sms_tx.state != ATCD_PHONE_SMS_STATE_SEND_W) return ATCD_SB_PHONE + 9;
+
+      strcpy(atcd.at_cmd_buff, "AT+CMGS=");
+      strcat(atcd.at_cmd_buff, atcd.phone.sms_tx.sender);
+      strcat(atcd.at_cmd_buff, ";\r\n");
+
+      atcd.at_cmd.data = atcd.phone.sms_tx.message;
+      atcd.at_cmd.data_len = atcd.phone.sms_tx.len;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_PHONE + 8:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 8;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
+      {
+        atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_ERROR;
+        return ATCD_SB_PHONE + 9;
+      }
+
+      atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_SEND;
+
+    case ATCD_SB_PHONE + 9:
+
       //SMS...
     case ATCD_SB_PHONE + ATCD_SO_ERR:
     case ATCD_SB_PHONE + ATCD_SO_END:

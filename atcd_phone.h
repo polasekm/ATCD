@@ -22,14 +22,6 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Phone
-/*#define ATCD_PHONE_STATE_IDLE       0
-#define ATCD_PHONE_STATE_RING       1
-#define ATCD_PHONE_STATE_RING_WA    2
-#define ATCD_PHONE_STATE_CALL       3
-#define ATCD_PHONE_STATE_HANG_W     4
-#define ATCD_PHONE_STATE_DIAL       5
-#define ATCD_PHONE_STATE_DIAL_W     6
-//#define ATCD_PHONE_STATE_GPRS       7*/
 
 typedef enum {
   ATCD_PHONE_STATE_IDLE             = 0,
@@ -53,12 +45,20 @@ typedef enum {
 #define ATCD_PHONE_EV_ALL           0xFF
 
 // SMS
+typedef enum {
+  ATCD_PHONE_SMS_STATE_IDLE         = 0,
+  ATCD_PHONE_SMS_STATE_SEND_W,
+  ATCD_PHONE_SMS_STATE_SENDING,
+  ATCD_PHONE_SMS_STATE_SEND,
+  ATCD_PHONE_SMS_STATE_TIMEOUT,
+  ATCD_PHONE_SMS_STATE_ERROR,
+  ATCD_PHONE_SMS_STATE_UNKNOWN
+} atcd_phone_sms_state_t;
+
 #define ATCD_SMS_EV_NONE          0x00
 #define ATCD_SMS_EV_SEND          0b00000001
 #define ATCD_SMS_EV_FAIL          0b00000010
-#define ATCD_SMS_EV_CALL_IN       0b00000100 //never happens
-#define ATCD_SMS_EV_CALL_DW       0b00001000
-#define ATCD_SMS_EV_SMS_IN        0b00010000 //+CMT only
+#define ATCD_SMS_EV_SMS_IN        0b00010000 //+CMT only   //tohle prejmenovat
 #define ATCD_SMS_EV_ALL           0xFF
 
 //------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ struct atcd_sms_ts
 
   uint16_t index;                 //Message memory index
     
-  uint8_t state;                  //SMS state
+  atcd_phone_sms_state_t state;   //SMS state
   uint8_t result;                 //SMS result
   
   uint16_t timeout;               //timeout in s
@@ -87,7 +87,6 @@ struct atcd_sms_ts
 typedef struct
 {
   atcd_phone_state_t state;       //phone state
-  //char *pin;                      //PIN
 
   char dtmf_rx_tone;              //DTMF TX tone
   char dtmf_tx_tone;              //DTMF TX tone
@@ -97,10 +96,12 @@ typedef struct
   uint16_t ring_cnt;              //ring counter
   uint16_t miss_call_cnt;         //missing call counter
 
-  atcd_sms_t sms;                 //SMS struct for internal usage
-  char sms_sender_buff[16];       //sms number buff
-  char sms_datetime_buff[32];     //sms datetime buff
-  char sms_message_buff[161];     //sms text buff
+  atcd_sms_t sms;                 //RX SMS struct for internal usage
+  atcd_sms_t sms_tx;              //TX SMS struct for internal usage
+
+  char sms_sender_buff[16];       //rx sms number buff
+  char sms_datetime_buff[32];     //rx sms datetime buff
+  char sms_message_buff[161];     //rx sms text buff
 
   uint8_t cb_events;              //phone events
   void (*callback)(uint8_t);      //events callback
@@ -112,17 +113,15 @@ typedef struct
 void atcd_phone_init();                      //inializace telefonu
 void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t event));
 void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms));
-  //nejde dat do init ani do reset
-  //sms.cb_events funguji nejak divne, sam si to nastavuje
 
-//void atcd_phone_set_pin(char *pin);          //set PIN
+//nejde dat do init ani do reset
+//sms.cb_events funguji nejak divne, sam si to nastavuje
 
 void atcd_phone_call(char *number);          //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
 void atcd_phone_call_hang_up();              //polozit hovor
 
-void atcd_phone_send_sms();                  //poslat SMS
-void atcd_phone_call_down();                 //polozit hovor
+void atcd_phone_send_sms(char *number, char *msg); //poslat SMS
 
 // PHONE
 void atcd_phone_proc();                      //phone processing
@@ -133,6 +132,6 @@ uint8_t atcd_phone_sms_proc(char ch);
 
 uint8_t atcd_phone_state();
 uint16_t atcd_phone_ring_cnt();
-const char *atcd_phone_ring_number(); //nikdy nevraci NULL ale muze ""
+const char *atcd_phone_ring_number();        //nikdy nevraci NULL ale muze ""
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */
