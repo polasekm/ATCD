@@ -17,6 +17,7 @@ void atcd_gprs_init()      //inializace gprs
 {
   atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
   atcd.gprs.timer = 0;
+  atcd.gprs.autoclose_bearer = 0;
 
   atcd.gprs.apn = NULL;
   atcd.gprs.name = NULL;
@@ -74,7 +75,7 @@ void atcd_gprs_autoconn()
     }
     atcd_gprs_disconnect();
   }
-  else if (atcd.gprs.state == ATCD_GPRS_STATE_DISCONN)
+  else if ((atcd.gprs.state == ATCD_GPRS_STATE_DISCONN) && (atcd.gprs.autoclose_bearer))
   {
     uint8_t i;
     for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
@@ -86,6 +87,11 @@ void atcd_gprs_autoconn()
       };
     }
   }
+}
+//------------------------------------------------------------------------------
+void atcd_gprs_autoclose_bearer(uint8_t autoclose_bearer)
+{
+  atcd.gprs.autoclose_bearer=autoclose_bearer;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_connect()                    //connect gprs

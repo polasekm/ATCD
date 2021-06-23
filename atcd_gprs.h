@@ -33,6 +33,7 @@ typedef struct
 {
   uint8_t state;                  //gprs state
   uint32_t timer;                 //current operation timer
+  uint8_t autoclose_bearer;       //bool
 
   char *apn;                      //GPRS access point name
   char *name;                     //GPRS user name
@@ -49,6 +50,7 @@ typedef struct
 void atcd_gprs_init();                           //inializace gprs
 //--------------------------------------------------------------
 void atcd_gprs_autoconn();
+void atcd_gprs_autoclose_bearer(uint8_t autoclose_bearer); //zavirat bearer pokud neni zadne aktivni spojeni
 void atcd_gprs_connect();                        //connect gprs
 void atcd_gprs_disconnect();                     //disconnect gprs
 
