@@ -325,10 +325,10 @@ void atcd_phone_send_sms(char *number, char *msg)  //poslat SMS
 //#pragma GCC diagnostic push
 //#pragma GCC diagnostic warning "-Wenum-conversion" //compiler neumi
 //#pragma GCC diagnostic warning "-Wextra" //nefunguje
-  atcd.phone.sms.state = ATCD_PHONE_SMS_STATE_SEND_W;
+  atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_SEND_W;
 //#pragma GCC diagnostic pop
 
-  atcd.phone.sms.result = 0;
+  atcd.phone.sms_tx.result = 0;
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_sms_proc(char ch)

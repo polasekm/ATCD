@@ -315,9 +315,9 @@ uint16_t atcd_proc_step()
     case ATCD_SB_PHONE + 7:
       if(atcd.phone.sms_tx.state != ATCD_PHONE_SMS_STATE_SEND_W) return ATCD_SB_PHONE + 9;
 
-      strcpy(atcd.at_cmd_buff, "AT+CMGS=");
+      strcpy(atcd.at_cmd_buff, "AT+CMGS=\"");
       strcat(atcd.at_cmd_buff, atcd.phone.sms_tx.sender);
-      strcat(atcd.at_cmd_buff, ",145\r");
+      strcat(atcd.at_cmd_buff, "\",145\r");
 
       at_cmd2.timeout=60000;
       rbuff_lin_space(&at_rbuff2, (uint8_t *)atcd.phone.sms_tx.message, atcd.phone.sms_tx.len); //const message nevyresis
