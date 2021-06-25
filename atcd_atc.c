@@ -286,7 +286,8 @@ void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete afte
   at_cmd->resp[at_cmd->resp_len] = 0;
   at_cmd->state  = ATCD_ATC_STATE_DONE;
 
-  if(atcd.parser.mode == ATCD_P_MODE_TX_PEND) atcd.parser.mode = ATCD_P_MODE_ATC;
+  if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
+    atcd.parser.mode = ATCD_P_MODE_ATC;
 
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
