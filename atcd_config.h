@@ -191,7 +191,7 @@
 
   #define ATCD_DBG_GPS_SENTECE         atcd_dbg_inf("ATCD: GPS: ", "$G detect - NMEA veta.\r\n");
   #define ATCD_DBG_GPS_USENTECE        atcd_dbg_warn("ATCD: GPS: ", "Veta nebyla rozpoznana / neni podporovana.\r\n");
-  #define ATCD_DBG_GPS_SENTECE_OFF     atcd_dbg_warn("ATCD: GPS: ", "Byla prijata NMEA veta ale GPS je vypnuta / vypina se.\r\n");
+  #define ATCD_DBG_GPS_SENTECE_OFF     atcd_dbg_inf("ATCD: GPS: ", "Byla prijata NMEA veta ale GPS je vypnuta / vypina se.\r\n");
 
   #define ATCD_DBG_GPS_RMC             atcd_dbg_inf("ATCD: GPS: ", "RMC sentecne detect\r\n");
   #define ATCD_DBG_GPS_GSA             atcd_dbg_inf("ATCD: GPS: ", "GSA sentecne detect\r\n");
