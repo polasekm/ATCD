@@ -32,6 +32,7 @@ void atcd_phone_reset()                   //phone state reset
 {
   atcd.phone.state = ATCD_PHONE_STATE_IDLE;
   atcd.phone.number[0] = 0;
+  atcd.phone.numbertype = -1;
   atcd.phone.ring_cnt = 0;
   atcd.phone.miss_call_cnt = 0;
 
@@ -104,6 +105,7 @@ uint8_t atcd_phone_asc_msg()
         atcd.phone.state = ATCD_PHONE_STATE_RING;
         atcd.phone.ring_cnt = 0;
         atcd.phone.number[0] = '\0';
+        atcd.phone.numbertype = -1;
       }
     }
 
@@ -226,6 +228,7 @@ uint8_t atcd_phone_asc_msg()
       atcd.phone.state = ATCD_PHONE_STATE_IDLE;
       atcd.phone.ring_cnt = 0;
       atcd.phone.number[0] = 0;
+      atcd.phone.numbertype = -1;
 
       if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
     }
@@ -233,7 +236,7 @@ uint8_t atcd_phone_asc_msg()
   }
 
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLIP:", strlen("+CLIP:")) == 0)
-  {
+  { //+CLIP: "+420777262425",145,"",0,"",0
     ATCD_DBG_PHONE_CALL_N_DET
 
     p    = atcd.parser.buff + atcd.parser.line_pos + strlen("+CLIP:");
@@ -251,6 +254,9 @@ uint8_t atcd_phone_asc_msg()
     atcd.phone.number[np - p] = 0;
     p = np + 1;
 
+    if (*p==',')
+      atcd.phone.numbertype=atoi(p+1);
+
     atcd.parser.buff_pos = atcd.parser.line_pos;
     return 1;
 
@@ -267,6 +273,7 @@ uint8_t atcd_phone_asc_msg()
     atcd.phone.state = ATCD_PHONE_STATE_IDLE;
     atcd.phone.ring_cnt = 0;
     atcd.phone.number[0] = 0;
+    atcd.phone.numbertype = -1;
 
     //neulozit nekam zmeskane cislo?
     //neinkrementovat pocet zmeskanych hovoru?
@@ -283,6 +290,7 @@ uint8_t atcd_phone_asc_msg()
     atcd.phone.state = ATCD_PHONE_STATE_IDLE;
     atcd.phone.ring_cnt = 0;
     atcd.phone.number[0] = 0;
+    atcd.phone.numbertype = -1;
 
     //neindikovat odmitnuty hovor?
 
@@ -303,8 +311,8 @@ void atcd_phone_call(char *number)
 {
   if(atcd.phone.state == ATCD_PHONE_STATE_IDLE)
   {
-    strncpy(atcd.phone.number, number, 16);
-    atcd.phone.number[15] = 0;
+    strncpy(atcd.phone.number, number, sizeof(atcd.phone.number));
+    atcd.phone.number[sizeof(atcd.phone.number)-1] = 0;
     atcd.phone.state = ATCD_PHONE_STATE_DIAL_W;
   }
 }
@@ -387,3 +395,85 @@ const char *atcd_phone_ring_number() //nikdy nevraci NULL ale muze ""
   return atcd.phone.number;
 }
 //------------------------------------------------------------------------------
+int atcd_phone_ring_numbertype()            //
+{
+  return atcd.phone.numbertype;
+}
+//------------------------------------------------------------------------------
+uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int t2)
+{
+  const char *p1a, *p2a;
+  int l1, l2, ptr12, l12;
+
+  //sice to dopisuji az 120830 ale vypada to ze je to presne to co chci
+  if (*p2==0)
+    return 0;; //jinak se kazde cislo shoduje s ujcem ktery ma prazdny phone a to nechci
+
+  p1a=p1; p2a=p2;
+  if ((p1a[0]=='0') && (p1a[1]=='0'))
+   {
+    p1a+=2;
+    if (t1==129)
+      t1=145;
+    else
+      p1a=p1;//error:='p1=00xxx,!129';
+   }
+  else if (t1==145)                                   //+420
+   {
+    if (p1a[0]=='+')
+      p1a++; //"420xxx" i "+420xxx"
+   }
+  else
+  {
+    if (p1a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
+      p1a++;
+  }
+  if ((p2a[0]=='0') && (p2a[1]=='0'))
+   {
+    p2a++;
+    if (t2==129)
+      t2=145;
+    else
+      p2a=p2;//  error:='p2=00xxx,!129';
+   }
+  else if (t2==145)
+   {
+    if (p2a[0]=='+') //"420xxx" i "+420xxx"
+      p2a++;
+   }
+  else
+  {
+    if (p2a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
+      p2a++;
+  }
+//co udela p1=0734275077 p2=+46734275077   at+test=34,"0734275077",129,"+46734275077",145
+  l1=(int)strlen(p1);                  //13        10
+  l2=(int)strlen(p2);                  //0         12
+  ptr12=(int)(p1a-p1)-(int)(p2a-p2);      //1-0=1     1-1
+  l12=l1-l2;                              //13        -2
+
+  if ((t1==145) && (t2!=145))                       //f && f
+   {
+    if (ptr12-l12>0)                      //1-13
+      return 0;;
+   }
+  else if ((t1!=145) && (t2==145))                  //t && t
+   {
+    if (ptr12-l12<0)                                //0--2<0 = false
+      return 0;;
+   }
+  else
+   {
+    if (l12!=ptr12)
+      return 0;;
+   }
+  if (l12<0)
+   {
+    p2a+=(ptr12-l12);                               //+=2
+   }
+  else
+   {
+    p1a+=l12-ptr12;
+   }
+  return (strcmp(p1a, p2a)==0);
+}

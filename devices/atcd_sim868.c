@@ -299,6 +299,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_PHONE + 5;
       atcd.phone.state = ATCD_PHONE_STATE_IDLE;
       atcd.phone.number[0] = 0;
+      atcd.phone.numbertype=-1;
 
     case ATCD_SB_PHONE + 5:
       if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) return ATCD_SB_PHONE + 7;
