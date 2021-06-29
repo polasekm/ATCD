@@ -66,6 +66,11 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN?\r\n");    // Je vyzadovan PIN?
     case ATCD_SB_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
+      if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.resultcode==10))
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_INIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
       {
@@ -173,6 +178,8 @@ uint16_t atcd_proc_step()
       atcd.err_cnt = 0;
       return ATCD_SB_INIT + ATCD_SO_END;
 
+    case ATCD_SB_INIT + 90:
+      if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_INIT + 90;
     case ATCD_SB_INIT + ATCD_SO_ERR:
       // V prubehu inicializace doslo k chybe
       ATCD_DBG_INIT_ERR
@@ -378,7 +385,7 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
       if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) &&
-          (atcd.at_cmd.resultcode==4))
+          ((atcd.at_cmd.resultcode==4) || (atcd.at_cmd.resultcode==100)))
       {
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 90;
@@ -402,6 +409,14 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
+      if (atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR)
+      {
+        if (strcmp(atcd.at_cmd.resp, "+PDP: DEACT\r\n")==0)
+        {
+          init_time_inner=atcd_get_ms();
+          return ATCD_SB_GPRS_INIT + 89;
+        };
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
       atcd.at_cmd.timeout = 1500;
@@ -429,6 +444,8 @@ uint16_t atcd_proc_step()
       atcd_gprs_autoconn(); //kdyz jsme chteli disco behem initu tak se pozadavek zahodil
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
+    case ATCD_SB_GPRS_INIT + 89: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
+      if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_GPRS_INIT + 89;
     case ATCD_SB_GPRS_INIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
       if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_INIT + 90;
 
