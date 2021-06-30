@@ -149,7 +149,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=0\r\n");
     case ATCD_SB_INIT + 17:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -250,15 +250,11 @@ uint16_t atcd_proc_step()
         };
       };
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
     case ATCD_SB_STAT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
-    case ATCD_SB_STAT + 11:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 11;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
       {
         if ((atcd.at_cmd.resp_len>=10) && (strcmp(atcd.at_cmd.resp, "+CPAS: ")==0))
         {
@@ -297,6 +293,11 @@ uint16_t atcd_proc_step()
           }
         }
       }
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");
+    case ATCD_SB_STAT + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 11;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //CGREG, IP ADRESA....
 
