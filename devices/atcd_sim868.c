@@ -255,10 +255,48 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
     case ATCD_SB_STAT + 11:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 11;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+      {
+        if ((atcd.at_cmd.resp_len>=10) && (strcmp(atcd.at_cmd.resp, "+CPAS: ")==0))
+        {
+          int cpas=atoi(atcd.at_cmd.resp+strlen("+CPAS:"));
+          int doit=-1;
+          switch (atcd.phone.state)
+          {
+          case ATCD_PHONE_STATE_IDLE:
+            if ((cpas==3) || (cpas==4))
+              doit=cpas;
+            break;
+          case ATCD_PHONE_STATE_RING:
+          case ATCD_PHONE_STATE_RING_WA:
+            if ((cpas==0) || (cpas==4))
+              doit=cpas;
+            break;
+          case ATCD_PHONE_STATE_CALL:
+          case ATCD_PHONE_STATE_HANG_W:
+            if ((cpas==0) || (cpas==3))
+              doit=cpas; //call->ring je hodne zvlastni, mozna druhy hovor
+            break;
+          case ATCD_PHONE_STATE_DIAL:
+          case ATCD_PHONE_STATE_DIAL_W: //TODO: je otazka jestli chceme prijit o DIAL_W
+            if ((cpas==3) || (cpas==4))
+              doit=cpas;
+            break;
+          }
+
+          if (doit>=0)
+            atcd_dbg_warn("@atcd", "FIX phone.state");
+          switch (doit)
+          {
+          case 0: atcd.phone.state=ATCD_PHONE_STATE_IDLE; break;
+          case 3: atcd.phone.state=ATCD_PHONE_STATE_RING; break;
+          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break;
+          }
+        }
+      }
 
       //CGREG, IP ADRESA....
 
