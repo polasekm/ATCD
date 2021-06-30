@@ -22,6 +22,11 @@ uint16_t atcd_proc_step()
   uint32_t tx_data_len;
   static atcd_conn_t *conn;
 
+  uint8_t val;
+  uint8_t state_p;
+
+  uint16_t len;
+
   switch(atcd.proc_step)
   {
       //-------------------------------
@@ -144,7 +149,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=60\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=0\r\n");
     case ATCD_SB_INIT + 16:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -250,10 +255,40 @@ uint16_t atcd_proc_step()
         };
       };
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
     case ATCD_SB_STAT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      // doplnit
+
+      len = strlen("+CPAS: ");
+      if(strncmp(atcd.at_cmd.resp, "+CPAS: ", len) == 0)
+      {
+        val = (uint8_t)atoi(atcd.at_cmd.resp + len);
+
+        if(val <= 10)
+        {
+          //ATCD_DBG_CREG
+          state_p = atcd.gsm.state;
+
+          atcd.gsm.state = val;
+
+          if(state_p != val)
+            if ((state_p==1) ||
+                (state_p==5) ||
+                ((val!=1) && (val!=5)))
+            {
+              atcd_conn_reset_all();
+              if(atcd.gsm.callback != NULL && (atcd.gsm.cb_events & ATCD_GSM_EV_REG) != 0) atcd.gsm.callback(ATCD_GSM_EV_REG);
+            }
+        }
+        else
+        {
+          //ATCD_DBG_CREG_ERR
+          //atcd_conn_reset_all();
+        }
+      }
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");
     case ATCD_SB_STAT + 11:
