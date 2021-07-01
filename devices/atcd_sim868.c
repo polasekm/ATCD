@@ -144,12 +144,12 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=60\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=0\r\n");
     case ATCD_SB_INIT + 16:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=0\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
     case ATCD_SB_INIT + 17:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
