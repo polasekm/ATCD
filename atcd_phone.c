@@ -402,6 +402,16 @@ int atcd_phone_ring_numbertype()            //
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int t2)
 {
+  //00421X,129 == +421X,145 == 0X,129 = X,129    typ==0 <- nevim
+  /*bool allgood=true;
+  static const char *ph1[4]={"00421777777448", "+421777777448", "0777777448", "777777448"}
+  static const int pt1[4]=  {129,              145,             129,          129};
+  for (int i1=0; i1<4; i1++)
+    for (int i2=0; i2<4; i2++)
+      if (!atcd_phone_are_phones_equal(ph1[i1], pt1[i1]129, ph1[i2], 0))
+        allgood=false;
+  assert(allgood);*/
+
   const char *p1a, *p2a;
   int l1, l2, ptr12, l12;
 
@@ -413,7 +423,7 @@ uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int 
   if ((p1a[0]=='0') && (p1a[1]=='0'))
    {
     p1a+=2;
-    if (t1==129)
+    if ((t1==129) || (t2==0))
       t1=145;
     else
       p1a=p1;//error:='p1=00xxx,!129';
@@ -425,13 +435,18 @@ uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int 
    }
   else
   {
-    if (p1a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
+    if ((t1==0) && (p1a[0]=='+'))
+    {
+      p1a++;
+      t1=145;
+    }//"420xxx" i "+420xxx"
+    else if (p1a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
       p1a++;
   }
   if ((p2a[0]=='0') && (p2a[1]=='0'))
    {
-    p2a++;
-    if (t2==129)
+    p2a+=2;
+    if ((t2==129) || (t2==0))
       t2=145;
     else
       p2a=p2;//  error:='p2=00xxx,!129';
@@ -443,7 +458,12 @@ uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int 
    }
   else
   {
-    if (p2a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
+    if ((t2==0) && (p2a[0]=='+'))
+    {
+      p2a++;
+      t2=145;
+    }//"420xxx" i "+420xxx"
+    else if (p2a[0]=='0') //ve Svedsku chodi cisla (prozvoneni) jako 0734275077,129 a ne +46734275077,145
       p2a++;
   }
 //co udela p1=0734275077 p2=+46734275077   at+test=34,"0734275077",129,"+46734275077",145
@@ -464,7 +484,7 @@ uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int 
    }
   else
    {
-    if (l12!=ptr12)
+    if (l12!=ptr12) //zbyva stejne
       return 0;;
    }
   if (l12<0)
