@@ -83,6 +83,8 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   
   conn->cb_events  = ATCD_CONN_EV_ALL;
   conn->callback   = NULL;
+
+  conn->dontPrint  = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_e type) //open conenction
@@ -102,6 +104,8 @@ void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_con
   conn->cb_events = ATCD_CONN_EV_NONE;
   conn->callback = NULL;
   
+  conn->dontPrint  = 0;
+
   for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
   {
     if(atcd.conns.conn[i] == NULL)
@@ -124,7 +128,7 @@ void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_con
   return;
 }
 //------------------------------------------------------------------------------
-void atcd_conn_write(atcd_conn_t *conn, uint8_t* data, uint16_t len)   //write data to connection
+void atcd_conn_write(atcd_conn_t *conn, const uint8_t* data, uint16_t len)   //write data to connection
 {
   ATCD_DBG_CONN_WRITE
   rbuff_write(&conn->tx_rbuff, data, len);

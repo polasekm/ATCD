@@ -13,7 +13,7 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 
-#include "rbuff/rbuff.h"
+#include "../Libs/rbuff/rbuff.h"
 
 #include "atcd_config.h"
 
@@ -24,11 +24,14 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Mod parseru prichozich dat
-#define ATCD_P_MODE_ATC             0
-#define ATCD_P_MODE_IPD             1
-#define ATCD_P_MODE_SMS             2
-#define ATCD_P_MODE_TX_PEND         3 //cekani na prompt protoze cmd->data!=NULL
-#define ATCD_P_MODE_PROMPT          4 //jen uvnitr funkce; posilani cmd->data
+typedef enum
+{
+  ATCD_P_MODE_ATC=0,
+  ATCD_P_MODE_IPD=1,
+  ATCD_P_MODE_SMS=2,
+  ATCD_P_MODE_TX_PEND=3, //cekani na prompt protoze cmd->data!=NULL
+  ATCD_P_MODE_PROMPT=4 //jen uvnitr funkce; posilani cmd->data
+} atcd_parser_mode_e;
 
 // Opravdu - s ohledem na stav vyse asi smazat
 #define ATCD_P_NO_TX_PENDING        0xFF
@@ -49,7 +52,7 @@ typedef struct
   uint16_t buff_pos;              //position in buffer
   uint16_t line_pos;              //last line position in buffer
 
-  uint8_t mode;                   //parser mode
+  atcd_parser_mode_e mode;                   //parser mode
   uint8_t echo_en;                //AT cmd echo enable
   uint32_t mode_time;             //plati mimo ATCD_P_MODE_ATC; fix: kdyz neprijde text SMS, zasekne se to uplne vsechno naporad
 
