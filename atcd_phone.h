@@ -92,7 +92,8 @@ typedef struct
   char dtmf_tx_tone;              //DTMF TX tone
   uint8_t dtmf_tx_dur;            //DTMF TX tone duration
 
-  char number[16];                //src/dst phone number
+  char number[21];                //src/dst phone number
+  int numbertype;                 //incoming, from +CLIP
   uint16_t ring_cnt;              //ring counter
   uint16_t miss_call_cnt;         //missing call counter
 
@@ -121,6 +122,8 @@ void atcd_phone_call(char *number);          //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
 void atcd_phone_call_hang_up();              //polozit hovor
 
+uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int t2); //0734275077,129 == +46734275077,145
+
 void atcd_phone_send_sms(char *number, char *msg); //poslat SMS
 
 // PHONE
@@ -133,5 +136,6 @@ uint8_t atcd_phone_sms_proc(char ch);
 uint8_t atcd_phone_state();
 uint16_t atcd_phone_ring_cnt();
 const char *atcd_phone_ring_number();        //nikdy nevraci NULL ale muze ""
+int atcd_phone_ring_numbertype();            //
 //------------------------------------------------------------------------------
 #endif /* ATCD_PHONE_H_INCLUDED */
