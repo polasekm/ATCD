@@ -390,14 +390,11 @@ uint16_t atcd_phone_ring_cnt()
   return atcd.phone.ring_cnt;
 }
 //------------------------------------------------------------------------------
-const char *atcd_phone_ring_number() //nikdy nevraci NULL ale muze ""
+const char *atcd_phone_ring_number(int *ntyp) //nikdy nevraci NULL ale muze ""
 {
+  if (ntyp)
+    *ntyp=atcd.phone.numbertype;
   return atcd.phone.number;
-}
-//------------------------------------------------------------------------------
-int atcd_phone_ring_numbertype()            //
-{
-  return atcd.phone.numbertype;
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_phone_are_phones_equal(const char *p1, int t1, const char *p2, int t2)
