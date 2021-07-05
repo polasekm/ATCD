@@ -66,6 +66,11 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN?\r\n");    // Je vyzadovan PIN?
     case ATCD_SB_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
+      if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.resultcode==10))
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_INIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
       {
@@ -139,7 +144,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=60\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=0\r\n");
     case ATCD_SB_INIT + 16:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -173,6 +178,8 @@ uint16_t atcd_proc_step()
       atcd.err_cnt = 0;
       return ATCD_SB_INIT + ATCD_SO_END;
 
+    case ATCD_SB_INIT + 90:
+      if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_INIT + 90;
     case ATCD_SB_INIT + ATCD_SO_ERR:
       // V prubehu inicializace doslo k chybe
       ATCD_DBG_INIT_ERR
@@ -243,10 +250,49 @@ uint16_t atcd_proc_step()
         };
       };
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
     case ATCD_SB_STAT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      {
+        if ((atcd.at_cmd.resp_len>=10) && (strcmp(atcd.at_cmd.resp, "+CPAS: ")==0))
+        {
+          int cpas=atoi(atcd.at_cmd.resp+strlen("+CPAS:"));
+          int doit=-1;
+          switch (atcd.phone.state)
+          {
+          case ATCD_PHONE_STATE_IDLE:
+            if ((cpas==3) || (cpas==4))
+              doit=cpas;
+            break;
+          case ATCD_PHONE_STATE_RING:
+          case ATCD_PHONE_STATE_RING_WA:
+            if ((cpas==0) || (cpas==4))
+              doit=cpas;
+            break;
+          case ATCD_PHONE_STATE_CALL:
+          case ATCD_PHONE_STATE_HANG_W:
+            if ((cpas==0) || (cpas==3))
+              doit=cpas; //call->ring je hodne zvlastni, mozna druhy hovor
+            break;
+          case ATCD_PHONE_STATE_DIAL:
+          case ATCD_PHONE_STATE_DIAL_W: //TODO: je otazka jestli chceme prijit o DIAL_W
+            if ((cpas==3) || (cpas==4))
+              doit=cpas;
+            break;
+          }
+
+          if (doit>=0)
+            atcd_dbg_warn("@atcd", "FIX phone.state");
+          switch (doit)
+          {
+          case 0: atcd.phone.state=ATCD_PHONE_STATE_IDLE; break;
+          case 3: atcd.phone.state=ATCD_PHONE_STATE_RING; break;
+          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break;
+          }
+        }
+      }
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");
     case ATCD_SB_STAT + 11:
@@ -299,6 +345,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_PHONE + 5;
       atcd.phone.state = ATCD_PHONE_STATE_IDLE;
       atcd.phone.number[0] = 0;
+      atcd.phone.numbertype=-1;
 
     case ATCD_SB_PHONE + 5:
       if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) return ATCD_SB_PHONE + 7;
@@ -353,12 +400,17 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_GPRS_INIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
-      atcd.at_cmd.timeout = 40000;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
+      atcd.at_cmd.timeout = 40000;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_INIT + 4:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 4;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_INIT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 5;
@@ -368,21 +420,29 @@ uint16_t atcd_proc_step()
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 90;
       };
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
+
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPMUX=1\r\n");
     case ATCD_SB_GPRS_INIT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
     case ATCD_SB_GPRS_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
       if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) &&
-          (atcd.at_cmd.resultcode==4))
+          ((atcd.at_cmd.resultcode==4) || (atcd.at_cmd.resultcode==100)))
       {
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 90;
       };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
       strcpy(atcd.at_cmd_buff, "AT+CSTT=\"");
       strcat(atcd.at_cmd_buff, atcd.gprs.apn);
@@ -398,10 +458,22 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       //podle doc az 85s ale prakticky pod 1s; jednou odpoved neprisla vubec ani OK ani ERR ani nic
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
+      if (atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR)
+      {
+        if (strcmp(atcd.at_cmd.resp, "+PDP: DEACT\r\n")==0)
+        {
+          init_time_inner=atcd_get_ms();
+          return ATCD_SB_GPRS_INIT + 89;
+        };
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
       atcd.at_cmd.timeout = 1500;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
@@ -428,6 +500,8 @@ uint16_t atcd_proc_step()
       atcd_gprs_autoconn(); //kdyz jsme chteli disco behem initu tak se pozadavek zahodil
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
+    case ATCD_SB_GPRS_INIT + 89: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
+      if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_GPRS_INIT + 89;
     case ATCD_SB_GPRS_INIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
       if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_INIT + 90;
 
@@ -451,12 +525,16 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_GPRS_DEINIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 1;
-      atcd.at_cmd.timeout = 40000;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
+      atcd.at_cmd.timeout = 40000; //tesne po skonceni hovoru trvalo CIPSHUT 9s
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_DEINIT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_DEINIT + 3:
@@ -488,6 +566,9 @@ uint16_t atcd_proc_step()
       // CONN OPEN
       //------------------------------------------------------------------------
     case ATCD_SB_CONN_OPEN:
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_CONN_OPEN + ATCD_SO_END;
+
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;
@@ -658,6 +739,8 @@ uint16_t atcd_proc_step()
       // CONN CLOSE
       //------------------------------------------------------------------------
     case ATCD_SB_CONN_CLOSE:
+      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+        return ATCD_SB_CONN_CLOSE + ATCD_SO_END;
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;

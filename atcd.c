@@ -221,7 +221,13 @@ void atcd_rx_ch(char ch)
 {
   atcd_at_cmd_t *at_cmd;
   
-  atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
+  if ((atcd.parser.mode==ATCD_P_MODE_IPD) &&
+      (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
+      (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&
+      (atcd.conns.conn[atcd.parser.rx_conn_num]->dontPrint))
+  { }
+  else
+    atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
 
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni
