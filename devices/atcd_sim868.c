@@ -590,6 +590,12 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.timeout = 15000;
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
 
+      /*
+       * pro SSL staci zapnout AT+CIPSSL=1 tesne pred otevrenim spojeni
+       * nebo AT+CIPSSL=0 pro TCP
+       * certifikaty nejak pomoci AT+FSCREATE, AT+FSWRITE, AT+SSLSETROOT aspol.
+       * nezkousel jsem to
+       */
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
         sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
