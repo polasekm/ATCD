@@ -16,6 +16,10 @@ uint32_t init_time_outer;
 atcd_at_cmd_t at_cmd2; //kdyz mam data k odesilani, pouziju jiny at_cmd aby tam ty data nezustaly pro nesouvisejici prikaz
 rbuff_t at_rbuff2; //tak to je slepici ulet
 
+struct  //je potreba vsechny chyby pocitat zvlast, aby jedna neresetovala druhou
+ {
+  int cpas2;
+ } fails_after_init={cpas2: 0};
 //------------------------------------------------------------------------------
 uint16_t atcd_proc_step()
 {
@@ -256,7 +260,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       {
-        if ((atcd.at_cmd.resp_len>=10) && (strcmp(atcd.at_cmd.resp, "+CPAS: ")==0))
+        if ((atcd.at_cmd.resp_len>=10) && (strncmp(atcd.at_cmd.resp, "+CPAS: ", 7)==0))
         {
           int cpas=atoi(atcd.at_cmd.resp+strlen("+CPAS:"));
           int doit=-1;
@@ -291,6 +295,17 @@ uint16_t atcd_proc_step()
           case 3: atcd.phone.state=ATCD_PHONE_STATE_RING; break;
           case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break;
           }
+
+          if (cpas==2)
+          {
+            atcd_dbg_err("fail_ai", "+CPAS: 2");
+            fails_after_init.cpas2++;
+            if (fails_after_init.cpas2>=5)
+            {
+              fails_after_init.cpas2=0;
+              atcd_hw_reset();
+            };
+          };
         }
       }
 
@@ -407,6 +422,11 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_INIT + 4:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 4;
+      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR)) //opravdu nepotrebuji posilat 50x/s kdyz nekdo vytahne SIMku
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_GPRS_INIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
@@ -532,6 +552,11 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSHUT\r\n");
     case ATCD_SB_GPRS_DEINIT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 2;
+      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR)) //opravdu nepotrebuji posilat 50x/s kdyz nekdo vytahne SIMku
+      {
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_GPRS_DEINIT + 90;
+      };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
       if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
