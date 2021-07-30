@@ -97,7 +97,7 @@ typedef struct
   atcd_parser_t parser;           //AT cmd parser
 
   atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
-  char at_cmd_buff[64];           //buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni...
+  char at_cmd_buff[64];           //TODO: kurva drat jakej imbecil NIKDE nekontroluje delku!!!!! buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni...
   char at_cmd_resbuff[32];        //buffer pro nestandardni OK odpoved... spis regex ale to zase jindy
 
   atcd_conns_t conns;             //TCP/UDP conections

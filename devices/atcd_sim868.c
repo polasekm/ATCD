@@ -623,12 +623,12 @@ uint16_t atcd_proc_step()
        */
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
-        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
+        snprintf(atcd.at_cmd.cmd, 64, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else if(conn->protocol == ATCD_CONN_T_UDP)
       {
-        sprintf(atcd.at_cmd.cmd, "AT+CIPSTART=%u,\"UDP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
+        snprintf(atcd.at_cmd.cmd, 64, "AT+CIPSTART=%u,\"UDP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else
