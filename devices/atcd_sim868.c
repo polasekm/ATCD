@@ -79,6 +79,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
       {
         ATCD_DBG_PIN_NONE
+        atcd.sim.state = ATCD_SIM_STATE_OK;
       }
       else if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_PIN, strlen(ATCD_STR_SIM_PIN)) == 0)
       {
@@ -303,7 +304,7 @@ uint16_t atcd_proc_step()
             if (fails_after_init.cpas2>=5)
             {
               fails_after_init.cpas2=0;
-              atcd_hw_reset();
+              atcd_reset(); //reset hw ale i state a vubec
             };
           };
         }
