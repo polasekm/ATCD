@@ -39,7 +39,7 @@ typedef struct
   char *name;                     //GPRS user name
   char *psswd;                    //GPRS password
   
-  char *ip[16];                     //IP address
+  char ip[16];                     //IP address
 
   uint8_t cb_events;              //gprs events
   void (*callback)(uint8_t);      //events callback
