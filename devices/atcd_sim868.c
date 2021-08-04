@@ -486,7 +486,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if (atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR)
       {
-        if (strcmp(atcd.at_cmd.resp, "+PDP: DEACT\r\n")==0)
+        if(strcmp(atcd.at_cmd.resp, "+PDP: DEACT\r\n")==0)
         {
           init_time_inner=atcd_get_ms();
           return ATCD_SB_GPRS_INIT + 89;
@@ -499,18 +499,22 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.timeout = 1500;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");
     case ATCD_SB_GPRS_INIT + 10:
-      if(atcd.at_cmd.resp_len>0)
+      if(atcd.at_cmd.resp_len > 0)
       {
         size_t iplen;
-        atcd.at_cmd.resp[atcd.at_cmd.resp_len]='\0';
-        iplen=strspn(atcd.at_cmd.resp, "1234567890.");
-        if (iplen>=7)
-          if (strcmp(atcd.at_cmd.resp+iplen, "\r\n")==0)
+        atcd.at_cmd.resp[atcd.at_cmd.resp_len] = '\0';
+        iplen = strspn(atcd.at_cmd.resp, "1234567890.");
+        if(iplen >= 7)
+          if(strcmp(atcd.at_cmd.resp + iplen, "\r\n") == 0)
           {
             atcd.at_cmd.result = ATCD_ATC_RESULT_OK;
             atcd_atc_complete(&atcd.at_cmd);
-          };
+
+            strncpy(atcd.gprs.ip, atcd.at_cmd.resp, 15);
+            atcd.gprs.ip[15] = 0;
+          }
       }
+
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 10;
       //if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
 
@@ -585,6 +589,7 @@ uint16_t atcd_proc_step()
       //GPRS deinit selhalo
       ATCD_DBG_GPRS_DEINIT_ERR
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
+      atcd.gprs.ip[0] = 0;
       atcd_gprs_autoconn();
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_END:
@@ -888,7 +893,7 @@ uint16_t atcd_proc_step()
       return ATCD_SB_STAT;
       //------------------------------------------------------------------------
     default:
-      //Chyba, alogovat
+      //Chyba, logovat
       ATCD_DBG_SW_ERR
       return ATCD_SB_INIT;
   }

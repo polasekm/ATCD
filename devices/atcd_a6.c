@@ -565,7 +565,7 @@ uint16_t atcd_proc_step()
       return ATCD_SB_STAT;
       //------------------------------------------------------------------------
     default:
-      //Chyba, alogovat
+      //Chyba, logovat
       ATCD_DBG_SW_ERR
       return ATCD_SB_INIT;
   }
