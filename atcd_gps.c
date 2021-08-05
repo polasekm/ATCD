@@ -33,6 +33,7 @@ void atcd_gps_reset()
   atcd.gps.time[0] = 0;
   atcd.gps.time_fix[0] = 0;
   atcd.gps.last_fix = 0;
+  atcd.gps.time_to_fix = 0;
 
   atcd.gps.sats = 0;
 
