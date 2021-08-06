@@ -113,6 +113,8 @@ typedef struct
   uint8_t cb_events;              //device callback events
   void (*callback)(uint8_t);      //events callback
   
+  void (*state_update_callback)(); //called every 7.5s after state is updated
+
 } atcd_t;
 
 // Functions -------------------------------------------------------------------

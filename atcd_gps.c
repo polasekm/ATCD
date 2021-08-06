@@ -302,6 +302,8 @@ uint8_t atcd_gps_asc_msg()
 
       //VDOP
       np = (char*)memchr(p, ',', endl - p);
+      if (np==NULL)
+        np = (char*)memchr(p, '*', endl - p);
       //chodi jen $GPGSA,A,1", ',' <repeats 15 times>, "*1E\r\n coz je o polozku mene
       //$GPGSA,A,1,,,,,,,,,,,,,,,*1E
       //$GPGSA,A,1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,pdop,hdop,*1E  tak nekdo urcite nechodi

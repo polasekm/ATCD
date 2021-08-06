@@ -321,6 +321,8 @@ uint16_t atcd_proc_step()
 
       // Pravidelne kolecko bylo dokonceno
       // Dotazovani na stav je hotovo
+      if (atcd.state_update_callback)
+        atcd.state_update_callback();
       ATCD_DBG_STAT_OK
       atcd.err_cnt = 0;
       return ATCD_SB_STAT + ATCD_SO_END;
