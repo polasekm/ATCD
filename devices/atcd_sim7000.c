@@ -587,6 +587,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPS_START + ATCD_SO_ERR;
       ATCD_DBG_GPS_ENABLED
       atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+      atcd.gps.start_time = atcd_get_ms();
       return ATCD_SB_GPS_START + ATCD_SO_END;
 
      case ATCD_SB_GPS_START + ATCD_SO_ERR:

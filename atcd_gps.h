@@ -49,7 +49,10 @@ struct atcd_gps_ts
   char date[16];
   char time[16];
   char time_fix[16];
+
   uint32_t last_fix;
+  uint32_t time_to_fix;
+  uint32_t start_time;
 
   uint8_t sats;
 
