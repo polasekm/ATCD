@@ -300,9 +300,19 @@ uint8_t atcd_gps_asc_msg()
 
       //VDOP
       np = (char*)memchr(p, ',', endl - p);
-      //chodi jen $GPGSA,A,1", ',' <repeats 15 times>, "*1E\r\n,M,,*5C\r\n0,,,N*59\r\n coz je o polozku mene
+      //chodi jen $GPGSA,A,1", ',' <repeats 15 times>, "*1E\r\n coz je o polozku mene
       //$GPGSA,A,1,,,,,,,,,,,,,,,*1E
       //$GPGSA,A,1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,pdop,hdop,*1E  tak nekdo urcite nechodi
+      //chodi $GPGSA,A,3,27,16,08,26,10,,,,,,,,4.44,2.92,3.35*05
+      //chodi $GLGSA,A,3,,,,,,,,,,,,,4.44,2.92,3.35*16
+      //$GPGSA,A,3,27,16,08,26,10,  ,  ,  ,  ,   ,   ,   ,4.44,2.92,3.35*05
+      //$GPGSA,A,1,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10,s11,s12,pdop,hdop,vdop*1E jsou tu vsichni a stejne error
+
+      //$GPGSA,A,3,08,23,10,27,21,,,,,,,,1.57,1.26,0.94*07
+      //ATCD: GPS: Chyba parsovani vety GSA
+      //$GLGSA,A,3,76,68,,,,,,,,,,,1.57,1.26,0.94*1A
+      //ATCD: GPS: Chyba parsovani vety GSA
+
       if(np == NULL) goto skip_proc2;
       if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.vdop = atof(p);
       p = np + 1;
