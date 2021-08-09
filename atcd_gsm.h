@@ -21,18 +21,21 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-// Stav registrace zazeni
-#define ATCD_REG_STATE_OFF          0
-#define ATCD_REG_STATE_HOME         1
-#define ATCD_REG_STATE_SEARCHING    2
-#define ATCD_REG_STATE_DENIED       3
-#define ATCD_REG_STATE_UNKNOWN      4
-#define ATCD_REG_STATE_ROAMING      5
-#define ATCD_REG_STATE_6            6
-#define ATCD_REG_STATE_7            7
-#define ATCD_REG_STATE_EMERGENCY    8
-#define ATCD_REG_STATE_9            9
-#define ATCD_REG_STATE_10           10
+// Stav registrace zarizeni
+typedef enum
+{
+  ATCD_REG_STATE_OFF          = 0,
+  ATCD_REG_STATE_HOME         = 1,
+  ATCD_REG_STATE_SEARCHING    = 2,
+  ATCD_REG_STATE_DENIED       = 3,
+  ATCD_REG_STATE_UNKNOWN      = 4,
+  ATCD_REG_STATE_ROAMING      = 5,
+  ATCD_REG_STATE_6            = 6,
+  ATCD_REG_STATE_7            = 7,
+  ATCD_REG_STATE_EMERGENCY    = 8,
+  ATCD_REG_STATE_9            = 9,
+  ATCD_REG_STATE_10           =10,
+  ATCD_REG_STATE__MAX = 10} atcd_reg_state_e;
 
 //Udalosti GSM zarizeni
 #define ATCD_GSM_EV_NONE            0x00
@@ -43,7 +46,7 @@
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //registration state
+  atcd_reg_state_e state;         //registration state
 
   uint8_t cb_events;              //GSM events
   void (*callback)(uint8_t);      //events callback
@@ -57,7 +60,7 @@ void atcd_gsm_reset();
 void atcd_gsm_proc();
 uint8_t atcd_gsm_asc_msg();
 
-uint8_t atcd_gsm_state();
+atcd_reg_state_e atcd_gsm_state();
 int8_t atcd_gsm_sig();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GSM_H_INCLUDED */

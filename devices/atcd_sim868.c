@@ -199,7 +199,7 @@ uint16_t atcd_proc_step()
     case ATCD_SB_STAT:
       // Zarizeni je pripraveno k praci, pripadne spi...
       // Pripadne testy stavu a dalsi cinnosti na pozadi...
-      if(atcd_get_ms() - atcd.timer < 7500)
+      if(atcd_get_ms() - atcd.timer < 20000)
       {
         return ATCD_SB_STAT + ATCD_SO_END;
       }

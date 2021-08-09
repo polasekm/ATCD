@@ -39,7 +39,7 @@ uint8_t atcd_gsm_asc_msg()
   {
     val = (uint8_t)atoi(atcd.parser.buff + atcd.parser.buff_pos - ATCD_RX_NL_LEN - 1);
 
-    if(val <= 10)
+    if(val <= ATCD_REG_STATE__MAX)
     {
       ATCD_DBG_CREG
       state_p = atcd.gsm.state;
@@ -87,7 +87,7 @@ uint8_t atcd_gsm_asc_msg()
   return 0;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_gsm_state()
+atcd_reg_state_e atcd_gsm_state()
 {
   return atcd.gsm.state;
 }
