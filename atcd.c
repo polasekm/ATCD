@@ -21,7 +21,7 @@ void atcd_state_reset();                  //Reset stavoveho automatu ATCD
 //------------------------------------------------------------------------------
 void atcd_init()                          //init AT command device
 {
-  atc_dev_hw_init();                      //HW init
+  atcd_hw_init();                         //HW init
 
   atcd.state      = ATCD_STATE_OFF;
   atcd.sleep_mode = ATCD_SM_OFF;
@@ -99,6 +99,7 @@ void atcd_set_sleep_mode(uint8_t mode)          //set sleep mode
 //------------------------------------------------------------------------------
 void atcd_proc()                         //data processing
 {
+  atcd_hw_proc();
   atcd_atc_proc();                       //AT commands processing
   // mozna radku vyse prohodit - atc se pred echem musi prenastavit
   // docasne opraveno takto, dole byt take musi - po prijmu se musi reagovat na pripadne udalosti
@@ -306,12 +307,6 @@ void atcd_rx_ch(char ch)
   //------------------------------
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
-}
-//------------------------------------------------------------------------------
-void atcd_tx_complete()                  //call on tx data complete
-{
-  atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
-  //tady vypnout RTS?
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_state()

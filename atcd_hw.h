@@ -21,7 +21,8 @@
 #define ATCD_PWR_OFF   0
 #define ATCD_PWR_ON    1
 // Functions -------------------------------------------------------------------
-void atc_dev_hw_init();           //init HW
+void atcd_hw_init();              //init HW
+void atcd_hw_proc();              //HW processing
 
 void atcd_hw_pwr(uint8_t state);  //PWR on
 void atcd_hw_reset();             //HW reset
