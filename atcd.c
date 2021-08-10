@@ -24,7 +24,7 @@ void atcd_init()                          //init AT command device
   atcd_hw_init();                         //HW init
 
   atcd.state      = ATCD_STATE_OFF;
-  atcd.sleep_mode = ATCD_SM_OFF;
+  atcd.powersave_req = atcd_pwrsFull;
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
 
@@ -70,6 +70,7 @@ void atcd_reset()               //Reset zarizeni
 //------------------------------------------------------------------------------
 void atcd_state_reset()                  //state machine reset
 {
+  atcd.powersave_act = -1;
   atcd_parser_init();
   atcd.timer = atcd_get_ms(); 
 
@@ -92,9 +93,9 @@ void atcd_state_reset()                  //state machine reset
   atcd_wifi_reset();
 }
 //------------------------------------------------------------------------------
-void atcd_set_sleep_mode(uint8_t mode)          //set sleep mode
+void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
 {
-  atcd.sleep_mode = mode;
+  atcd.powersave_req = mode;
 }
 //------------------------------------------------------------------------------
 void atcd_proc()                         //data processing

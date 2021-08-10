@@ -405,6 +405,54 @@ uint16_t atcd_proc_step()
       //SMS...
     case ATCD_SB_PHONE + ATCD_SO_ERR:
     case ATCD_SB_PHONE + ATCD_SO_END:
+
+    case ATCD_SB_POWERSAVE:
+    {
+      char *send=NULL; //const nejde protoze atcd_atc_exec_cmd(..., ne const)
+
+      atcd_powersave_req_t req_tmp=atcd.powersave_req;
+      switch (atcd_gps_state())
+      {
+      case ATCD_GPS_STATE_SEARCHING:
+      case ATCD_GPS_STATE_W_SEARCH:
+      case ATCD_GPS_STATE_FIX:
+        req_tmp=atcd_pwrsFull;
+        break;
+      }
+
+      switch (req_tmp)
+      {
+      case atcd_pwrsFull:
+        if (atcd.powersave_act!=0)
+        {
+          send="AT+CSCLK=0\r";
+          atcd.powersave_otw=0;
+        }
+        break;
+      case atcd_pwrsSave:
+        if (atcd.powersave_act!=1)
+        {
+          send="AT+CSCLK=1\r";
+          atcd.powersave_otw=1;
+        }
+        break;
+      }
+
+      if (!send)
+        return ATCD_SB_POWERSAVE + ATCD_SO_END;
+      atcd_atc_exec_cmd(&atcd.at_cmd, send);   //sleep mode modemu
+    }
+    case ATCD_SB_POWERSAVE + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_POWERSAVE + 1;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_POWERSAVE + ATCD_SO_ERR;
+
+      atcd.powersave_act = atcd.powersave_otw;
+
+    //case ATCD_SB_POWERSAVE + 90:
+    //  if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_POWERSAVE + 90;
+
+    case ATCD_SB_POWERSAVE + ATCD_SO_ERR:
+    case ATCD_SB_POWERSAVE + ATCD_SO_END:
       //------------------------------------------------------------------------
       // GPRS INIT
       //------------------------------------------------------------------------
