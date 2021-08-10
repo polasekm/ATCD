@@ -512,7 +512,7 @@ uint8_t atcd_conn_data_proc(char ch)
 
       atcd.parser.buff_pos++;
 
-      // Pokud jsme dosahli komce IPD bloku
+      // Pokud jsme dosahli konce IPD bloku
       //if(atcd.buff_pos >= atcd.parser.ipd_len)
       if(atcd.parser.buff_pos >= atcd.parser.rx_data_len)
       {
