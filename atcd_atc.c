@@ -179,7 +179,7 @@ void atcd_atc_proc()                     //AT commands processing
       //osetrit spojeni kde dochazelo k prijmu dat...
     }
   }
-  if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.sleep_timer>=100)) //75 nestaci, 95 spise ne, 100 staci
+  if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.sleep_timer>=120)) //75 nestaci, 95 spise ne, 100 staci
   {
     atcd.parser.mode=ATCD_P_MODE_IDLE;
     atcd.parser.sleep_timer=atcd_get_ms();
