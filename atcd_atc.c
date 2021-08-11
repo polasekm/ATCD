@@ -8,6 +8,8 @@
 #include "atcd_atc.h"
 #include "atcd.h"
 
+#define DEBUG_ATCD_SLEEP 0
+
 extern atcd_t atcd;
 
 //------------------------------------------------------------------------------
@@ -107,7 +109,7 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
     atcd.parser.at_cmd_top = at_cmd;
     
     // If is possible tx data now
-    if(atcd.parser.mode == ATCD_P_MODE_ATC)
+    if(atcd.parser.mode == ATCD_P_MODE_IDLE)
     {
       ATCD_DBG_ATC_EXE
       atcd_atc_send_cmd();
@@ -150,13 +152,41 @@ void atcd_atc_proc()                     //AT commands processing
  
   at_cmd = atcd.parser.at_cmd_top;
 
-  if (atcd.parser.mode != ATCD_P_MODE_ATC) //pro ATCD_P_MODE_IPD duplo v atcd_proc
+  if ((atcd.parser.mode != ATCD_P_MODE_SLEEP) && //pro ATCD_P_MODE_IPD duplo v atcd_proc
+      (atcd.parser.mode != ATCD_P_MODE_WAKING) &&
+      (atcd.parser.mode != ATCD_P_MODE_WAITOK) && //ten pouziva uplne jiny timer... asi zadny
+      (atcd.parser.mode != ATCD_P_MODE_IDLE))
     if ((atcd_get_ms()-atcd.parser.mode_time>20000) && (atcd_get_ms()-atcd.parser.mode_time>at_cmd->timeout+1))
     { //vlastne by se nemelo stavat, timeout je nize, mozna jen tam nastavit ATCD_P_MODE_ATC
-      atcd.parser.mode = ATCD_P_MODE_ATC;
+      atcd.parser.mode = ATCD_P_MODE_IDLE;
+      atcd.parser.sleep_timer=atcd_get_ms();
       at_cmd->data=NULL;
       at_cmd->data_len=0;
     }
+
+  if(atcd.parser.mode == ATCD_P_MODE_IDLE)
+  {
+    if((atcd_get_ms() - atcd.parser.sleep_timer > 500) && (atcd.powersave_act==1))
+    {
+      // Pokud vyprsel timeout
+      //ATCD_DBG_IPD_TIM
+      atcd.parser.mode = ATCD_P_MODE_SLEEP;
+      if (atcd.powersave_hwsetter)
+        atcd.powersave_hwsetter(1);
+      #if DEBUG_ATCD_SLEEP
+      atcd_dbg_txt("idle->sleep");
+      #endif
+      //osetrit spojeni kde dochazelo k prijmu dat...
+    }
+  }
+  if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.sleep_timer>=100)) //75 nestaci, 95 spise ne, 100 staci
+  {
+    atcd.parser.mode=ATCD_P_MODE_IDLE;
+    atcd.parser.sleep_timer=atcd_get_ms();
+    #if DEBUG_ATCD_SLEEP
+    atcd_dbg_txt("wake->idle");
+    #endif
+  }
 
   // Pokud je nejaky prikaz na vrcholu fronty
   if(at_cmd != NULL)
@@ -183,8 +213,22 @@ void atcd_atc_proc()                     //AT commands processing
 
     // Kontrola, zda neni cekajici k odeslani
     //atcd_atc_queue_proc();
+    if (atcd.parser.mode == ATCD_P_MODE_IDLE) //prodluz cekani na echo, IPD, odpoved a vubec vsechno
+      atcd.parser.sleep_timer=atcd_get_ms();
+    if (//(at_cmd->state == ATCD_ATC_STATE_WAIT) && teoreticky pouze wait, ale kdyz se neco podela, uz se to nikdy nezotavi
+        (atcd.parser.mode==ATCD_P_MODE_SLEEP))
+    {
+      atcd.parser.mode=ATCD_P_MODE_WAKING;
+      //se bude muset predelat na callback
+      if (atcd.powersave_hwsetter)
+        atcd.powersave_hwsetter(0);
+      atcd.parser.sleep_timer=atcd_get_ms();
+      #if DEBUG_ATCD_SLEEP
+      atcd_dbg_txt("sleep->wake");
+      #endif
+    }
 
-    if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_ATC)
+    if(at_cmd->state == ATCD_ATC_STATE_WAIT && atcd.parser.mode == ATCD_P_MODE_IDLE)
     {
       //neni to duplicita s kodem nize?
       ATCD_DBG_ATC_QUEUE_EXE
@@ -204,10 +248,14 @@ void atcd_atc_proc()                     //AT commands processing
       if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
       {
         atcd_hw_tx(NULL, at_cmd->data_len);
-        atcd.parser.mode = ATCD_P_MODE_ATC;
+        atcd.parser.mode = ATCD_P_MODE_IDLE;
+        atcd.parser.sleep_timer=atcd_get_ms();
       }
-      if (atcd.parser.mode != ATCD_P_MODE_ATC)
-        atcd.parser.mode = ATCD_P_MODE_ATC;
+      if (atcd.parser.mode != ATCD_P_MODE_IDLE)
+      {
+        atcd.parser.mode = ATCD_P_MODE_IDLE;
+        atcd.parser.sleep_timer=atcd_get_ms();
+      }
       //nemuzu ale jen tak sahat na cizi at_cmd at_cmd->data_=NULL; at_cmd->data_len_=0;
 
       atcd.parser.at_cmd_top = at_cmd->next;
@@ -222,7 +270,7 @@ void atcd_atc_queue_proc()               //AT commands queue processing
 {
   if(atcd.parser.at_cmd_top != NULL)
   {
-    if(atcd.parser.mode == ATCD_P_MODE_ATC && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_WAIT)
+    if(atcd.parser.mode == ATCD_P_MODE_IDLE && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_WAIT)
     {              
       ATCD_DBG_ATC_QUEUE_EXE
       atcd_atc_send_cmd();
@@ -246,6 +294,14 @@ uint8_t atcd_atc_send_cmd()                     //send AT command
   atcd.parser.at_cmd_top->state = ATCD_ATC_STATE_TX;
   //atcd.parser.tx_state = ATCD_P_TX_ONGOING;
   atcd.parser.tx_state = ATCD_P_TX_COMPLETE;
+  if (atcd.parser.mode!=ATCD_P_MODE_IDLE)
+  {
+    char pstate[30];
+    snprintf(pstate, sizeof(pstate), "parser.mode=%d", atcd.parser.mode);
+    atcd_dbg_err("@atcd.sendcmd: ", pstate);
+    atcd.errors.atcd_atc_send++;
+  };
+  atcd.parser.mode=ATCD_P_MODE_WAITOK;
 
   len = strlen(atcd.parser.at_cmd_top->cmd);
 
@@ -278,6 +334,17 @@ uint8_t atcd_atc_send_data()                     //send AT command data
 //------------------------------------------------------------------------------
 void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete after result change
 {
+  //assert(atcd.parser.mode==ATCD_P_MODE_ATC_);
+  if (atcd.parser.mode!=ATCD_P_MODE_WAITOK)
+  {
+    char state[30];
+    snprintf(state, sizeof(state), "atcd_atc_complete apm=%d", atcd.parser.mode);
+    atcd_dbg_err("@atcd ", state);
+    atcd.errors.atcd_atc_complete++;
+  };
+  atcd.parser.mode=ATCD_P_MODE_IDLE;
+  atcd.parser.sleep_timer=atcd_get_ms();
+
   if(at_cmd->resp_len == 0)
     at_cmd->resp_len = 0;
   else
@@ -286,8 +353,11 @@ void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete afte
   at_cmd->resp[at_cmd->resp_len] = 0;
   at_cmd->state  = ATCD_ATC_STATE_DONE;
 
-  if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
-    atcd.parser.mode = ATCD_P_MODE_ATC;
+  /*if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
+  {
+    atcd.parser.mode = ATCD_P_MODE_IDLE;
+    atcd.parser.sleep_timer=atcd_get_ms();
+  }*/
 
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
@@ -528,7 +598,8 @@ uint8_t atcd_atc_prompt_tst()
       ATCD_DBG_ATC_SEND_DATA_ERR
     }
 
-    atcd.parser.mode = ATCD_P_MODE_ATC;
+    atcd.parser.mode = ATCD_P_MODE_WAITOK; //ne IDLE
+    atcd.parser.sleep_timer=atcd_get_ms();
     return 1;
   }
 

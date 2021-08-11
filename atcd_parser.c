@@ -24,7 +24,7 @@ void atcd_parser_init()                  //state machine reset
   atcd.parser.buff_pos   = 0;
   atcd.parser.line_pos   = 0;
   
-  atcd.parser.mode       = ATCD_P_MODE_ATC;
+  atcd.parser.mode       = ATCD_P_MODE_SLEEP;
   atcd.parser.echo_en    = ATCD_P_ECHO_ON;
 
   atcd.parser.timer      = atcd_get_ms();        //optravdu nastavit na aktualni cas?
@@ -40,5 +40,7 @@ void atcd_parser_init()                  //state machine reset
   atcd.parser.rx_conn_num = 0;
   atcd.parser.rx_data_len = 0;
   atcd.parser.rx_data_pos = 0;
+
+  atcd.parser.sleep_timer = atcd_get_ms();
 }
 //------------------------------------------------------------------------------

@@ -440,6 +440,18 @@ uint8_t atcd_gps_asc_msg()
       ATCD_DBG_GPS_GSV
 
       p += strlen("GSV,");
+      //gsv total
+      //gsv index
+      //satellites total
+      //[sat id, elev, azim, SNR] x1..4
+      //$GPGSV,3,1,12, 27,69,300,,    23,55,083,,    10,55,150,,     16,52,211,26      *78
+      //$GPGSV,3,2,12, 08,35,298,23,  18,33,066,,    26,25,186,21,   15,14,048,        *7C
+      //$GPGSV,3,3,12, 07,10,310,,    21,07,254,,    13,06,021,,     30,03,341,        *78
+      //$GLGSV,3,1,09, 88,69,017,,    65,38,117,,    79,38,293,,     72,37,055,        *64
+      //$GLGSV,3,2,09, 81,36,289,,    87,35,072,,    78,27,230,,     80,09,345,        *66
+      //$GLGSV,3,3,09, 71,08,014,                                                      *57
+
+      //myslim, ze by se hodilo vedet, jestli aspon 1 satelit ma SNR -> je platny cas
 
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;

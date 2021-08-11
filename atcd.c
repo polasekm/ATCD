@@ -25,8 +25,10 @@ void atcd_init()                          //init AT command device
 
   atcd.state      = ATCD_STATE_OFF;
   atcd.powersave_req = atcd_pwrsFull;
+  atcd.powersave_hwsetter=NULL;
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
+  memset(&atcd.errors, 0x00, sizeof(atcd.errors));
 
   atcd_sim_init();
   atcd_gsm_init();
@@ -98,6 +100,11 @@ void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
   atcd.powersave_req = mode;
 }
 //------------------------------------------------------------------------------
+void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake))
+{
+  atcd.powersave_hwsetter=powersave_hwsetter;
+}
+//------------------------------------------------------------------------------
 void atcd_proc()                         //data processing
 {
   atcd_hw_proc();
@@ -119,7 +126,8 @@ void atcd_proc()                         //data processing
       // Pokud vyprsel timeout
       // Prechod parseru do rezimu AT prikazu
       ATCD_DBG_IPD_TIM
-      atcd.parser.mode = ATCD_P_MODE_ATC;
+      atcd.parser.mode = ATCD_P_MODE_IDLE;
+      atcd.parser.sleep_timer = atcd_get_ms();
 
       //osetrit spojeni kde dochazelo k prijmu dat...
     }

@@ -26,11 +26,14 @@
 // Mod parseru prichozich dat
 typedef enum
 {
-  ATCD_P_MODE_ATC=0,
-  ATCD_P_MODE_IPD=1,
-  ATCD_P_MODE_SMS=2,
-  ATCD_P_MODE_TX_PEND=3, //cekani na prompt protoze cmd->data!=NULL
-  ATCD_P_MODE_PROMPT=4 //jen uvnitr funkce; posilani cmd->data
+  ATCD_P_MODE_SLEEP,   //modem je (mozna) v powersaving
+  ATCD_P_MODE_WAKING,  //cekani na probuzeni
+  ATCD_P_MODE_IDLE,    //cekani nez poslu modem spat
+  ATCD_P_MODE_WAITOK,  //cekani na OK, muze si odskocit do TX_PEND a PROMPT
+  ATCD_P_MODE_IPD,
+  ATCD_P_MODE_SMS,
+  ATCD_P_MODE_TX_PEND, //cekani na prompt protoze cmd->data!=NULL
+  ATCD_P_MODE_PROMPT  //jen uvnitr funkce; posilani cmd->data
 } atcd_parser_mode_e;
 
 // Opravdu - s ohledem na stav vyse asi smazat
@@ -47,12 +50,12 @@ typedef enum
 //------------------------------------------------------------------------------
 typedef struct
 {
-  char buff[ATCD_P_BUFF_SIZE];      //rx data buffer
+  char buff[ATCD_P_BUFF_SIZE];    //rx data buffer
   
   uint16_t buff_pos;              //position in buffer
   uint16_t line_pos;              //last line position in buffer
 
-  atcd_parser_mode_e mode;                   //parser mode
+  atcd_parser_mode_e mode;        //parser mode
   uint8_t echo_en;                //AT cmd echo enable
   uint32_t mode_time;             //plati mimo ATCD_P_MODE_ATC; fix: kdyz neprijde text SMS, zasekne se to uplne vsechno naporad
 
@@ -69,6 +72,10 @@ typedef struct
   uint8_t  rx_conn_num;          //connection number for +IPD
   uint16_t rx_data_len;          //+IPD data length
   uint16_t rx_data_pos;          //position in +IPD data 
+
+  uint32_t sleep_timer; //ATCD_P_MODE_WAKING a ATCD_P_MODE_FADING, mozna by sel spojit s timer "current operation timer"
+  //uint8_t atcd_sleep_state;
+  //uint8_t atcd_tx_pending;
 
 } atcd_parser_t;
 //------------------------------------------------------------------------------

@@ -84,6 +84,12 @@ void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8
 	atcd.phone.sms.callback = sms_callback;
 }
 //------------------------------------------------------------------------------
+void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms))
+{
+  atcd.phone.sms_tx.cb_events = doesNotUnderstand;
+  atcd.phone.sms_tx.callback = sms_callback;
+}
+//------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
 {
 
@@ -363,7 +369,8 @@ uint8_t atcd_phone_sms_proc(char ch)
     if(atcd.parser.buff_pos - atcd.parser.line_pos >= atcd.phone.sms.len)
     {
       ATCD_DBG_PHONE_SMS_END
-      atcd.parser.mode = ATCD_P_MODE_ATC;
+      atcd.parser.mode = ATCD_P_MODE_IDLE;
+      atcd.parser.sleep_timer=atcd_get_ms();
 
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;

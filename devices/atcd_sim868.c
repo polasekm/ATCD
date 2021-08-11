@@ -399,6 +399,8 @@ uint16_t atcd_proc_step()
       }
 
       atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_SEND;
+      if (atcd.phone.sms_tx.callback)
+        atcd.phone.sms_tx.callback(ATCD_SMS_EV_SEND, &atcd.phone.sms_tx);
 
     case ATCD_SB_PHONE + 9:
 

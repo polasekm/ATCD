@@ -94,6 +94,7 @@ typedef struct
   atcd_powersave_req_t powersave_req;  //device sleep mode
   int8_t powersave_act; //-1..init, nevim
   int8_t powersave_otw; //co jsem prave (posledne) poslal AT prikazem
+  void (*powersave_hwsetter)(uint8_t awake);
   uint32_t timer;                 //current operation timer
 
   uint16_t proc_step;
@@ -121,6 +122,12 @@ typedef struct
   
   void (*state_update_callback)(); //called every 7.5s after state is updated
 
+  struct
+  {
+    unsigned int atcd_atc_complete;
+    unsigned int atcd_atc_send;
+  } errors;
+
 } atcd_t;
 
 // Functions -------------------------------------------------------------------
@@ -130,6 +137,7 @@ void atcd_reset();               //reset AT command device
 void atcd_start();               //start AT command device
 
 void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
+void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
  
 void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data
 void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec

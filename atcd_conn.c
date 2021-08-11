@@ -317,7 +317,8 @@ uint8_t atcd_conn_asc_msg()
               ATCD_DBG_CONN_SISW_P_DE
             }
 
-            atcd.parser.mode = ATCD_P_MODE_ATC;
+            atcd.parser.mode = ATCD_P_MODE_WAITOK;//ne IDLE
+            atcd.parser.sleep_timer=atcd_get_ms();
 
             return 1;
           }
@@ -517,7 +518,8 @@ uint8_t atcd_conn_data_proc(char ch)
       if(atcd.parser.buff_pos >= atcd.parser.rx_data_len)
       {
         ATCD_DBG_CONN_IPD_END
-        atcd.parser.mode = ATCD_P_MODE_ATC;
+        atcd.parser.mode = ATCD_P_MODE_IDLE;
+        atcd.parser.sleep_timer=atcd_get_ms();
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
@@ -529,7 +531,8 @@ uint8_t atcd_conn_data_proc(char ch)
     else
     {
       ATCD_DBG_CONN_IPD_ERR
-      atcd.parser.mode = ATCD_P_MODE_ATC;
+      atcd.parser.mode = ATCD_P_MODE_IDLE;
+      atcd.parser.sleep_timer=atcd_get_ms();
 
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;
