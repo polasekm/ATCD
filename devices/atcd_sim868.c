@@ -391,8 +391,8 @@ uint16_t atcd_proc_step()
 
       atcd_atc_exec_cmd(&at_cmd2, atcd.at_cmd_buff);
     case ATCD_SB_PHONE + 8:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 8;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
+      if(at_cmd2.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 8;
+      if(at_cmd2.result != ATCD_ATC_RESULT_OK)
       {
         atcd.phone.sms_tx.state = ATCD_PHONE_SMS_STATE_ERROR;
         return ATCD_SB_PHONE + 9;
