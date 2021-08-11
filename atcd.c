@@ -93,6 +93,7 @@ void atcd_state_reset()                  //state machine reset
   atcd_gprs_reset();
   atcd_gps_reset();
   atcd_wifi_reset();
+  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE_RESET) != 0) atcd.callback(ATCD_EV_STATE_RESET);
 }
 //------------------------------------------------------------------------------
 void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
@@ -103,6 +104,12 @@ void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
 void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake))
 {
   atcd.powersave_hwsetter=powersave_hwsetter;
+}
+//------------------------------------------------------------------------------
+void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event))
+{
+  atcd.cb_events=eventmask;
+  atcd.callback=system_callback;
 }
 //------------------------------------------------------------------------------
 void atcd_proc()                         //data processing

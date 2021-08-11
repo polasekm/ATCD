@@ -55,8 +55,9 @@ typedef enum
 } atcd_powersave_req_t;
 
 #define ATCD_EV_NONE                0x00
-#define ATCD_EV_STATE               0b00000001
-#define ATCD_EV_ASYNC_MSG           0b00000010
+#define ATCD_EV_STATE               0b00000001 //kdyz prijde "RDY"
+#define ATCD_EV_ASYNC_MSG           0b00000010 //nechodi
+#define ATCD_EV_STATE_RESET         0b00000100 //kazdy reset modemu
 #define ATCD_EV_ALL                 0xFF
 
 // Navratove hodnoty
@@ -138,13 +139,15 @@ void atcd_start();               //start AT command device
 
 void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
 void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
- 
+void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event));
+
 void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data
 void atcd_rx_str(char *ch);                      //zpracuje prijaty retezec
 void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
 
 void atcd_tx_complete();         //call on tx data complete
 void atcd_sw_reset();            //SW reset
+void atcd_state_reset();
 
 void atcd_proc();                //data processing 
 

@@ -166,7 +166,7 @@ void atcd_atc_proc()                     //AT commands processing
 
   if(atcd.parser.mode == ATCD_P_MODE_IDLE)
   {
-    if((atcd_get_ms() - atcd.parser.sleep_timer > 500) && (atcd.powersave_act==1))
+    if((atcd_get_ms() - atcd.parser.sleep_timer > 500) && (atcd.powersave_act==1) && (atcd_phone_state()==ATCD_PHONE_STATE_IDLE)) //"DTR must be held low during the call" - "SIM800 Series_Serial Port_Application Note_V1.03.pdf" para6.4
     {
       // Pokud vyprsel timeout
       //ATCD_DBG_IPD_TIM
@@ -180,7 +180,7 @@ void atcd_atc_proc()                     //AT commands processing
     }
   }
   if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.sleep_timer>=120)) //75 nestaci, 95 spise ne, 100 staci
-  {
+  { //podle "SIM800 Series_Serial Port_Application Note_V1.03.pdf" para6.4 se ma probudit po 50ms
     atcd.parser.mode=ATCD_P_MODE_IDLE;
     atcd.parser.sleep_timer=atcd_get_ms();
     #if DEBUG_ATCD_SLEEP
