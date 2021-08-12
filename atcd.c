@@ -126,15 +126,15 @@ void atcd_proc()                         //data processing
   // -- Nepatri to do jine _proc funkce?
   // Test timeoutu v rezimu prijmu dat
   //MV: davam to do atcd_atc_proc()
-  if(atcd.parser.mode == ATCD_P_MODE_IPD)
+  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK))
   {
-    if(atcd_get_ms() - atcd.parser.timer > 4000)
+    if(atcd_get_ms() - atcd.parser.mode_timer > 4000)
     {
       // Pokud vyprsel timeout
       // Prechod parseru do rezimu AT prikazu
       ATCD_DBG_IPD_TIM
       atcd.parser.mode = ATCD_P_MODE_IDLE;
-      atcd.parser.sleep_timer = atcd_get_ms();
+      atcd.parser.mode_timer = atcd_get_ms();
 
       //osetrit spojeni kde dochazelo k prijmu dat...
     }
@@ -238,7 +238,7 @@ void atcd_rx_ch(char ch)
 {
   atcd_at_cmd_t *at_cmd;
   
-  if ((atcd.parser.mode==ATCD_P_MODE_IPD) &&
+  if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK)) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]->dontPrint))

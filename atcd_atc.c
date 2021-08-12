@@ -156,17 +156,17 @@ void atcd_atc_proc()                     //AT commands processing
       (atcd.parser.mode != ATCD_P_MODE_WAKING) &&
       (atcd.parser.mode != ATCD_P_MODE_WAITOK) && //ten pouziva uplne jiny timer... asi zadny
       (atcd.parser.mode != ATCD_P_MODE_IDLE))
-    if ((atcd_get_ms()-atcd.parser.mode_time>20000) && (atcd_get_ms()-atcd.parser.mode_time>at_cmd->timeout+1))
-    { //vlastne by se nemelo stavat, timeout je nize, mozna jen tam nastavit ATCD_P_MODE_ATC
+    if ((atcd_get_ms()-atcd.parser.mode_timer>20000) && (atcd_get_ms()-atcd.parser.mode_timer>at_cmd->timeout+1))
+    { //vlastne by se nemelo stavat, timeout je nize, mozna jen tam nastavit ATCD_P_MODE_IDLE
       atcd.parser.mode = ATCD_P_MODE_IDLE;
-      atcd.parser.sleep_timer=atcd_get_ms();
+      atcd.parser.mode_timer=atcd_get_ms();
       at_cmd->data=NULL;
       at_cmd->data_len=0;
     }
 
   if(atcd.parser.mode == ATCD_P_MODE_IDLE)
   {
-    if((atcd_get_ms() - atcd.parser.sleep_timer > 500) && (atcd.powersave_act==1) && (atcd_phone_state()==ATCD_PHONE_STATE_IDLE)) //"DTR must be held low during the call" - "SIM800 Series_Serial Port_Application Note_V1.03.pdf" para6.4
+    if((atcd_get_ms() - atcd.parser.mode_timer > 500) && (atcd.powersave_act==1) && (atcd_phone_state()==ATCD_PHONE_STATE_IDLE)) //"DTR must be held low during the call" - "SIM800 Series_Serial Port_Application Note_V1.03.pdf" para6.4
     {
       // Pokud vyprsel timeout
       //ATCD_DBG_IPD_TIM
@@ -179,10 +179,10 @@ void atcd_atc_proc()                     //AT commands processing
       //osetrit spojeni kde dochazelo k prijmu dat...
     }
   }
-  if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.sleep_timer>=120)) //75 nestaci, 95 spise ne, 100 staci
+  if ((atcd.parser.mode==ATCD_P_MODE_WAKING) && (atcd_get_ms()-atcd.parser.mode_timer>=120)) //75 nestaci, 95 spise ne, 100 staci
   { //podle "SIM800 Series_Serial Port_Application Note_V1.03.pdf" para6.4 se ma probudit po 50ms
     atcd.parser.mode=ATCD_P_MODE_IDLE;
-    atcd.parser.sleep_timer=atcd_get_ms();
+    atcd.parser.mode_timer=atcd_get_ms();
     #if DEBUG_ATCD_SLEEP
     atcd_dbg_txt("wake->idle");
     #endif
@@ -206,7 +206,7 @@ void atcd_atc_proc()                     //AT commands processing
         if(atcd.parser.at_cmd_top->data != NULL)
         {
           atcd.parser.mode = ATCD_P_MODE_TX_PEND;
-          atcd.parser.mode_time = atcd_get_ms();
+          atcd.parser.mode_timer = atcd_get_ms();
         };
       }
     }
@@ -214,7 +214,7 @@ void atcd_atc_proc()                     //AT commands processing
     // Kontrola, zda neni cekajici k odeslani
     //atcd_atc_queue_proc();
     if (atcd.parser.mode == ATCD_P_MODE_IDLE) //prodluz cekani na echo, IPD, odpoved a vubec vsechno
-      atcd.parser.sleep_timer=atcd_get_ms();
+      atcd.parser.mode_timer=atcd_get_ms();
     if (//(at_cmd->state == ATCD_ATC_STATE_WAIT) && teoreticky pouze wait, ale kdyz se neco podela, uz se to nikdy nezotavi
         (atcd.parser.mode==ATCD_P_MODE_SLEEP))
     {
@@ -222,7 +222,7 @@ void atcd_atc_proc()                     //AT commands processing
       //se bude muset predelat na callback
       if (atcd.powersave_hwsetter)
         atcd.powersave_hwsetter(0);
-      atcd.parser.sleep_timer=atcd_get_ms();
+      atcd.parser.mode_timer=atcd_get_ms();
       #if DEBUG_ATCD_SLEEP
       atcd_dbg_txt("sleep->wake");
       #endif
@@ -235,7 +235,7 @@ void atcd_atc_proc()                     //AT commands processing
       atcd_atc_send_cmd();
     }
     // Kontrola, zda nevyprsel timeout
-    else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.timer > at_cmd->timeout))
+    else if((at_cmd->state == ATCD_ATC_STATE_W_ECHO || at_cmd->state == ATCD_ATC_STATE_W_END || at_cmd->state == ATCD_ATC_STATE_TX) && (atcd_get_ms() - atcd.parser.topat_state_timer > at_cmd->timeout))
     {
       ATCD_DBG_ATC_TIM
 
@@ -249,12 +249,12 @@ void atcd_atc_proc()                     //AT commands processing
       {
         atcd_hw_tx(NULL, at_cmd->data_len);
         atcd.parser.mode = ATCD_P_MODE_IDLE;
-        atcd.parser.sleep_timer=atcd_get_ms();
+        atcd.parser.mode_timer=atcd_get_ms();
       }
       if (atcd.parser.mode != ATCD_P_MODE_IDLE)
       {
         atcd.parser.mode = ATCD_P_MODE_IDLE;
-        atcd.parser.sleep_timer=atcd_get_ms();
+        atcd.parser.mode_timer=atcd_get_ms();
       }
       //nemuzu ale jen tak sahat na cizi at_cmd at_cmd->data_=NULL; at_cmd->data_len_=0;
 
@@ -312,7 +312,7 @@ uint8_t atcd_atc_send_cmd()                     //send AT command
   atcd.parser.tx_rbuff.capacity = len;*/
   rbuff_lin_space(&atcd.parser.tx_rbuff, (uint8_t*)atcd.parser.at_cmd_top->cmd, len);
 
-  atcd.parser.timer = atcd_get_ms();
+  atcd.parser.topat_state_timer = atcd_get_ms();
   atcd_hw_tx(&atcd.parser.tx_rbuff, len);
 
   return 1;
@@ -336,14 +336,14 @@ void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete afte
 {
   //assert(atcd.parser.mode==ATCD_P_MODE_ATC_);
   if (atcd.parser.mode!=ATCD_P_MODE_WAITOK)
-  {
+  { //bylo IDLE
     char state[30];
     snprintf(state, sizeof(state), "atcd_atc_complete apm=%d", atcd.parser.mode);
     atcd_dbg_err("@atcd ", state);
     atcd.errors.atcd_atc_complete++;
   };
   atcd.parser.mode=ATCD_P_MODE_IDLE;
-  atcd.parser.sleep_timer=atcd_get_ms();
+  atcd.parser.mode_timer=atcd_get_ms();
 
   if(at_cmd->resp_len == 0)
     at_cmd->resp_len = 0;
@@ -458,7 +458,7 @@ uint8_t atcd_atc_ln_proc()
         if(atcd.parser.at_cmd_top->data != NULL)
         {
           atcd.parser.mode = ATCD_P_MODE_TX_PEND;
-          atcd.parser.mode_time = atcd_get_ms();
+          atcd.parser.mode_timer = atcd_get_ms();
         }
 
         atcd.parser.buff_pos = 0;
@@ -599,7 +599,7 @@ uint8_t atcd_atc_prompt_tst()
     }
 
     atcd.parser.mode = ATCD_P_MODE_WAITOK; //ne IDLE
-    atcd.parser.sleep_timer=atcd_get_ms();
+    atcd.parser.mode_timer=atcd_get_ms();
     return 1;
   }
 

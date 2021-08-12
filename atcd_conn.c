@@ -228,9 +228,11 @@ uint8_t atcd_conn_asc_msg()
       if(atcd.parser.rx_data_len != 0)
       {
         ATCD_DBG_CONN_DATA_RX_DET
-        atcd.parser.mode = ATCD_P_MODE_IPD;
-        atcd.parser.mode_time = atcd_get_ms();
-        atcd.parser.timer = atcd_get_ms();
+        if (atcd.parser.mode==ATCD_P_MODE_WAITOK) //+RECEIVE muze prijit pred echem, nebo mezi send a 0, SEND OK
+          atcd.parser.mode = ATCD_P_MODE_IPD_WAITOK;
+        else
+          atcd.parser.mode = ATCD_P_MODE_IPD;
+        atcd.parser.mode_timer = atcd_get_ms();
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
@@ -318,7 +320,7 @@ uint8_t atcd_conn_asc_msg()
             }
 
             atcd.parser.mode = ATCD_P_MODE_WAITOK;//ne IDLE
-            atcd.parser.sleep_timer=atcd_get_ms();
+            atcd.parser.mode_timer=atcd_get_ms();
 
             return 1;
           }
@@ -493,7 +495,7 @@ uint8_t atcd_conn_data_proc(char ch)
   atcd_conn_t *conn;
 
   // If parser in IPD receiving mode
-  if(atcd.parser.mode == ATCD_P_MODE_IPD)
+  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK))
   {
     conn = atcd.conns.conn[atcd.parser.rx_conn_num];
     // If any connection
@@ -518,8 +520,16 @@ uint8_t atcd_conn_data_proc(char ch)
       if(atcd.parser.buff_pos >= atcd.parser.rx_data_len)
       {
         ATCD_DBG_CONN_IPD_END
-        atcd.parser.mode = ATCD_P_MODE_IDLE;
-        atcd.parser.sleep_timer=atcd_get_ms();
+        if(atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK)
+        {
+          atcd.parser.mode = ATCD_P_MODE_WAITOK;
+          atcd.parser.mode_timer = atcd_get_ms();
+        }
+        else
+        {
+          atcd.parser.mode = ATCD_P_MODE_IDLE;
+          atcd.parser.mode_timer = atcd_get_ms();
+        }
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
@@ -532,7 +542,7 @@ uint8_t atcd_conn_data_proc(char ch)
     {
       ATCD_DBG_CONN_IPD_ERR
       atcd.parser.mode = ATCD_P_MODE_IDLE;
-      atcd.parser.sleep_timer=atcd_get_ms();
+      atcd.parser.mode_timer = atcd_get_ms();
 
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;

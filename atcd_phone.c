@@ -203,7 +203,7 @@ uint8_t atcd_phone_asc_msg()
 
     atcd.phone.sms.len = atoi(p);
     atcd.parser.mode = ATCD_P_MODE_SMS;
-    atcd.parser.mode_time = atcd_get_ms();
+    atcd.parser.mode_timer = atcd_get_ms();
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.parser.buff_pos = atcd.parser.line_pos;
@@ -370,7 +370,7 @@ uint8_t atcd_phone_sms_proc(char ch)
     {
       ATCD_DBG_PHONE_SMS_END
       atcd.parser.mode = ATCD_P_MODE_IDLE;
-      atcd.parser.sleep_timer=atcd_get_ms();
+      atcd.parser.mode_timer = atcd_get_ms();
 
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;
