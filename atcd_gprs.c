@@ -39,17 +39,15 @@ void atcd_gprs_reset()                   //gprs state reset
 //------------------------------------------------------------------------------
 void atcd_gprs_proc()                    //gprs connection processing
 {
-  if(atcd.gprs.state == ATCD_GPRS_STATE_DISCONN)
+  switch (atcd.gprs.state)
   {
-    
-  }
-  else if(atcd.gprs.state == ATCD_GPRS_STATE_DISCONNING)
-  {
+  case ATCD_GPRS_STATE_DISCONN:
+    break;
+  case ATCD_GPRS_STATE_DISCONNING:
     // Opravdu?
     //atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
-  }
-  else if(atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
-  {
+    break;
+  case ATCD_GPRS_STATE_CONNECTING:
     //Cekame na pripojeni - test stavu a timeoutu...
     if(atcd_get_ms() - atcd.gprs.timer > 90000) //jen prikaz AT+CIICR ma podle dokumentace az 85s
     {
@@ -58,12 +56,12 @@ void atcd_gprs_proc()                    //gprs connection processing
 
       //atcd.gprs.timer = atcd_get_ms();
       //atcd.gprs.state = ATCD_GPRS_STATE_DISCONNING;
-      atcd_gprs_disconnect();
+      atcd_gprs_disconnect(0);
     }
-  }
-  else if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
-  {
+    break;
+  case ATCD_GPRS_STATE_CONN:
     // Kontrola stavu?
+    break;
   }
 }
 //------------------------------------------------------------------------------
@@ -77,7 +75,7 @@ void atcd_gprs_autoconn()
       if (atcd.conns.conn[i])
           return;
     }
-    atcd_gprs_disconnect();
+    atcd_gprs_disconnect(0/*false*/);
   }
   else if ((atcd.gprs.state == ATCD_GPRS_STATE_DISCONN) && (atcd.gprs.autoclose_bearer))
   {
@@ -110,10 +108,10 @@ void atcd_gprs_connect()                    //connect gprs
   }
 }
 //------------------------------------------------------------------------------
-void atcd_gprs_disconnect()                //disconnect gprs
+void atcd_gprs_disconnect(uint8_t force)                //disconnect gprs
 {
   //if(atcd.gprs.state != ATCD_GPRS_STATE_DISCONN && atcd.gprs.state != ATCD_GPRS_STATE_DISCONNING)
-  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN || atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
+  if(force || atcd.gprs.state == ATCD_GPRS_STATE_CONN || atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING)
   //if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)
   {
     ATCD_DBG_GPRS_DISCONN_SET

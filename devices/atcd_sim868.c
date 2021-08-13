@@ -229,6 +229,25 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 4;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
+      if (atcd.at_cmd.resp_len>=10) //+CGATT:1\r\n i kdyz spis +CGATT: 1\r\n
+      {
+        if (strncmp(atcd.at_cmd.resp, "+CGATT:", 7)==0)
+        { //kdyz nesouhlasi CGATT a atcd.gprs.state tak disco
+          int cgatt=atoi(atcd.at_cmd.resp+7);
+          if (cgatt==0)
+          {
+            if (atcd.gprs.state==ATCD_GPRS_STATE_CONN)
+              atcd_gprs_disconnect(0);
+          }
+          else if (cgatt==1)
+          {
+            if (atcd.gprs.state==ATCD_GPRS_STATE_DISCONN)
+              atcd_gprs_disconnect(1);
+          };
+        };
+      };
+
+
       /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");     // Check IP address
     case ATCD_SB_STAT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 5;
@@ -586,7 +605,7 @@ uint16_t atcd_proc_step()
       //GPRS init selhalo
       ATCD_DBG_GPRS_INIT_ERR
       //atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
-      atcd_gprs_disconnect();
+      atcd_gprs_disconnect(0);
 
     case ATCD_SB_GPRS_INIT + ATCD_SO_END:
       //------------------------------------------------------------------------
@@ -711,7 +730,7 @@ uint16_t atcd_proc_step()
         if ((atcd.at_cmd.result==ATCD_ATC_RESULT_ERROR) &&
             (atcd.at_cmd.resultcode==3))
         { //mohlo se podelat GPRS, udelej reinit
-          atcd_gprs_disconnect(); //po dokonceni disco by se mel udelat autoconnect
+          atcd_gprs_disconnect(0); //po dokonceni disco by se mel udelat autoconnect
         };
         //atcd_conn_free(conn);
         conn->state = ATCD_CONN_STATE_W_OPENFAILED;

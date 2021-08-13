@@ -20,10 +20,13 @@
 /* Defines -------------------------------------------------------------------*/
 
 // GPRS State
-#define ATCD_GPRS_STATE_DISCONN       0
-#define ATCD_GPRS_STATE_DISCONNING    1
-#define ATCD_GPRS_STATE_CONN          2
-#define ATCD_GPRS_STATE_CONNECTING    3
+typedef enum
+{
+  ATCD_GPRS_STATE_DISCONN       = 0,
+  ATCD_GPRS_STATE_DISCONNING    = 1, //vlastne want_disco
+  ATCD_GPRS_STATE_CONN          = 2,
+  ATCD_GPRS_STATE_CONNECTING    = 3
+} atcd_gprs_state_e;
 
 // GPRS Events
 #define ATCD_GPRS_EV_NONE             0
@@ -31,7 +34,7 @@
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //gprs state
+  atcd_gprs_state_e state;        //gprs state
   uint32_t timer;                 //current operation timer
   uint8_t autoclose_bearer;       //bool
 
@@ -54,7 +57,7 @@ void atcd_gprs_init();                           //inializace gprs
 void atcd_gprs_autoconn();
 void atcd_gprs_autoclose_bearer(uint8_t autoclose_bearer); //zavirat bearer pokud neni zadne aktivni spojeni
 void atcd_gprs_connect();                        //connect gprs
-void atcd_gprs_disconnect();                     //disconnect gprs
+void atcd_gprs_disconnect(uint8_t force);        //disconnect gprs
 
 void atcd_gprs_set_apn(char *apn, char *name, char *psswd);  //set apn, name and psswd
 

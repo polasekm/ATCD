@@ -73,7 +73,7 @@ typedef struct
   
   uint8_t  rx_conn_num;          //connection number for +IPD
   uint16_t rx_data_len;          //+IPD data length
-  uint16_t rx_data_pos;          //position in +IPD data 
+  uint16_t rx_data_pos;          //position in +IPD data
 
   //->mode_time uint32_t sleep_timer; //ATCD_P_MODE_WAKING a ATCD_P_MODE_FADING, mozna by sel spojit s timer "current operation timer"
   //uint8_t atcd_sleep_state;
