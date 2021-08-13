@@ -32,6 +32,7 @@ void atcd_hw_rx(uint8_t *data, uint16_t len);    //rx data
 void atcd_hw_tx(rbuff_t *rbuff, uint16_t len);   //tx data
 
 void atcd_dbg_inf(char *header, char *str);   //debug info print
+void atcd_dbg_inf2(char *header, char *str);
 void atcd_dbg_warn(char *header, char *str);  //debug warning print
 void atcd_dbg_err(char *header, char *str);   //debug error print
 void atcd_dbg_in(char *str, uint16_t len);    //debug data in print

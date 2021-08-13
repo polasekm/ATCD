@@ -230,6 +230,16 @@ uint8_t atcd_conn_asc_msg()
         ATCD_DBG_CONN_DATA_RX_DET
         if (atcd.parser.mode==ATCD_P_MODE_WAITOK) //+RECEIVE muze prijit pred echem, nebo mezi send a 0, SEND OK
           atcd.parser.mode = ATCD_P_MODE_IPD_WAITOK;
+        else if ((atcd.parser.mode==ATCD_P_MODE_SLEEP) || (atcd.parser.mode==ATCD_P_MODE_WAKING))
+        {
+          /* WAKING taky vratit do SLEEP:
+          [323.557] sleep->wake
+          [323.646]+RECEIVE,0,4: P��
+          [323.648] @atcd pmode ipdidl->idle
+          [323.648] AT
+          [328.649] ATCD: ATC: Probihajicimu AT prikazu vyprsel timeout. */
+          atcd.parser.mode = ATCD_P_MODE_IPD_SLEEP;
+        }
         else
           atcd.parser.mode = ATCD_P_MODE_IPD;
         atcd.parser.mode_timer = atcd_get_ms();
@@ -495,7 +505,7 @@ uint8_t atcd_conn_data_proc(char ch)
   atcd_conn_t *conn;
 
   // If parser in IPD receiving mode
-  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK))
+  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP))
   {
     conn = atcd.conns.conn[atcd.parser.rx_conn_num];
     // If any connection
@@ -523,11 +533,19 @@ uint8_t atcd_conn_data_proc(char ch)
         if(atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK)
         {
           atcd.parser.mode = ATCD_P_MODE_WAITOK;
+          //atcd_dbg_inf2("@atcd pmode", "ipdwok->wok");
+          atcd.parser.mode_timer = atcd_get_ms();
+        }
+        else if(atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)
+        {
+          atcd.parser.mode = ATCD_P_MODE_SLEEP;
+          //atcd_dbg_inf2("@atcd pmode", "ipdslp->sleep");
           atcd.parser.mode_timer = atcd_get_ms();
         }
         else
         {
           atcd.parser.mode = ATCD_P_MODE_IDLE;
+          //atcd_dbg_inf2("@atcd pmode", "ipd->idle");
           atcd.parser.mode_timer = atcd_get_ms();
         }
 
