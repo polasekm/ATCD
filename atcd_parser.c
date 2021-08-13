@@ -18,7 +18,7 @@ extern rbuff_t atcd_rx_ring_buff;         //kruhovy buffer pro prijimana data
 //------------------------------------------------------------------------------
 void atcd_parser_init()                  //state machine reset
 {
-  atcd.parser.buff[0]                  = 0;
+  atcd.parser.buff[0]                    = 0;
   atcd.parser.buff[ATCD_P_BUFF_SIZE - 1] = 0;
   
   atcd.parser.buff_pos   = 0;
@@ -41,6 +41,5 @@ void atcd_parser_init()                  //state machine reset
   atcd.parser.rx_conn_num = 0;
   atcd.parser.rx_data_len = 0;
   atcd.parser.rx_data_pos = 0;
-
 }
 //------------------------------------------------------------------------------

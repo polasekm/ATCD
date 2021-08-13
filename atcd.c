@@ -72,12 +72,13 @@ void atcd_reset()               //Reset zarizeni
 //------------------------------------------------------------------------------
 void atcd_state_reset()                  //state machine reset
 {
-  atcd.powersave_act = -1;
-  atcd_parser_init();
-  atcd.timer = atcd_get_ms(); 
-
-  atcd_atc_cancel_all();
   atcd_conns_reset();
+  atcd_atc_cancel_all();
+
+  atcd.powersave_act = -1;
+  atcd.timer = atcd_get_ms();
+
+  atcd_parser_init();
 
   atcd_atc_init(&atcd.at_cmd);
 
