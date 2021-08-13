@@ -122,10 +122,19 @@ uint8_t atcd_gps_asc_msg()
       if(np == NULL) goto skip_proc;
       if(*p == 'A')
       {
-        atcd.gps.state = ATCD_GPS_STATE_FIX;
+        //aktualizace casu poslednich platnych dat
         strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
-        atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;
+
+        if(atcd.gps.state != ATCD_GPS_STATE_FIX)
+        {
+          //aktualizace doby trvani prvniho fixnuti
+          atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;
+        }
+        else
+        {
+          atcd.gps.state = ATCD_GPS_STATE_FIX;
+        }
       }
       else atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
       p = np + 1;
