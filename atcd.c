@@ -322,6 +322,9 @@ void atcd_rx_ch(char ch)
   //------------------------------
   if(atcd_atc_ln_proc() != 0) return;   // Zpracovani AT prikazu
   //------------------------------
+  // Callback pro zpracovani nezpracovanych nevyzadanych zprav
+  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
+  //------------------------------
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
 }

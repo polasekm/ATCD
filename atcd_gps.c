@@ -34,7 +34,7 @@ void atcd_gps_reset()
   atcd.gps.time_fix[0] = 0;
   atcd.gps.last_fix = 0;
   atcd.gps.time_to_fix = 0;
-
+  atcd.gps.start_time = 0;
   atcd.gps.sats = 0;
 
   atcd.gps.latitude = 0;
@@ -126,15 +126,8 @@ uint8_t atcd_gps_asc_msg()
         strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
 
-        if(atcd.gps.state != ATCD_GPS_STATE_FIX)
-        {
-          //aktualizace doby trvani prvniho fixnuti
-          atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;
-        }
-        else
-        {
-          atcd.gps.state = ATCD_GPS_STATE_FIX;
-        }
+        if(atcd.gps.state != ATCD_GPS_STATE_FIX) atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;  //aktualizace doby trvani prvniho fixnuti
+        atcd.gps.state = ATCD_GPS_STATE_FIX;
       }
       else atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
       p = np + 1;
