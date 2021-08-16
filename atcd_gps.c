@@ -126,10 +126,20 @@ uint8_t atcd_gps_asc_msg()
         strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
 
-        if(atcd.gps.state != ATCD_GPS_STATE_FIX) atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;  //aktualizace doby trvani prvniho fixnuti
+        if(atcd.gps.state == ATCD_GPS_STATE_SEARCHING && atcd.gps.start_time != 0)
+        {
+          atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;  //aktualizace doby trvani prvniho fixnuti
+          atcd.gps.start_time = 0;
+        }
         atcd.gps.state = ATCD_GPS_STATE_FIX;
       }
-      else atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+      else
+      {
+        //vyhodit do fce
+        //if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.start_time = atcd_get_ms();
+        atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+      }
+
       p = np + 1;
 
       //Latitude
@@ -205,13 +215,18 @@ uint8_t atcd_gps_asc_msg()
       //mode MA
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
+      // tohle A je automatic!!! M je manual!!! neni stav dat!!!!
       //if(*p == 'A') atcd.gps.state = ATCD_GPS_STATE_FIX;
       //else atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+
+      // nemohou se nekde parsovat nexistuji data pokud je ocekava za nejakou carkou?
+
       p = np + 1;
 
       //Fix mode
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
+      // TODO: aktulizovat jen pokud jsou platna data (nekonzistence pri prvni vete?)
       if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
       else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
       else atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
@@ -384,14 +399,33 @@ uint8_t atcd_gps_asc_msg()
       //Status - rezim urceni polohy - Fix quality
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if(*p == '0') atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
-      else atcd.gps.state = ATCD_GPS_STATE_FIX;
+      //TODO: cele opravit
+
+      /*if(*p == '0')
+      {
+        //vyhodit do fce
+        //if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.start_time = atcd_get_ms();
+        atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
+      }
+      else
+      {
+        atcd.gps.last_fix = atcd_get_ms();
+
+        if(atcd.gps.state == ATCD_GPS_STATE_SEARCHING && atcd.gps.start_time != 0)
+        {
+          atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;  //aktualizace doby trvani prvniho fixnuti
+          atcd.gps.start_time = 0;
+        }
+        atcd.gps.state = ATCD_GPS_STATE_FIX;
+      }*/
       p = np + 1;
 
-      //Počet viditelných satelitů - Number of satellites being tracked - Satellites used
+      //Počet pouzitych satelitů - Number of satellites being tracked - Satellites used
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      atcd.gps.sats = atoi(p);
+
+      //TODO: prejmeovat
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.sats = atoi(p);
       p = np + 1;
 
       //HDOP
