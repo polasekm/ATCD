@@ -33,7 +33,9 @@ typedef enum
   ATCD_P_MODE_IPD,
   ATCD_P_MODE_IPD_WAITOK,
   ATCD_P_MODE_IPD_SLEEP,
-  ATCD_P_MODE_SMS,
+  ATCD_P_MODE_SMS_,
+  ATCD_P_MODE_SMS_WAITOK,
+  ATCD_P_MODE_SMS_SLEEP,
   ATCD_P_MODE_TX_PEND, //cekani na prompt protoze cmd->data!=NULL
   ATCD_P_MODE_PROMPT  //jen uvnitr funkce; posilani cmd->data
 } atcd_parser_mode_e;

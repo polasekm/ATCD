@@ -202,7 +202,12 @@ uint8_t atcd_phone_asc_msg()
     //length
 
     atcd.phone.sms.len = atoi(p);
-    atcd.parser.mode = ATCD_P_MODE_SMS;
+    if (atcd.parser.mode==ATCD_P_MODE_WAITOK) //+RECEIVE muze prijit pred echem, nebo mezi send a 0, SEND OK
+      atcd.parser.mode = ATCD_P_MODE_SMS_WAITOK;
+    else if ((atcd.parser.mode==ATCD_P_MODE_SLEEP) || (atcd.parser.mode==ATCD_P_MODE_WAKING))
+      atcd.parser.mode = ATCD_P_MODE_SMS_SLEEP;
+    else
+      atcd.parser.mode = ATCD_P_MODE_SMS_;
     atcd.parser.mode_timer = atcd_get_ms();
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
@@ -348,7 +353,7 @@ void atcd_phone_send_sms(char *number, char *msg)  //poslat SMS
 uint8_t atcd_phone_sms_proc(char ch)
 {
   // If parser in SMS receiving mode
-  if(atcd.parser.mode == ATCD_P_MODE_SMS)
+  if((atcd.parser.mode == ATCD_P_MODE_SMS_) || (atcd.parser.mode == ATCD_P_MODE_SMS_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_SMS_SLEEP))
   {
     // Pokud je v bufferu misto
     if(atcd.parser.buff_pos - atcd.parser.line_pos <= 160)
@@ -369,7 +374,21 @@ uint8_t atcd_phone_sms_proc(char ch)
     if(atcd.parser.buff_pos - atcd.parser.line_pos >= atcd.phone.sms.len)
     {
       ATCD_DBG_PHONE_SMS_END
-      atcd.parser.mode = ATCD_P_MODE_IDLE;
+      if(atcd.parser.mode == ATCD_P_MODE_SMS_WAITOK)
+      {
+        atcd.parser.mode = ATCD_P_MODE_WAITOK;
+        //atcd_dbg_inf2("@atcd pmode", "ipdwok->wok");
+      }
+      else if(atcd.parser.mode == ATCD_P_MODE_SMS_SLEEP)
+      {
+        atcd.parser.mode = ATCD_P_MODE_SLEEP;
+        //atcd_dbg_inf2("@atcd pmode", "ipdslp->sleep");
+      }
+      else
+      {
+        atcd.parser.mode = ATCD_P_MODE_IDLE;
+        //atcd_dbg_inf2("@atcd pmode", "ipd->idle");
+      }
       atcd.parser.mode_timer = atcd_get_ms();
 
       atcd.parser.buff_pos = 0;
