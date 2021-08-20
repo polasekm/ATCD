@@ -534,20 +534,18 @@ uint8_t atcd_conn_data_proc(char ch)
         {
           atcd.parser.mode = ATCD_P_MODE_WAITOK;
           //atcd_dbg_inf2("@atcd pmode", "ipdwok->wok");
-          atcd.parser.mode_timer = atcd_get_ms();
         }
         else if(atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)
         {
           atcd.parser.mode = ATCD_P_MODE_SLEEP;
           //atcd_dbg_inf2("@atcd pmode", "ipdslp->sleep");
-          atcd.parser.mode_timer = atcd_get_ms();
         }
         else
         {
           atcd.parser.mode = ATCD_P_MODE_IDLE;
           //atcd_dbg_inf2("@atcd pmode", "ipd->idle");
-          atcd.parser.mode_timer = atcd_get_ms();
         }
+        atcd.parser.mode_timer = atcd_get_ms();
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
