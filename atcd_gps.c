@@ -227,9 +227,12 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
       // TODO: aktulizovat jen pokud jsou platna data (nekonzistence pri prvni vete?)
-      if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
-      else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
-      else atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+      {
+        if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
+        else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
+        else atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+      }
       p = np + 1;
 
       //PRN numbers of satellites used in solution (null for unused fields), total of 12 fields
