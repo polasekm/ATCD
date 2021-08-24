@@ -73,10 +73,11 @@ uint8_t atcd_gps_asc_msg()
     atcd.parser.line_pos += strlen("+GPSRD:");
   }
 
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GP", 3) == 0 ||
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GN", 3) == 0 ||
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GA", 3) == 0 ||
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GL", 3) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GP", 3) == 0 || //GPS
+     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GN", 3) == 0 || //"nejlepsi" z GP, GL, GA, BD
+     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GA", 3) == 0 || //Galileo
+     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GL", 3) == 0 || //Glonass
+     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$BD", 3) == 0)   //Beidou
   {
     ATCD_DBG_GPS_SENTECE
 

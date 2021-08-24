@@ -50,7 +50,7 @@ struct atcd_gps_ts
   char time[16];
   char time_fix[16];
 
-  uint32_t last_fix;
+  uint32_t last_fix;              //atcd_get_ms() v dobe fixu
   uint32_t time_to_fix;
   uint32_t start_time;
 
