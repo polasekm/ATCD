@@ -228,11 +228,12 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
       // TODO: aktulizovat jen pokud jsou platna data (nekonzistence pri prvni vete?)
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX)
+      //potrebuji vedet jestli 2D nebo 3D hned v prvni vete; na ATCD_GPS_FIX_M_NO nemam pevny nazor
+      if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
+      else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
+      else if(atcd.gps.state == ATCD_GPS_STATE_FIX)
       {
-        if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
-        else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
-        else atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+        atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
       }
       p = np + 1;
 
@@ -354,6 +355,7 @@ uint8_t atcd_gps_asc_msg()
     }
     else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "GGA,", strlen("GGA,")) == 0)
     {
+      uint8_t ggavalid=0;
       //GGA - zeměpisná délka a šířka, geodetická výška, čas určení souřadnic
       ATCD_DBG_GPS_GGA
 
@@ -405,6 +407,8 @@ uint8_t atcd_gps_asc_msg()
       if(np == NULL) goto skip_proc3;
       //TODO: cele opravit
 
+      if(*p != '0')
+        ggavalid=1; //potrebuji chytit hned prvni pocet satelitu a altitude protoze az v RMC prijde fix tak uz posilam SMSku s polohou
       /*if(*p == '0')
       {
         //vyhodit do fce
@@ -429,19 +433,19 @@ uint8_t atcd_gps_asc_msg()
       if(np == NULL) goto skip_proc3;
 
       //TODO: prejmeovat
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.sats = atoi(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.sats = atoi(p);
       p = np + 1;
 
       //HDOP
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.hdop = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.hdop = atof(p);
       p = np + 1;
 
       //Altitude
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.altitude = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.altitude = atof(p);
       p = np + 1;
 
       //Jednotka pro předchozí údaj (č.9) (M=metr)
@@ -453,7 +457,7 @@ uint8_t atcd_gps_asc_msg()
       //Undulation
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.undulation = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.undulation = atof(p);
       p = np + 1;
 
       //Jednotka vzdálenosti pro předchozí položku (č.11) (M=metr)
