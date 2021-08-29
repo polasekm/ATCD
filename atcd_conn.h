@@ -75,6 +75,8 @@ typedef struct atcd_conn
   
   uint8_t cb_events;              //connection events
   void (*callback)(struct atcd_conn*, uint8_t);  //events callback
+
+  //TODO: Co to je?
   uint8_t dontPrint; //nevypisuj na terminal, nestiha vypisovat firmware
 
 } atcd_conn_t;

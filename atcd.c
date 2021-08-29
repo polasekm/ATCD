@@ -16,6 +16,8 @@ void atcd_rx_proc();                      //Zpracovani prijatych dat
 void atcd_proc_ch(char ch);               //Zpracovani prijateho znaku
 
 void atcd_state_reset();                  //Reset stavoveho automatu ATCD
+
+uint16_t atcd_proc_step();                //pruchod jednim krokem kolecka modemu
 //--------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -24,8 +26,8 @@ void atcd_init()                          //init AT command device
   atcd_hw_init();                         //HW init
 
   atcd.state      = ATCD_STATE_OFF;
-  atcd.powersave_req = atcd_pwrsFull;
-  atcd.powersave_hwsetter=NULL;
+  //atcd.powersave_req = atcd_pwrsFull;
+  //atcd.powersave_hwsetter=NULL;
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
   memset(&atcd.errors, 0x00, sizeof(atcd.errors));
@@ -75,18 +77,30 @@ void atcd_state_reset()                  //state machine reset
   atcd_conns_reset();
   atcd_atc_cancel_all();
 
-  atcd.powersave_act = -1;
+  //atcd.powersave_act = -1;
   atcd.timer = atcd_get_ms();
+
+  atcd.tx_state    = ATCD_P_TX_COMPLETE;
+  //atcd.tx_pending  = 0;
+  atcd.tx_conn_num = 0;
+  atcd.tx_data_len = 0;
+  rbuff_init(&atcd.tx_rbuff, NULL, 0);
 
   atcd_parser_init();
 
   atcd_atc_init(&atcd.at_cmd);
+  atcd.at_cmd_buff[0]        = 0;
+  atcd.at_cmd_result_buff[0] = 0;
+  rbuff_init(&atcd.at_cmd_data, NULL, 0);
 
   atcd.proc_step = 0;
   atcd.err_cnt   = 0;
   atcd.err_max   = 10;
 
-  atcd.at_cmd_buff[0] = 0;
+  atcd.sleep_mode  = ATCD_SM_OFF;
+  atcd.sleep_state = ATCD_SS_AWAKE;
+  atcd.sleep_disable = 0;
+  atcd.sleep_timer = 0;
 
   atcd_sim_reset();
   atcd_gsm_reset();
@@ -94,10 +108,11 @@ void atcd_state_reset()                  //state machine reset
   atcd_gprs_reset();
   atcd_gps_reset();
   atcd_wifi_reset();
+
   if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE_RESET) != 0) atcd.callback(ATCD_EV_STATE_RESET);
 }
 //------------------------------------------------------------------------------
-void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
+/*void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
 {
   atcd.powersave_req = mode;
 }
@@ -105,6 +120,11 @@ void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
 void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake))
 {
   atcd.powersave_hwsetter=powersave_hwsetter;
+}*/
+//------------------------------------------------------------------------------
+void atcd_set_sleep_mode(atcd_sleep_mode_t mode)
+{
+  atcd.sleep_mode = mode;
 }
 //------------------------------------------------------------------------------
 void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event))
@@ -122,38 +142,25 @@ void atcd_proc()                         //data processing
   // potiz je s dokoncenym vysilanim, kdy tak separovat...
 
   atcd_rx_proc();                        //Zpracovani prijatych dat
+  atcd_parser_proc();                    //Parser processing
   atcd_atc_proc();                       //AT commands processing 
 
-  // -- Nepatri to do jine _proc funkce?
-  // Test timeoutu v rezimu prijmu dat
-  //MV: davam to do atcd_atc_proc()
-  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP))
-  {
-    if(atcd_get_ms() - atcd.parser.mode_timer > 4000)
-    {
-      // Pokud vyprsel timeout
-      // Prechod parseru do rezimu AT prikazu
-      ATCD_DBG_IPD_TIM
-      atcd.parser.mode = ATCD_P_MODE_SLEEP; //SLEEP bezpecnejsi nez IDLE
-      atcd.parser.mode_timer = atcd_get_ms();
-
-      //osetrit spojeni kde dochazelo k prijmu dat...
-    }
-  }
   //----------------------------------------------
   if(atcd.state == ATCD_STATE_STARTING)
   {
      // Test timeoutu v rezimu startu modemu
     if(atcd_get_ms() - atcd.timer > 10000)
     {
-      // Restart modemu
+      // Vyprsel cas na start
       ATCD_DBG_START_TIM
       atcd_reset();
       return;
     }
 
     #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
+      // Modemy, ktere nehlasi svuj start
       atcd.state = ATCD_STATE_NO_INIT;
+      atcd.timer = atcd_get_ms();
     #endif
   }
   else if(atcd.state == ATCD_STATE_NO_INIT)
@@ -161,37 +168,37 @@ void atcd_proc()                         //data processing
     // Provadime inicializacni sekvenci
     if(atcd.err_cnt >= atcd.err_max)
     {
-      // Zalogovat!
-      // Prekrocen maximalni pocet chyb
-      // Resit radeji timeoutem...
+      // Prekrocen maximalni pocet chyb v inicializace
+      //ZALOGOVAT!
       //atcd_reset();
       //return;
     }
 
     if(atcd_get_ms() - atcd.timer > 20000)
     {
-      // Restart modemu
+      // Vyprsel cas na inicializaci
       ATCD_DBG_INIT_TIM;
       atcd_reset();
       return;
     }
 
-    atcd.proc_step = atcd_proc_step();
+    atcd.proc_step = atcd_proc_step();     // Provede krok sekvencniho automatu
   }
-  else if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
+  //else if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
+  else if(atcd.state == ATCD_STATE_ON)
   {
     // Zarizeni je pripraveno k praci, pripadne spi...
-    // Pripadne testy stavu a dalsi cinnosti na pozadi...
+    // Pripadne testy stavu a dalsi cinnosti async vuci sekvencnimu atomatu
 
     if(atcd.err_cnt >= atcd.err_max)
     {
-      // Zalogovat!
-      // Prekrocen maximalni pocet chyb
+      // Prekrocen maximalni pocet chyb v sekvencnim automatu
+      //ZALOGOVAT!
       atcd_reset();
       return;
     }
 
-    atcd.proc_step = atcd_proc_step();
+    atcd.proc_step = atcd_proc_step();     // Provede krok sekvencniho automatu
 
     atcd_gsm_proc();
     atcd_phone_proc();                     //phone processing
@@ -239,13 +246,14 @@ void atcd_rx_ch(char ch)
 {
   atcd_at_cmd_t *at_cmd;
   
-  if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)) &&
+  //TODO: Co to je?
+  /*if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]->dontPrint))
   { }
-  else
-    atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
+  else*/
+  atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
 
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni

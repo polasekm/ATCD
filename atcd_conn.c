@@ -228,21 +228,23 @@ uint8_t atcd_conn_asc_msg()
       if(atcd.parser.rx_data_len != 0)
       {
         ATCD_DBG_CONN_DATA_RX_DET
-        if (atcd.parser.mode==ATCD_P_MODE_WAITOK) //+RECEIVE muze prijit pred echem, nebo mezi send a 0, SEND OK
+        /*if(atcd.parser.mode == ATCD_P_MODE_WAITOK) //+RECEIVE muze prijit pred echem, nebo mezi send a 0, SEND OK
           atcd.parser.mode = ATCD_P_MODE_IPD_WAITOK;
         else if ((atcd.parser.mode==ATCD_P_MODE_SLEEP) || (atcd.parser.mode==ATCD_P_MODE_WAKING))
-        {
+        {*/
           /* WAKING taky vratit do SLEEP:
           [323.557] sleep->wake
           [323.646]+RECEIVE,0,4: P��
           [323.648] @atcd pmode ipdidl->idle
           [323.648] AT
           [328.649] ATCD: ATC: Probihajicimu AT prikazu vyprsel timeout. */
-          atcd.parser.mode = ATCD_P_MODE_IPD_SLEEP;
+          /*atcd.parser.mode = ATCD_P_MODE_IPD_SLEEP;
         }
         else
-          atcd.parser.mode = ATCD_P_MODE_IPD;
-        atcd.parser.mode_timer = atcd_get_ms();
+          atcd.parser.mode = ATCD_P_MODE_IPD;*/
+
+        atcd.parser.mode = ATCD_P_MODE_IPD;
+        atcd.parser.timer = atcd_get_ms();
 
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
@@ -260,7 +262,6 @@ uint8_t atcd_conn_asc_msg()
 
   if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr
   {
-    //if(strncmp(atcd.buff + atcd.line_pos + 1, ",CONNECT\r\n", strlen(",CONNECT\r\n")) == 0)
     if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
     {
       conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
@@ -287,6 +288,7 @@ uint8_t atcd_conn_asc_msg()
     }
     else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "^SISW: ", strlen("^SISW: ")) == 0)
     {
+      //TODO: Tohle cele proverit a vyzkouset
       conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SISW: "));
 
       if(conn_id < ATCD_CONN_MAX_NUMBER)
@@ -297,40 +299,21 @@ uint8_t atcd_conn_asc_msg()
         {
           op = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("^SISW: x,"));
 
-          if(atcd.parser.mode == ATCD_P_MODE_TX_PEND)
+          if(atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_PROMPT)
           {
-            // Testovat kolik muzeme zapsat dat...
-            //
-            //
-
             ATCD_DBG_CONN_SISW_P
-            atcd.parser.mode = ATCD_P_MODE_PROMPT;
 
             atcd.parser.buff_pos = 0;
             atcd.parser.line_pos = 0;
 
-            // Nasypat data
-            // eventualne budou nasypana z proc funkce
-
-            // SEM pripsat dalsi promenou ve ktere bude pocet byte co se maji posilat
-            // a moyna a ikazayatel na data
-            // po yaniku spojeni je nutno minimalne vedet kolik e toho melo posilat, pokud
-            // uz se prikaz zacal provadet...
-
-
-            // tohle by se melo prepsat - bez dat k odeslani by nemel jit nastavit prompt, nejlepe jej zahodit a rozhodovat dle dat...
-
             if(atcd.parser.at_cmd_top->data != NULL)
             {
-              atcd_atc_send_data(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
+              atcd_atc_send_data_top(atcd.parser.at_cmd_top->data, atcd.parser.at_cmd_top->data_len);
             }
             else
             {
               ATCD_DBG_CONN_SISW_P_DE
             }
-
-            atcd.parser.mode = ATCD_P_MODE_WAITOK;//ne IDLE
-            atcd.parser.mode_timer=atcd_get_ms();
 
             return 1;
           }
@@ -394,14 +377,20 @@ uint8_t atcd_conn_asc_msg()
         conn = atcd.conns.conn[conn_id];
         if(conn != NULL)
         {
-          if (conn->state==ATCD_CONN_STATE_W_CLOSE)
+          if(conn->state == ATCD_CONN_STATE_W_CLOSE)
           {
-            if (strncmp(atcd.at_cmd_resbuff, atcd.parser.buff+atcd.parser.line_pos, strlen("0, CLOSE OK\r\n"))==0)
+            //TODO: Muze probohat ATC kteremu se prepisi data - opravit!!! //Nechapu...
+            //TODO: Tohle bych si rad nechal vysvetlit...
+
+            if(strncmp(atcd.at_cmd_result_buff, atcd.parser.buff + atcd.parser.line_pos, strlen("0, CLOSE OK\r\n")) == 0)
             {
+              // AT prikaz byl prave dokoncen
+              ATCD_DBG_ATC_OK_DET
+
               atcd.at_cmd.result = ATCD_ATC_RESULT_OK;
               atcd_atc_complete(&atcd.at_cmd);
-            };
-          };
+            }
+          }
 
           atcd.conns.conn[conn_id] = NULL;
           conn->state = ATCD_CONN_STATE_CLOSE;
@@ -469,7 +458,7 @@ uint8_t atcd_conn_asc_msg()
       #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
       if(atcd.parser.at_cmd_top != NULL)
       {
-        // AT prikaz byl v casti vyse dokoncen
+        // AT prikaz byl prave dokoncen
         ATCD_DBG_ATC_OK_DET
         atcd.parser.at_cmd_top->result = ATCD_ATC_RESULT_OK;
         atcd_atc_complete(atcd.parser.at_cmd_top);
@@ -505,7 +494,7 @@ uint8_t atcd_conn_data_proc(char ch)
   atcd_conn_t *conn;
 
   // If parser in IPD receiving mode
-  if((atcd.parser.mode == ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP))
+  if(atcd.parser.mode == ATCD_P_MODE_IPD)
   {
     conn = atcd.conns.conn[atcd.parser.rx_conn_num];
     // If any connection
@@ -530,23 +519,8 @@ uint8_t atcd_conn_data_proc(char ch)
       if(atcd.parser.buff_pos >= atcd.parser.rx_data_len)
       {
         ATCD_DBG_CONN_IPD_END
-        if(atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK)
-        {
-          atcd.parser.mode = ATCD_P_MODE_WAITOK;
-          //atcd_dbg_inf2("@atcd pmode", "ipdwok->wok");
-        }
-        else if(atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)
-        {
-          atcd.parser.mode = ATCD_P_MODE_SLEEP;
-          //atcd_dbg_inf2("@atcd pmode", "ipdslp->sleep");
-        }
-        else
-        {
-          atcd.parser.mode = ATCD_P_MODE_IDLE;
-          //atcd_dbg_inf2("@atcd pmode", "ipd->idle");
-        }
-        atcd.parser.mode_timer = atcd_get_ms();
 
+        atcd.parser.mode = ATCD_P_MODE_IDLE;
         atcd.parser.buff_pos = 0;
         atcd.parser.line_pos = 0;
 
@@ -557,9 +531,8 @@ uint8_t atcd_conn_data_proc(char ch)
     else
     {
       ATCD_DBG_CONN_IPD_ERR
-      atcd.parser.mode = ATCD_P_MODE_IDLE;
-      atcd.parser.mode_timer = atcd_get_ms();
 
+      atcd.parser.mode = ATCD_P_MODE_IDLE;
       atcd.parser.buff_pos = 0;
       atcd.parser.line_pos = 0;
     }

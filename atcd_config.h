@@ -58,11 +58,13 @@
   #define ATCD_DBG_ATC_WAIT_P           atcd_dbg_inf("ATCD: ATC: ", "Ve fronte neni zadny dalsi AT prikaz ale parser je zamestnan - cekam.\r\n");
   #define ATCD_DBG_ATC_WAIT_Q           atcd_dbg_inf("ATCD: ATC: ", "Je fronta - cekam na konci.\r\n");
 
-  #define ATCD_DBG_ATC_W_ECHO           atcd_dbg_inf("ATCD: ATC: ", "Odesilani bylo dokoceno - prechazime na W_ECHO..\r\n");
-  #define ATCD_DBG_ATC_W_END            atcd_dbg_inf("ATCD: ATC: ", "Odesilani bylo dokoceno - prechazime na W_END..\r\n");
+  #define ATCD_DBG_ATC_W_ECHO           atcd_dbg_inf("ATCD: ATC: ", "Odesilani bylo dokoceno - prechazime na W_ECHO...\r\n");
+  #define ATCD_DBG_ATC_W_END            atcd_dbg_inf("ATCD: ATC: ", "Odesilani bylo dokoceno - prechazime na W_END...\r\n");
+  #define ATCD_DBG_ATC_TX_PEND          atcd_dbg_inf("ATCD: ATC: ", "Prechazime na zadavani dat...\r\n");
   #define ATCD_DBG_ATC_QUEUE_EXE        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
   #define ATCD_DBG_ATC_TIM              atcd_dbg_warn("ATCD: ATC: ", "Probihajicimu AT prikazu vyprsel timeout.\r\n");
-  #define ATCD_DBG_ATC_QUEUE_END        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte neni zadny dalsi cekajici AT prikaz - aktualizuji konec fronty.\r\n");
+  #define ATCD_DBG_ATC_ESC_DATA         atcd_dbg_warn("ATCD: ATC: ", "Odesilam rn... pro eventualni ukonceni datoveho rezimu.\r\n");
+  //#define ATCD_DBG_ATC_QUEUE_END        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte neni zadny dalsi cekajici AT prikaz - aktualizuji konec fronty.\r\n");
 
   #define ATCD_DBG_ATC_ECHO_DET         atcd_dbg_inf("ATCD: ATC: ", "ECHO detected.\r\n");
   #define ATCD_DBG_ATC_ECHO_T_FAIL      atcd_dbg_warn("ATCD: ATC: ", "ECHO test FAIL.\r\n");
@@ -82,9 +84,9 @@
   #define ATCD_DBG_SEQ_NEXT             atcd_dbg_inf("ATCD: ATC_SEQ: ", "Spoustim dalsi krok sekvence.\r\n");
   #define ATCD_DBG_SEQ_STEP             atcd_dbg_inf("ATCD: ATC_SEQ: ", "Odesilam dalsi krok sekvence.\r\n");
 
-  #define ATCD_DBG_IPD_TIM              atcd_dbg_err("ATCD: ", "Vyprsel timeout na IPD!\r\n");
+  #define ATCD_DBG_IPD_SMS_TIM          atcd_dbg_err("ATCD: ", "Vyprsel timeout na IPD nebo SMS!\r\n");
   #define ATCD_DBG_START_TIM            atcd_dbg_err("ATCD: ", "Vyprsel timeout na start!\r\n");
-  #define ATCD_DBG_INIT_TIM            atcd_dbg_err("ATCD: ", "Vyprsel timeout na inicializaci!\r\n");
+  #define ATCD_DBG_INIT_TIM             atcd_dbg_err("ATCD: ", "Vyprsel timeout na inicializaci!\r\n");
 
   #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: ", "Sekvence byla dokoncena.\r\n");
   #define ATCD_DBG_INIT_ERR_R           atcd_dbg_err("ATCD: INIT: ", "atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n");

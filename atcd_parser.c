@@ -24,22 +24,37 @@ void atcd_parser_init()                  //state machine reset
   atcd.parser.buff_pos   = 0;
   atcd.parser.line_pos   = 0;
   
-  atcd.parser.mode       = ATCD_P_MODE_SLEEP;
+  atcd.parser.mode       = ATCD_P_MODE_IDLE;
   atcd.parser.echo_en    = ATCD_P_ECHO_ON;
 
-  atcd.parser.topat_state_timer = atcd_get_ms();        //opravdu nastavit na aktualni cas?
-  atcd.parser.mode_timer = atcd_get_ms();
+  atcd.parser.at_cmd_timer = atcd_get_ms();
+  atcd.parser.timer        = atcd_get_ms();
   
   atcd.parser.at_cmd_top = NULL;
   atcd.parser.at_cmd_end = NULL;
-  
-  atcd.parser.tx_state    = ATCD_P_TX_COMPLETE;
-  atcd.parser.tx_conn_num = 0;
-  atcd.parser.tx_data_len = 0;
-  rbuff_init(&atcd.parser.tx_rbuff, NULL, 0);
 
   atcd.parser.rx_conn_num = 0;
   atcd.parser.rx_data_len = 0;
   atcd.parser.rx_data_pos = 0;
+}
+//------------------------------------------------------------------------------
+void atcd_parser_proc()                //Parser processing
+{
+  if((atcd.parser.mode == ATCD_P_MODE_IPD || atcd.parser.mode == ATCD_P_MODE_SMS) && (atcd_get_ms() - atcd.parser.timer > 4000))
+  {
+    //Vyprsel timeout na IPD nebo SMS
+    ATCD_DBG_IPD_SMS_TIM
+    atcd.parser.mode = ATCD_P_MODE_IDLE;
+    //TODO: osetrit spojeni kde dochazelo k prijmu dat...
+  }
+
+  //TODO: Idealne asi dopsat prodlouzeni casu na ATC pokud probihal IPD ci SMS...
+  /*if(atcd.parser.mode != ATCD_P_MODE_IDLE)
+  {
+    atcd.parser.at_cmd_timer = atcd_get_ms();
+  }*/
+
+  // Kontrola, zda neni cekajici k odeslani
+  //atcd_atc_queue_proc();
 }
 //------------------------------------------------------------------------------

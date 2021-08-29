@@ -42,29 +42,53 @@
 //---------------------------------------
 // Stav samotneho zarizeni. Proihlaseni do site, wifi, ci gprs je v prislusnych 
 // modulech
-#define ATCD_STATE_OFF              0
-#define ATCD_STATE_STARTING         1
-#define ATCD_STATE_NO_INIT          2
-#define ATCD_STATE_SLEEP            3
-#define ATCD_STATE_ON               4
+typedef enum
+{
+  ATCD_STATE_OFF      = 0,
+  ATCD_STATE_STARTING = 1,
+  ATCD_STATE_NO_INIT  = 2,
+  //ATCD_STATE_SLEEP    = 3,
+  ATCD_STATE_ON       = 4
+
+} atcd_state_t;
 
 typedef enum
 {
-  atcd_pwrsSave,
-  atcd_pwrsFull
-} atcd_powersave_req_t;
+  ATCD_SM_W_OFF       = 0,
+  ATCD_SM_OFF         = 1,
+  ATCD_SM_W_AUTO      = 2,
+  ATCD_SM_AUTO        = 3,
+  ATCD_SM_W_MANUAL    = 4,
+  ATCD_SM_MANUAL      = 5
 
+} atcd_sleep_mode_t;
+
+typedef enum
+{
+  ATCD_SS_AWAKE        = 0,
+  //ATCD_SS_AWAKE_FORECE = 1,
+  ATCD_SS_W_WAKE       = 2,
+  ATCD_SS_SLEEP        = 3
+
+} atcd_sleep_state_t;
+
+// Udalosti zarizeni
 #define ATCD_EV_NONE                0x00
-#define ATCD_EV_STATE               0b00000001 //kdyz prijde "RDY"
-#define ATCD_EV_ASYNC_MSG           0b00000010 //nechodi
-#define ATCD_EV_STATE_RESET         0b00000100 //kazdy reset modemu
+#define ATCD_EV_STATE               0b00000001  //kdyz prijde "RDY" // to ma byt init, ne?
+#define ATCD_EV_ASYNC_MSG           0b00000010  //nezpracovana asynchronni zprava
+#define ATCD_EV_STATE_RESET         0b00000100  //kazdy reset modemu
 #define ATCD_EV_ALL                 0xFF
 
-// Navratove hodnoty
-#define ATCD_OK                     0
-#define ATCD_ERR                    1
-#define ATCD_ERR_LOCK               2
+// Stav odesilani dat
+typedef enum
+{
+  ATCD_P_TX_COMPLETE  = 0,
+  ATCD_P_TX_ONGOING   = 1,
+  ATCD_P_TX_PENDING   = 2
 
+} atcd_tx_state_t;
+
+//------------------------------------------------------------------------------
 // Switch base offsets
 #define ATCD_SB_INIT                0
 #define ATCD_SB_STAT                100
@@ -88,40 +112,60 @@ typedef enum
 
 #define ATCD_SO_ERR                 98
 #define ATCD_SO_END                 99
+
+//------------------------------------------------------------------------------
+typedef enum
+{
+  atcd_pwrsSave,
+  atcd_pwrsFull
+
+} atcd_powersave_req_t;
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //device state
-  atcd_powersave_req_t powersave_req;  //device sleep mode
-  int8_t powersave_act; //-1..init, nevim
-  int8_t powersave_otw; //co jsem prave (posledne) poslal AT prikazem
-  void (*powersave_hwsetter)(uint8_t awake);
-  uint32_t timer;                 //current operation timer
+  atcd_state_t state;                          //device state
+  //atcd_powersave_req_t powersave_req;          //device sleep mode
+  //int8_t powersave_act;                        //-1..init, nevim
+  //int8_t powersave_otw;                        //co jsem prave (posledne) poslal AT prikazem
+  //void (*powersave_hwsetter)(uint8_t awake);
+  uint32_t timer;                              //current operation timer
 
-  uint16_t proc_step;
-  uint16_t err_cnt;
-  uint16_t err_max;
+  atcd_tx_state_t tx_state;                    //transmission state
+  //uint8_t  tx_pending;                         //priznak cekajicicho vysilani
+  uint8_t  tx_conn_num;
+  uint16_t tx_data_len;
+  rbuff_t  tx_rbuff;
+
+  uint16_t proc_step;                          //aktualni krok v sekvencnim automatu ovladani modemu
+  uint16_t err_cnt;                            //pocitadlo chyb
+  uint16_t err_max;                            //maximalni pocet chyb
   
-  atcd_parser_t parser;           //AT cmd parser
+  atcd_sleep_mode_t  sleep_mode;               //nastaveny mod rezimu spanku
+  atcd_sleep_state_t sleep_state;              //aktualni stav rezimu spanku
+  uint8_t            sleep_disable;            //docasne zakazani spanku
+  uint32_t           sleep_timer;              //casovac spanku
 
-  atcd_at_cmd_t at_cmd;           //AT cmd for internal usage
-  char at_cmd_buff[64];           //TODO: kurva drat jakej imbecil NIKDE nekontroluje delku!!!!! buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni...
-  char at_cmd_resbuff[32];        //buffer pro nestandardni OK odpoved... spis regex ale to zase jindy
+  atcd_parser_t parser;                        //parser prichozich dat
 
-  atcd_conns_t conns;             //TCP/UDP conections
+  atcd_at_cmd_t at_cmd;                        //AT cmd for internal usage
+  char at_cmd_buff[64];                        //TODO: kurva drat jakej imbecil NIKDE nekontroluje delku!!!!! buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni... //musi se tam vejit SMS nebo ne?
+  char at_cmd_result_buff[32];                 //buffer pro nestandardni OK odpoved... spis regex ale to zase jindy
+  rbuff_t at_cmd_data;                         //kruhovy buffer pro volitelna data k at prikazu
+
+  atcd_conns_t conns;                          //TCP/UDP conections
 
   // Podmineny preklad
-  atcd_sim_t sim;                 //
-  atcd_gsm_t gsm;                 //
-  atcd_phone_t phone;             //
-  atcd_gprs_t gprs;               //
-  atcd_gps_t gps;                 //
-  atcd_wifi_t wifi;               //
+  atcd_sim_t sim;                       //
+  atcd_gsm_t gsm;                       //
+  atcd_phone_t phone;                   //
+  atcd_gprs_t gprs;                     //
+  atcd_gps_t gps;                       //
+  atcd_wifi_t wifi;                     //
 
-  uint8_t cb_events;              //device callback events
-  void (*callback)(uint8_t);      //events callback
+  uint8_t cb_events;                    //device callback events
+  void (*callback)(uint8_t);            //events callback
   
-  void (*state_update_callback)(); //called every 7.5s after state is updated
+  void (*state_update_callback)();      //called every 30s after state is updated
 
   struct
   {
@@ -137,8 +181,10 @@ void atcd_init();                //init AT command device
 void atcd_reset();               //reset AT command device
 void atcd_start();               //start AT command device
 
-void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
-void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
+//void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
+//void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
+
+void atcd_set_sleep_mode(atcd_sleep_mode_t mode);
 void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event));
 
 void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data
@@ -152,9 +198,6 @@ void atcd_state_reset();
 void atcd_proc();                //data processing 
 
 uint8_t atcd_state();
-//--------------------------------------------------------------
-// nemela by byt lokalni?
-uint16_t atcd_proc_step();       //pruchod jednim krokem kolecka modemu
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 }
