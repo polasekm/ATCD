@@ -26,11 +26,13 @@ void atcd_init()                          //init AT command device
   atcd_hw_init();                         //HW init
 
   atcd.state      = ATCD_STATE_OFF;
-  //atcd.powersave_req = atcd_pwrsFull;
-  //atcd.powersave_hwsetter=NULL;
+  atcd.sleep_mode = ATCD_SM_OFF;
+
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
   memset(&atcd.errors, 0x00, sizeof(atcd.errors));
+
+
 
   atcd_sim_init();
   atcd_gsm_init();
@@ -97,8 +99,7 @@ void atcd_state_reset()                  //state machine reset
   atcd.err_cnt   = 0;
   atcd.err_max   = 10;
 
-  atcd.sleep_mode  = ATCD_SM_OFF;
-  atcd.sleep_state = ATCD_SS_AWAKE;
+  atcd.sleep_state = ATCD_SS_SLEEP;
   atcd.sleep_disable = 0;
   atcd.sleep_timer = 0;
 
@@ -127,10 +128,15 @@ void atcd_set_sleep_mode(atcd_sleep_mode_t mode)
   atcd.sleep_mode = mode;
 }
 //------------------------------------------------------------------------------
+atcd_sleep_mode_t atcd_sleep_mode()
+{
+  return atcd.sleep_mode;
+}
+//------------------------------------------------------------------------------
 void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event))
 {
-  atcd.cb_events=eventmask;
-  atcd.callback=system_callback;
+  atcd.cb_events = eventmask;
+  atcd.callback = system_callback;
 }
 //------------------------------------------------------------------------------
 void atcd_proc()                         //data processing

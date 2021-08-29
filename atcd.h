@@ -183,8 +183,9 @@ void atcd_start();               //start AT command device
 
 //void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
 //void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
-
 void atcd_set_sleep_mode(atcd_sleep_mode_t mode);
+atcd_sleep_mode_t atcd_sleep_mode();
+
 void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t event));
 
 void atcd_rx_data(uint8_t *data, uint16_t len);  //zpracuje prijata data

@@ -37,16 +37,16 @@ uint16_t atcd_proc_step()
       ATCD_DBG_INIT_START
 
       //Upravit, je treba nastavit buffery
-      atcd.at_cmd.resp           = NULL;
+      /*atcd.at_cmd.resp           = NULL;
       atcd.at_cmd.resp_len       = 0;
       atcd.at_cmd.resp_buff_size = 0;
 
       atcd.at_cmd.data           = NULL;
       atcd.at_cmd.data_len       = 0;
 
-      //atcd_atc_set_defaults(&at_cmd2);
+      atcd.at_cmd.timeout        = 5000;*/
+      atcd_atc_set_defaults(&atcd.at_cmd);
 
-      atcd.at_cmd.timeout        = 5000;
     case ATCD_SB_INIT + 1:
       atcd_atc_exec_cmd(&atcd.at_cmd, "ATE1\r\n");         // Enable AT cmd echo
     case ATCD_SB_INIT + 2:
@@ -207,15 +207,17 @@ uint16_t atcd_proc_step()
       }
       // Je cast spustit kontrolu stavu modemu
       ATCD_DBG_STAT_START
+
       atcd.timer = atcd_get_ms();
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 5000;
+
     case ATCD_SB_STAT + 1:
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT\r\n");           // Test response
     case ATCD_SB_STAT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
-
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG?\r\n");    // Network registration status
     case ATCD_SB_STAT + 3:
@@ -362,7 +364,9 @@ uint16_t atcd_proc_step()
     case ATCD_SB_PHONE:
       //if(atcd.phone.state == ATCD_PHONE_STATE_IDLE) return ATCD_SB_PHONE + ATCD_SO_END;
 
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 5000;
+
     case ATCD_SB_PHONE + 1:
 
       if(atcd.phone.state != ATCD_PHONE_STATE_RING_WA) return ATCD_SB_PHONE + 3;
@@ -420,6 +424,7 @@ uint16_t atcd_proc_step()
       if(atcd.phone.sms_tx.callback) atcd.phone.sms_tx.callback(ATCD_SMS_EV_SEND, &atcd.phone.sms_tx);
 
     case ATCD_SB_PHONE + 9:
+      //Pozor, poradjsou nastaven buffery!!!
 
     case ATCD_SB_PHONE + ATCD_SO_ERR:
     case ATCD_SB_PHONE + ATCD_SO_END:
@@ -428,6 +433,8 @@ uint16_t atcd_proc_step()
     // POWERSAVE
     //------------------------------------------------------------------------
     case ATCD_SB_POWERSAVE:
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 5000;
 
     case ATCD_SB_POWERSAVE + 1:
@@ -485,6 +492,8 @@ uint16_t atcd_proc_step()
       }
 
       ATCD_DBG_GPRS_INIT_START
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
 
     case ATCD_SB_GPRS_INIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
@@ -620,6 +629,8 @@ uint16_t atcd_proc_step()
 
       ATCD_DBG_GPRS_DEINIT_START
 
+      atcd_atc_set_defaults(&atcd.at_cmd);
+
     case ATCD_SB_GPRS_DEINIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 1;
       if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
@@ -680,13 +691,15 @@ uint16_t atcd_proc_step()
         atcd.conns.conn_num_proc++;
       }
 
-      if (conn == NULL) return ATCD_SB_CONN_OPEN;
-      if ((conn->state != ATCD_CONN_STATE_W_OPEN1) &&
-    	  ((conn->state != ATCD_CONN_STATE_W_OPENFAILED) ||
-    	   (atcd_get_ms()-conn->timer<=500))) return ATCD_SB_CONN_OPEN;
+      if(conn == NULL) return ATCD_SB_CONN_OPEN;
+      if((conn->state != ATCD_CONN_STATE_W_OPEN1) &&
+         ((conn->state != ATCD_CONN_STATE_W_OPENFAILED) ||
+    	   (atcd_get_ms() - conn->timer <= 500))) return ATCD_SB_CONN_OPEN;
 
       ATCD_DBG_CONN_OPENING
       //conn->state = ATCD_CONN_STATE_OPENING;
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 15000;
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
 
@@ -719,7 +732,7 @@ uint16_t atcd_proc_step()
         ATCD_DBG_CONN_W_CONN
         conn->state = ATCD_CONN_STATE_OPENING;
         conn->timer = atcd_get_ms();
-        // asi volat call back pokud je nastaven?
+        // asi volat callback pokud je nastaven?
       }
       else
       {
@@ -769,6 +782,7 @@ uint16_t atcd_proc_step()
       tx_data_len = rbuff_size(&conn->tx_rbuff);
       if(tx_data_len == 0) return ATCD_SB_CONN_WRITE;
 
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 30000;
 
       ATCD_DBG_CONN_SEND
@@ -822,6 +836,7 @@ uint16_t atcd_proc_step()
       }
 
     case ATCD_SB_CONN_WRITE + 2:
+      //TODO: Co to je?!
       //at_cmd nebo at_cmd2? Nedela nic tak dam return
       return ATCD_SB_CONN_WRITE;
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 2;
@@ -845,8 +860,7 @@ uint16_t atcd_proc_step()
     // CONN CLOSE
     //------------------------------------------------------------------------
     case ATCD_SB_CONN_CLOSE:
-      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
-        return ATCD_SB_CONN_CLOSE + ATCD_SO_END;
+      if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_CONN_CLOSE + ATCD_SO_END;
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;
@@ -862,6 +876,8 @@ uint16_t atcd_proc_step()
 
       ATCD_DBG_CONN_CLOSING
       //conn->state = ATCD_CONN_STATE_OPENING;
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 15000;
 
       //TODO: Tohle by nemelo fungovat - %u, CLOSE OK\r\n se odchytava jako async...
@@ -912,7 +928,10 @@ uint16_t atcd_proc_step()
       }
 
       ATCD_DBG_GPS_ENABLING
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 5000;
+
     case ATCD_SB_GPS_START + 1:
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGNSTST=1\r\n");
     case ATCD_SB_GPS_START + 2:
@@ -943,7 +962,10 @@ uint16_t atcd_proc_step()
       }
 
       ATCD_DBG_GPS_DIABLING
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 5000;
+
     case ATCD_SB_GPS_STOP + 1:
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGNSPWR=0\r\n");
     case ATCD_SB_GPS_STOP + 2:

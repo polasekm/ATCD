@@ -146,9 +146,13 @@ uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data)   //write data to 
 //------------------------------------------------------------------------------
 void atcd_conn_close(atcd_conn_t *conn)                       //close connection
 {
-  ATCD_DBG_CONN_CLOSE_W
-  conn->state = ATCD_CONN_STATE_W_CLOSE;
-  conn->timer = atcd_get_ms();
+  if(conn->state != ATCD_CONN_STATE_W_CLOSE && conn->state != ATCD_CONN_STATE_CLOSING)
+  {
+    ATCD_DBG_CONN_CLOSE_W
+
+    conn->state = ATCD_CONN_STATE_W_CLOSE;
+    conn->timer = atcd_get_ms();
+  }
 }
 //------------------------------------------------------------------------------
 void atcd_conn_free(atcd_conn_t *conn)                         //free connection
@@ -467,6 +471,29 @@ uint8_t atcd_conn_asc_msg()
 
       // nad jakym spojenim to bude?
       //if(conn->callback != NULL && (conn->events & ATCD_CONN_EV_SEND_OK) != 0) conn->callback(conn, ATCD_CONN_EV_SEND_OK);
+      return 1;
+    }
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", ALREADY CONNECT\r\n", strlen(", ALREADY CONNECT\r\n")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        ATCD_DBG_CONN_ALRD_CON_DET
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          //pokud spojeni existuje
+          atcd_conn_close(conn);
+        }
+        else
+        {
+          ATCD_DBG_CONN_UNREG
+        }
+      }
+      else ATCD_DBG_CONN_RNG_E
+
+      atcd.parser.buff_pos = atcd.parser.line_pos;   //vymaze prijaty radek
       return 1;
     }
     //CONNECT FAIL

@@ -194,6 +194,13 @@ void atcd_atc_proc()                     //AT commands processing
       }
 
       atcd.parser.at_cmd_top = at_cmd->next;
+      if(atcd.parser.at_cmd_top == NULL)
+      {
+        //Fronta je prazdna
+        ATCD_DBG_ATC_QUEUE_END
+        atcd.parser.at_cmd_end = NULL;
+      }
+
       if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_TIMEOUT) != 0) at_cmd->callback(ATCD_ATC_EV_TIMEOUT);
 
       //at_cmd = atcd.parser.at_cmd_top;
@@ -271,13 +278,20 @@ void atcd_atc_complete(atcd_at_cmd_t *at_cmd)         //AT command complete afte
 
   //atcd.sleep_timer = atcd_get_ms();
 
-  if(atcd.parser.mode == ATCD_P_MODE_IDLE)
-  {
+  //if(atcd.parser.mode == ATCD_P_MODE_IDLE)
+  //{
     atcd.parser.buff_pos = 0;
     atcd.parser.line_pos = 0;
-  }
+  //}
 
   atcd.parser.at_cmd_top = at_cmd->next;
+  if(atcd.parser.at_cmd_top == NULL)
+  {
+    //Fronta je prazdna
+    ATCD_DBG_ATC_QUEUE_END
+    atcd.parser.at_cmd_end = NULL;
+  }
+
   if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_DONE) != 0) at_cmd->callback(ATCD_ATC_EV_DONE);
 
   atcd_atc_queue_proc();

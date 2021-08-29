@@ -64,7 +64,7 @@
   #define ATCD_DBG_ATC_QUEUE_EXE        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte je cekajici AT prikaz - menim jeho stav a odesilam.\r\n");
   #define ATCD_DBG_ATC_TIM              atcd_dbg_warn("ATCD: ATC: ", "Probihajicimu AT prikazu vyprsel timeout.\r\n");
   #define ATCD_DBG_ATC_ESC_DATA         atcd_dbg_warn("ATCD: ATC: ", "Odesilam rn... pro eventualni ukonceni datoveho rezimu.\r\n");
-  //#define ATCD_DBG_ATC_QUEUE_END        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte neni zadny dalsi cekajici AT prikaz - aktualizuji konec fronty.\r\n");
+  #define ATCD_DBG_ATC_QUEUE_END        atcd_dbg_inf("ATCD: ATC: ", "Ve fronte neni zadny dalsi cekajici AT prikaz - aktualizuji konec fronty.\r\n");
 
   #define ATCD_DBG_ATC_ECHO_DET         atcd_dbg_inf("ATCD: ATC: ", "ECHO detected.\r\n");
   #define ATCD_DBG_ATC_ECHO_T_FAIL      atcd_dbg_warn("ATCD: ATC: ", "ECHO test FAIL.\r\n");
@@ -185,6 +185,7 @@
   #define ATCD_DBG_CONN_SIS_PARAM_XE   atcd_dbg_err("ATCD: CONN: ", "SIS: x,y... detect - x mimo rozah.\r\n");
 
   #define ATCD_DBG_CONN_SEND_OK_DET    atcd_dbg_inf("ATCD: CONN: ", "x, SEND OK.\r\n");
+  #define ATCD_DBG_CONN_ALRD_CON_DET   atcd_dbg_inf("ATCD: CONN: ", "x, ALREADY CONNECT.\r\n");
   #define ATCD_DBG_CONN_DNS_FAIL_DET   atcd_dbg_inf("ATCD: CONN: ", "DNS Fail detect.\r\n");
 
   #define ATCD_DBG_CONN_BUFF_E         atcd_dbg_warn("ATCD: CONN: ", "V bufferu spojeni neni dostatek mista pro dalsi prijem dat!\r\n");
