@@ -174,6 +174,12 @@ void atcd_atc_proc()                     //AT commands processing
         }
       }
     }
+    else if(at_cmd->state == ATCD_ATC_STATE_TX_DATA && atcd.tx_state == ATCD_P_TX_COMPLETE)
+    {
+      //Bylo dokonceno odesilani dodatecnych dat k AT prikazu
+      ATCD_DBG_ATC_W_END
+      at_cmd->state = ATCD_ATC_STATE_W_END;                   //Prejdeme do stavu cekani na konec odpovedi AT prikazu
+    }
     else if((at_cmd->state != ATCD_ATC_STATE_WAIT && at_cmd->state != ATCD_ATC_STATE_DONE) && (atcd_get_ms() - atcd.parser.at_cmd_timer > at_cmd->timeout))
     {
       //AT prikazu vyprsel timeout

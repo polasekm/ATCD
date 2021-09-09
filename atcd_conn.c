@@ -460,7 +460,7 @@ uint8_t atcd_conn_asc_msg()
       atcd.parser.buff_pos = atcd.parser.line_pos;   //vymaze prijaty radek
 
       #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
-      if(atcd.parser.at_cmd_top != NULL)
+      if(atcd.parser.at_cmd_top != NULL && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_END)
       {
         // AT prikaz byl prave dokoncen
         ATCD_DBG_ATC_OK_DET
