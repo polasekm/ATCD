@@ -26,7 +26,8 @@ typedef enum
   ATCD_GPRS_STATE_DISCONNING    = 1, //vlastne want_disco
   ATCD_GPRS_STATE_CONN          = 2,
   ATCD_GPRS_STATE_CONNECTING    = 3
-} atcd_gprs_state_e;
+
+} atcd_gprs_state_t;
 
 // GPRS Events
 #define ATCD_GPRS_EV_NONE             0
@@ -34,7 +35,7 @@ typedef enum
 //------------------------------------------------------------------------------
 typedef struct
 {
-  atcd_gprs_state_e state;        //gprs state
+  atcd_gprs_state_t state;        //gprs state
   uint32_t timer;                 //current operation timer
   uint8_t autoclose_bearer;       //bool
 
@@ -64,6 +65,6 @@ void atcd_gprs_set_apn(char *apn, char *name, char *psswd);  //set apn, name and
 void atcd_gprs_proc();                           //gprs processing
 void atcd_gprs_reset();                          //gprs state reset
 
-uint8_t atcd_gprs_state();
+atcd_gprs_state_t atcd_gprs_state();
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPRS_H_INCLUDED */

@@ -67,6 +67,9 @@ void atcd_gprs_proc()                    //gprs connection processing
 //------------------------------------------------------------------------------
 void atcd_gprs_autoconn()
 {
+  /* Docasne zakazani autoodpojovani...
+  Spojeni by se nemela otevirat pokud neni GPRS!!!
+  TODO: Dodelat...
   if (atcd.gprs.state == ATCD_GPRS_STATE_CONN)
   {
     uint8_t i;
@@ -75,9 +78,9 @@ void atcd_gprs_autoconn()
       if (atcd.conns.conn[i])
           return;
     }
-    atcd_gprs_disconnect(0/*false*/);
+    atcd_gprs_disconnect(0);  // 0 - false
   }
-  else if ((atcd.gprs.state == ATCD_GPRS_STATE_DISCONN) && (atcd.gprs.autoclose_bearer))
+  else */if ((atcd.gprs.state == ATCD_GPRS_STATE_DISCONN) && (atcd.gprs.autoclose_bearer))
   {
     uint8_t i;
     for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
@@ -128,7 +131,7 @@ void atcd_gprs_set_apn(char *apn, char *name, char *psswd)
   atcd.gprs.psswd = psswd;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_gprs_state()
+atcd_gprs_state_t atcd_gprs_state()
 {
   return atcd.gprs.state;
 }

@@ -11,6 +11,11 @@ atcd_t atcd;
 
 extern rbuff_t atcd_rx_ring_buff;         //kruhovy buffer pro prijimana data
 
+//--------------------------------
+// Ven!!!!!
+extern uint32_t ccl_atcd_rx_ov;
+extern uint32_t ccl_atcd_restart;
+//--------------------------------
 //------------------------------------------------------------------------------
 void atcd_rx_proc();                      //Zpracovani prijatych dat
 void atcd_proc_ch(char ch);               //Zpracovani prijateho znaku

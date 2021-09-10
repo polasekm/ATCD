@@ -460,6 +460,11 @@ uint8_t atcd_conn_asc_msg()
       atcd.parser.buff_pos = atcd.parser.line_pos;   //vymaze prijaty radek
 
       #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
+      //TODO: SIM868 v defaultu ceka v ramci provadeneho ATC na odeslani dat a pak to ohlasi.
+      //      Lze tedy cekat na ", SEND OK" jako na vysledek ATC. Lepe by bylo jej prepnout
+      //      do async modu, kdy je odesle hned a ohlasi "DATA ACCEPT:<n>,<length>".
+      //      Prepina se pomoci AT+CIPQSEND.
+      //      M.P.: Jinak to sem naptri, ukonceni ATC by melo byy reseno v modulu ATC...
       if(atcd.parser.at_cmd_top != NULL && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_END)
       {
         // AT prikaz byl prave dokoncen
