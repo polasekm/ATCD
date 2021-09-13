@@ -579,7 +579,7 @@ void atcd_gps_disable()
   if(atcd.gps.state != ATCD_GPS_STATE_OFF && atcd.gps.state != ATCD_GPS_STATE_W_OFF) atcd.gps.state = ATCD_GPS_STATE_W_OFF;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_gps_state()
+atcd_gps_state_t atcd_gps_state()
 {
   return atcd.gps.state;
 }
@@ -591,7 +591,7 @@ uint32_t atcd_gps_last_fix()
 //-----------------------------------------------------------------------------
 void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps))
 {
-  atcd.gps.cb_events=events;
-  atcd.gps.callback=gps_callback;
+  atcd.gps.cb_events = events;
+  atcd.gps.callback = gps_callback;
 }
 //-----------------------------------------------------------------------------

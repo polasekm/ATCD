@@ -320,7 +320,8 @@ uint16_t atcd_proc_step()
           case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break;
           }
 
-          if (cpas==2)
+          //cpas2 neresit, nema signal...
+          /*if (cpas==2)
           {
             atcd_dbg_err("fail_ai", "+CPAS: 2");
             fails_after_init.cpas2++;
@@ -329,7 +330,7 @@ uint16_t atcd_proc_step()
               fails_after_init.cpas2=0;
               atcd_reset(); //reset hw ale i state a vubec
             };
-          };
+          };*/
         }
       }
 

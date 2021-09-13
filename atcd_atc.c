@@ -11,7 +11,6 @@
 #define DEBUG_ATCD_SLEEP 0
 
 extern atcd_t atcd;
-
 //------------------------------------------------------------------------------
 // AT commands
 void atcd_atc_queue_proc();                   //AT commands queue processing 
@@ -184,8 +183,13 @@ void atcd_atc_proc()                     //AT commands processing
     {
       //AT prikazu vyprsel timeout
       ATCD_DBG_ATC_TIM
+      atcd.parser.stat.atc_tim++;
 
-      if(at_cmd->state == ATCD_ATC_STATE_W_ECHO) ATCD_DBG_ATC_ECHO_T_FAIL;
+      if(at_cmd->state == ATCD_ATC_STATE_W_ECHO)
+      {
+        ATCD_DBG_ATC_ECHO_T_FAIL;
+        atcd.parser.stat.atc_echo++;
+      }
 
       at_cmd->result = ATCD_ATC_RESULT_TIMEOUT;
       at_cmd->resp_len = 0;
@@ -252,6 +256,7 @@ void atcd_atc_send_cmd_top()                     //send AT command
   uint16_t len;
 
   ATCD_DBG_ATC_SEND_CMD
+  atcd.parser.stat.atc_cnt++;
 
   len = strlen(atcd.parser.at_cmd_top->cmd);
   rbuff_lin_space(&atcd.tx_rbuff, (uint8_t*)atcd.parser.at_cmd_top->cmd, len);
@@ -419,6 +424,7 @@ uint8_t atcd_atc_ln_proc()
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "ERROR\r\n", strlen("ERROR\r\n")) == 0)
       {
         ATCD_DBG_ATC_ERR_DET
+        atcd.parser.stat.atc_err++;
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
         at_cmd->result_code = 0;
       }
@@ -431,18 +437,21 @@ uint8_t atcd_atc_ln_proc()
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
         ATCD_DBG_ATC_CME_ERR_DET
+        atcd.parser.stat.atc_err++;
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
         at_cmd->result_code = atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("+CME ERROR:"));
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMS ERROR:", strlen("+CMS ERROR:")) == 0)
       {
         ATCD_DBG_ATC_CMS_ERR_DET
+        atcd.parser.stat.atc_err++;
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
         at_cmd->result_code = atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("+CMS ERROR:"));
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "FAIL\r\n", strlen("FAIL\r\n")) == 0)
       {
         ATCD_DBG_ATC_FAIL_DET
+        atcd.parser.stat.atc_fail++;
         at_cmd->result = ATCD_ATC_RESULT_FAIL;
       }
 

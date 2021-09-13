@@ -23,11 +23,15 @@
 /* Defines -------------------------------------------------------------------*/
 
 // GPS State
-#define ATCD_GPS_STATE_OFF           0
-#define ATCD_GPS_STATE_W_OFF         1
-#define ATCD_GPS_STATE_SEARCHING     2
-#define ATCD_GPS_STATE_W_SEARCH      3
-#define ATCD_GPS_STATE_FIX           4
+typedef enum
+{
+  ATCD_GPS_STATE_OFF         = 0,
+  ATCD_GPS_STATE_W_OFF       = 1,
+  ATCD_GPS_STATE_SEARCHING   = 2,
+  ATCD_GPS_STATE_W_SEARCH    = 3,
+  ATCD_GPS_STATE_FIX         = 4
+
+} atcd_gps_state_t;
 
 #define ATCD_GPS_FIX_M_NO            0
 #define ATCD_GPS_FIX_M_2D            1
@@ -44,7 +48,7 @@ typedef struct atcd_gps_ts atcd_gps_t;
 
 struct atcd_gps_ts
 {
-  uint8_t state;                  //GPS state
+  atcd_gps_state_t state;          //GPS state
 
   char date[16];
   char time[16];
@@ -88,8 +92,9 @@ void atcd_gps_put_nmea(char *str);
 
 uint8_t atcd_gps_asc_msg();
 
-uint8_t atcd_gps_state();
+atcd_gps_state_t atcd_gps_state();
 uint32_t atcd_gps_last_fix();
+
 void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps));
 //------------------------------------------------------------------------------
 #endif /* ATCD_GPS_H_INCLUDED */
