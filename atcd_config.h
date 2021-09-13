@@ -32,10 +32,10 @@
 #define ATCD_DBG 1
 
 #if(ATCD_DBG == 1)
-  #define ATCD_DBG_BUFF_OVERRUN         {ccl_atcd_rx_ov++; atcd_dbg_warn("ATCD: ", "V bufferu pro ATCD doslo misto!\r\n");}
+  #define ATCD_DBG_BUFF_OVERRUN         atcd_dbg_warn("ATCD: ", "V bufferu pro ATCD doslo misto!\r\n");
   #define ATCD_DBG_ATC_LN_BUFF_OV       atcd_dbg_warn("ATCD: ", "Nastavuji overrun u ATC??????\r\n");
   #define ATCD_DBG_BOOT_SEQ             atcd_dbg_inf("ATCD: ", "Detekovana bootovaci sekvence.\r\n");
-  #define ATCD_DBG_STARTING             {ccl_atcd_restart++; atcd_dbg_inf("ATCD: ", "Spusteni zarizeni.\r\n");}
+  #define ATCD_DBG_STARTING             atcd_dbg_inf("ATCD: ", "Spusteni zarizeni.\r\n");
   #define ATCD_DBG_CREG                 atcd_dbg_inf("ATCD: GSM:", " +CREG: x detect.\r\n");
   #define ATCD_DBG_CREG_ERR             atcd_dbg_warn("ATCD: GSM:", " +CREG: x je mimo rozah.\r\n");
   #define ATCD_DBG_ATC_BUFF_OV          atcd_dbg_warn("ATCD: ", "V cilovem bufferu ATC neni dost mista!\r\n");

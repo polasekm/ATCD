@@ -123,11 +123,16 @@ typedef enum
 //------------------------------------------------------------------------------
 typedef struct
 {
+  uint32_t rx_ov;
+  uint32_t reset;
+  uint32_t warn;
+  uint32_t err;
+
+} atcd_stat_t;
+
+typedef struct
+{
   atcd_state_t state;                          //device state
-  //atcd_powersave_req_t powersave_req;          //device sleep mode
-  //int8_t powersave_act;                        //-1..init, nevim
-  //int8_t powersave_otw;                        //co jsem prave (posledne) poslal AT prikazem
-  //void (*powersave_hwsetter)(uint8_t awake);
   uint32_t timer;                              //current operation timer
 
   atcd_tx_state_t tx_state;                    //transmission state
@@ -164,14 +169,15 @@ typedef struct
 
   uint8_t cb_events;                    //device callback events
   void (*callback)(uint8_t);            //events callback
-  
   void (*state_update_callback)();      //called every 30s after state is updated
 
-  struct
+  atcd_stat_t stat;                     //statistiky
+
+  /*struct
   {
     unsigned int atcd_atc_complete;
     unsigned int atcd_atc_send;
-  } errors;
+  } errors;*/
 
 } atcd_t;
 

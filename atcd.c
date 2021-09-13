@@ -11,11 +11,6 @@ atcd_t atcd;
 
 extern rbuff_t atcd_rx_ring_buff;         //kruhovy buffer pro prijimana data
 
-//--------------------------------
-// Ven!!!!!
-extern uint32_t ccl_atcd_rx_ov;
-extern uint32_t ccl_atcd_restart;
-//--------------------------------
 //------------------------------------------------------------------------------
 void atcd_rx_proc();                      //Zpracovani prijatych dat
 void atcd_proc_ch(char ch);               //Zpracovani prijateho znaku
@@ -35,9 +30,11 @@ void atcd_init()                          //init AT command device
 
   atcd.cb_events  = ATCD_EV_ALL;
   atcd.callback   = NULL;
-  memset(&atcd.errors, 0x00, sizeof(atcd.errors));
 
-
+  atcd.stat.rx_ov = 0;
+  atcd.stat.reset = 0;
+  atcd.stat.warn = 0;
+  atcd.stat.err = 0;
 
   atcd_sim_init();
   atcd_gsm_init();
@@ -52,6 +49,7 @@ void atcd_init()                          //init AT command device
 void atcd_start()               //Spusteni zarizeni
 {
   ATCD_DBG_STARTING
+  atcd.stat.reset++;
   atcd_state_reset();
 
   atcd_hw_pwr(ATCD_PWR_ON);
@@ -275,6 +273,7 @@ void atcd_rx_ch(char ch)
   if(atcd.parser.buff_pos >= ATCD_P_BUFF_SIZE - 1)
   {
     ATCD_DBG_BUFF_OVERRUN
+    atcd.stat.rx_ov++;
     at_cmd = atcd.parser.at_cmd_top;
     //nemely by se resit i jine stavy?
     if(at_cmd != NULL && at_cmd->state == ATCD_ATC_STATE_W_END)
