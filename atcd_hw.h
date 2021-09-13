@@ -32,10 +32,10 @@ void atcd_hw_rx(uint8_t *data, uint16_t len);          //rx data
 void atcd_hw_tx(rbuff_t *rbuff, uint16_t len);         //tx data
 void atcd_hw_tx_esc(char *pattern, uint16_t len);   //tx escape data
 
-void atcd_dbg_inf(const char *header, char *str);   //debug info print
-void atcd_dbg_inf2(const char *header, char *str);
-void atcd_dbg_warn(const char *header, char *str);  //debug warning print
-void atcd_dbg_err(const char *header, char *str);   //debug error print
+void atcd_dbg_inf(const char *header, const char *str);   //debug info print
+void atcd_dbg_inf2(const char *header, const char *str);
+void atcd_dbg_warn(const char *header, const char *str);  //debug warning print
+void atcd_dbg_err(const char *header, const char *str);   //debug error print
 void atcd_dbg_in(const char *str, uint16_t len);    //debug data in print
 void atcd_dbg_out(const char *str, uint16_t len);   //debug data out print
 void atcd_dbg_out_rb(rbuff_t *rbuff, uint16_t len);  //debug data out print - ring buffer
