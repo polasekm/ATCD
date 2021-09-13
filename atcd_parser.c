@@ -36,6 +36,12 @@ void atcd_parser_init()                  //state machine reset
   atcd.parser.rx_conn_num = 0;
   atcd.parser.rx_data_len = 0;
   atcd.parser.rx_data_pos = 0;
+
+  atcd.parser.stat.atc_cnt = 0;
+  atcd.parser.stat.atc_err = 0;
+  atcd.parser.stat.atc_fail = 0;
+  atcd.parser.stat.atc_tim = 0;
+  atcd.parser.stat.atc_echo = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_parser_proc()                //Parser processing
