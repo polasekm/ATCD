@@ -944,7 +944,8 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPS_START + ATCD_SO_ERR;
       ATCD_DBG_GPS_ENABLED
       atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
-      atcd.gps.start_time = atcd_get_ms();
+      atcd.gps.stat.start_time = atcd_get_ms();
+      atcd.gps.stat.first_search = 1;
       atcd.sleep_disable = 1;     //s uspanym modemem nechodi data od GPS, zapnout trvale probuzeni
       return ATCD_SB_GPS_START + ATCD_SO_END;
 
@@ -974,6 +975,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPS_STOP + ATCD_SO_ERR;
       ATCD_DBG_GPS_DIABLED
       atcd.gps.state = ATCD_GPS_STATE_OFF;
+      atcd.gps.stat.run_time_acc += atcd_get_ms() - atcd.gps.stat.start_time;  //melo by se aktualizovat prubezne...
       atcd.sleep_disable = 0;     //s uspanym modemem nechodi data od GPS, vypnuti trvaleho probuzeni
       return ATCD_SB_GPS_STOP + ATCD_SO_END;
 

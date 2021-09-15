@@ -44,6 +44,17 @@ typedef enum
 #define ATCD_GPS_EV_ALL              0xFF
 
 //------------------------------------------------------------------------------
+typedef struct
+{
+  uint8_t first_search;
+  uint32_t start_time;
+  uint32_t time_to_fix;
+  uint32_t run_time_acc;
+
+  uint32_t cs_err;
+
+} atcd_gps_stat_t;
+
 typedef struct atcd_gps_ts atcd_gps_t;
 
 struct atcd_gps_ts
@@ -53,10 +64,6 @@ struct atcd_gps_ts
   char date[16];
   char time[16];
   char time_fix[16];
-
-  uint32_t last_fix;              //atcd_get_ms() v dobe fixu
-  uint32_t time_to_fix;
-  uint32_t start_time;
 
   uint8_t sats;
 
@@ -73,11 +80,11 @@ struct atcd_gps_ts
   float hdop;
   float vdop;
 
+  uint32_t last_fix;              //atcd_get_ms() v dobe fixu
+  atcd_gps_stat_t stat;
+
   uint8_t cb_events;              //GPS events
   void (*callback)(uint8_t event, const atcd_gps_t *gps);      //events callback
-
-  uint32_t cs_err;
-
 };
 
 // Functions -------------------------------------------------------------------
@@ -94,6 +101,7 @@ uint8_t atcd_gps_asc_msg();
 
 atcd_gps_state_t atcd_gps_state();
 uint32_t atcd_gps_last_fix();
+uint32_t atcd_gps_runtime();
 
 void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps));
 //------------------------------------------------------------------------------

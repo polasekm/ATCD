@@ -22,7 +22,8 @@ void atcd_gps_init()
   atcd.gps.cb_events = ATCD_GPS_EV_NONE;
   atcd.gps.callback = NULL;
 
-  atcd.gps.cs_err = 0;
+  atcd.gps.stat.run_time_acc = 0;
+  atcd.gps.stat.cs_err = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_gps_reset()
@@ -32,9 +33,7 @@ void atcd_gps_reset()
   atcd.gps.date[0] = 0;
   atcd.gps.time[0] = 0;
   atcd.gps.time_fix[0] = 0;
-  atcd.gps.last_fix = 0;
-  atcd.gps.time_to_fix = 0;
-  atcd.gps.start_time = 0;
+
   atcd.gps.sats = 0;
 
   atcd.gps.latitude = 0;
@@ -49,6 +48,11 @@ void atcd_gps_reset()
   atcd.gps.pdop = 0;
   atcd.gps.hdop = 0;
   atcd.gps.vdop = 0;
+
+  atcd.gps.last_fix = 0;
+  atcd.gps.stat.time_to_fix = 0;
+  atcd.gps.stat.first_search = 0;
+  atcd.gps.stat.start_time = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_gps_proc()
@@ -98,7 +102,7 @@ uint8_t atcd_gps_asc_msg()
     if(cs != scs)
     {
       ATCD_DBG_GPS_CS_ERR
-      atcd.gps.cs_err++;
+      atcd.gps.stat.cs_err++;
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
     }
@@ -127,10 +131,10 @@ uint8_t atcd_gps_asc_msg()
         strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
 
-        if(atcd.gps.state == ATCD_GPS_STATE_SEARCHING && atcd.gps.start_time != 0)
+        if(atcd.gps.state == ATCD_GPS_STATE_SEARCHING && atcd.gps.stat.first_search != 0)
         {
-          atcd.gps.time_to_fix = atcd.gps.last_fix - atcd.gps.start_time;  //aktualizace doby trvani prvniho fixnuti
-          atcd.gps.start_time = 0;
+          atcd.gps.stat.time_to_fix = atcd.gps.last_fix - atcd.gps.stat.start_time;  //aktualizace doby trvani prvniho fixnuti
+          atcd.gps.stat.first_search = 0;
         }
         atcd.gps.state = ATCD_GPS_STATE_FIX;
       }
@@ -587,6 +591,16 @@ atcd_gps_state_t atcd_gps_state()
 uint32_t atcd_gps_last_fix()
 {
   return atcd.gps.last_fix;
+}
+//------------------------------------------------------------------------------
+uint32_t atcd_gps_runtime()
+{
+  uint32_t run_time;
+
+  run_time = atcd.gps.stat.run_time_acc;
+  if(atcd.gps.state != ATCD_GPS_STATE_OFF) run_time += atcd_get_ms() - atcd.gps.stat.start_time;
+
+  return run_time;
 }
 //-----------------------------------------------------------------------------
 void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, const atcd_gps_t *gps))
