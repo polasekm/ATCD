@@ -36,6 +36,9 @@ void atcd_init()                          //init AT command device
   atcd.stat.warn = 0;
   atcd.stat.err = 0;
 
+  atcd.stat.wake_time = 0;
+  atcd.stat.awake_time_acc = 0;
+
   atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
@@ -350,5 +353,15 @@ void atcd_rx_ch(char ch)
 uint8_t atcd_state()
 {
   return atcd.state;
+}
+//------------------------------------------------------------------------------
+uint32_t atcd_awaketime()
+{
+  uint32_t awake_time;
+
+  awake_time = atcd.stat.awake_time_acc;
+  if(atcd.sleep_state != ATCD_SS_SLEEP) awake_time += atcd_get_ms() - atcd.stat.wake_time;
+
+  return awake_time;
 }
 //------------------------------------------------------------------------------

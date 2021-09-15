@@ -114,12 +114,12 @@ typedef enum
 #define ATCD_SO_END                 99
 
 //------------------------------------------------------------------------------
-typedef enum
+/*typedef enum
 {
   atcd_pwrsSave,
   atcd_pwrsFull
 
-} atcd_powersave_req_t;
+} atcd_powersave_req_t;*/
 //------------------------------------------------------------------------------
 typedef struct
 {
@@ -127,6 +127,9 @@ typedef struct
   uint32_t reset;
   uint32_t warn;
   uint32_t err;
+
+  uint32_t wake_time;
+  uint32_t awake_time_acc;
 
 } atcd_stat_t;
 
@@ -205,6 +208,7 @@ void atcd_state_reset();
 void atcd_proc();                //data processing 
 
 uint8_t atcd_state();
+uint32_t atcd_awaketime();
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
 }
