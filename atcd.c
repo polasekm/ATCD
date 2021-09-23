@@ -90,7 +90,7 @@ void atcd_state_reset()                  //state machine reset
 
   atcd.tx_state    = ATCD_P_TX_COMPLETE;
   //atcd.tx_pending  = 0;
-  atcd.tx_conn_num = 0;
+  //atcd.tx_conn_num = 0;
   atcd.tx_data_len = 0;
   rbuff_init(&atcd.tx_rbuff, NULL, 0);
 

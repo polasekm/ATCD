@@ -22,21 +22,14 @@ void atcd_conn_proc()                    //connections processing
 
     if(conn != NULL)
     {
-      if((conn->state == ATCD_CONN_STATE_W_OPEN1 ||
-          conn->state == ATCD_CONN_STATE_W_OPENFAILED ||
-          conn->state == ATCD_CONN_STATE_OPENING ||
-          conn->state == ATCD_CONN_STATE_CLOSING))
+      // TODO tohle je staptne, dodelat...
+      if((conn->state == ATCD_CONN_STATE_W_OPEN || /*conn->state == ATCD_CONN_STATE_W_OPENFAILED ||*/
+          conn->state == ATCD_CONN_STATE_OPENING || conn->state == ATCD_CONN_STATE_CLOSING))
       {
-        if (atcd.gprs.state==ATCD_GPRS_STATE_CONNECTING) //na _CLOSING by to nemelo mit vliv
-          conn->timer = atcd_get_ms();
-        else if (atcd_get_ms() - conn->timer > 15000)
+        if(atcd_get_ms() - conn->timer > conn->timeout)
         {
           ATCD_DBG_CONN_TIM
-
-          conn->state = ATCD_CONN_STATE_W_CLOSE;
-          conn->timer = atcd_get_ms();
-
-          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+          atcd_conn_close(conn);
         }
       }
     }
@@ -75,7 +68,7 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->host     = NULL;
   conn->port     = 0;
 
-  conn->timeout    = 10000;
+  conn->timeout    = 15000;
   conn->timer      = 0;
   
   rbuff_init(&conn->rx_rbuff, rx_buff, rx_buff_size);
@@ -87,7 +80,7 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->dontPrint  = 0;
 }
 //------------------------------------------------------------------------------
-void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_e type) //open conenction
+void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_t type) //open conenction
 {
   uint8_t i;
 
@@ -95,8 +88,8 @@ void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_con
   conn->host     = dest;
   conn->port     = port;
 
-  conn->timeout    = 10000;
-  conn->timer      = atcd_get_ms();
+  conn->timeout  = 10000;
+  conn->timer    = atcd_get_ms();
   
   rbuff_reset(&conn->rx_rbuff);
   rbuff_reset(&conn->tx_rbuff);
@@ -115,7 +108,7 @@ void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_con
       atcd.conns.conn[i] = conn;
       conn->num = i;
       
-      conn->state = ATCD_CONN_STATE_W_OPEN1;
+      conn->state = ATCD_CONN_STATE_W_OPEN;
 
       atcd_gprs_autoconn();
       return;
@@ -136,9 +129,12 @@ void atcd_conn_write(atcd_conn_t *conn, const uint8_t* data, uint16_t len)   //w
 //------------------------------------------------------------------------------
 uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data)   //write data to connection
 {
+  uint32_t len;
+
   ATCD_DBG_CONN_WRITE
-  uint32_t len=rbuff_size(data);
-  if (rbuff_write_rb(&conn->tx_rbuff, data, len))
+  len = rbuff_size(data);
+
+  if(rbuff_write_rb(&conn->tx_rbuff, data, len))
     return len;
   else
     return 0;
@@ -146,12 +142,17 @@ uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data)   //write data to 
 //------------------------------------------------------------------------------
 void atcd_conn_close(atcd_conn_t *conn)                       //close connection
 {
-  if(conn->state != ATCD_CONN_STATE_W_CLOSE && conn->state != ATCD_CONN_STATE_CLOSING)
+  //if(conn->state != ATCD_CONN_STATE_W_CLOSE && conn->state != ATCD_CONN_STATE_CLOSING)
+  if(conn->state == ATCD_CONN_STATE_OPEN || conn->state == ATCD_CONN_STATE_OPENING)
   {
     ATCD_DBG_CONN_CLOSE_W
 
     conn->state = ATCD_CONN_STATE_W_CLOSE;
     conn->timer = atcd_get_ms();
+  }
+  else if(conn->state == ATCD_CONN_STATE_W_OPEN)
+  {
+    atcd_conn_free(conn);
   }
 }
 //------------------------------------------------------------------------------
@@ -170,10 +171,11 @@ void atcd_conn_free(atcd_conn_t *conn)                         //free connection
   conn->state = ATCD_CONN_STATE_CLOSE;
   conn->num   = ATCD_CONN_NO_NUM;
   if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
+
   atcd_gprs_autoconn();
 }
 //------------------------------------------------------------------------------
-atcd_conn_state_e atcd_conn_state(const atcd_conn_t *conn)
+atcd_conn_state_t atcd_conn_state(const atcd_conn_t *conn)
 {
   return conn->state;
 }
@@ -488,7 +490,7 @@ uint8_t atcd_conn_asc_msg()
         conn = atcd.conns.conn[conn_id];
         if(conn != NULL)
         {
-          //pokud spojeni existuje
+          //TODO pokud spojeni existuje, tak jej chceme opravdu zavrit?
           atcd_conn_close(conn);
         }
         else
@@ -505,6 +507,8 @@ uint8_t atcd_conn_asc_msg()
     else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "DNS Fail\r\n", strlen("DNS Fail\r\n")) == 0)
     {
       ATCD_DBG_CONN_DNS_FAIL_DET
+
+      //TODO stavy dle doku...
 
       atcd.parser.buff_pos = atcd.parser.line_pos;   //vymaze prijaty radek
 

@@ -25,7 +25,7 @@ struct  //je potreba vsechny chyby pocitat zvlast, aby jedna neresetovala druhou
 uint16_t atcd_proc_step()
 {
   uint32_t tx_data_len;
-  static atcd_conn_t *conn;
+  static atcd_conn_t *conn;    //pozor, tohle nebude delat dobrotu na vice instancich...
 
   switch(atcd.proc_step)
   {
@@ -233,24 +233,22 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 4;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
-      if (atcd.at_cmd.resp_len >= 10) //+CGATT:1\r\n i kdyz spis +CGATT: 1\r\n
+      if(atcd.at_cmd.resp_len >= 10) //+CGATT:1\r\n i kdyz spis +CGATT: 1\r\n
       {
         if(strncmp(atcd.at_cmd.resp, "+CGATT:", 7) == 0)
-        { //kdyz nesouhlasi CGATT a atcd.gprs.state tak disco
+        {
+          //kdyz nesouhlasi CGATT a atcd.gprs.state tak disco
           int cgatt=atoi(atcd.at_cmd.resp+7);
-          if (cgatt==0)
+          if(cgatt == 0)
           {
-            if (atcd.gprs.state==ATCD_GPRS_STATE_CONN)
-              atcd_gprs_disconnect(0);
+            if(atcd.gprs.state==ATCD_GPRS_STATE_CONN) atcd_gprs_disconnect(0);
           }
-          else if (cgatt==1)
+          else if(cgatt == 1)
           {
-            if (atcd.gprs.state==ATCD_GPRS_STATE_DISCONN)
-              atcd_gprs_disconnect(1);
-          };
-        };
-      };
-
+            if (atcd.gprs.state==ATCD_GPRS_STATE_DISCONN) atcd_gprs_disconnect(1);
+          }
+        }
+      }
 
       /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIFSR\r\n");     // Check IP address
     case ATCD_SB_STAT + 5:
@@ -456,29 +454,6 @@ uint16_t atcd_proc_step()
       else if(atcd.sleep_mode == ATCD_SM_W_AUTO) atcd.sleep_mode = ATCD_SM_AUTO;
       else return ATCD_SB_POWERSAVE + ATCD_SO_END;
 
-      /*if(atcd.sleep_mode != ATCD_SM_W_OFF) return ATCD_SB_POWERSAVE + 3;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSCLK=0\r");
-    case ATCD_SB_POWERSAVE + 2:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_POWERSAVE + 2;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_POWERSAVE + ATCD_SO_ERR;
-      atcd.sleep_mode = ATCD_SM_OFF;
-
-    case ATCD_SB_POWERSAVE + 3:
-      if(atcd.sleep_mode != ATCD_SM_W_MANUAL) return ATCD_SB_POWERSAVE + 5;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSCLK=1\r");
-    case ATCD_SB_POWERSAVE + 4:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_POWERSAVE + 4;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_POWERSAVE + ATCD_SO_ERR;
-      atcd.sleep_mode = ATCD_SM_MANUAL;
-
-    case ATCD_SB_POWERSAVE + 5:
-      if(atcd.sleep_mode != ATCD_SM_W_AUTO) return ATCD_SB_POWERSAVE + 7;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSCLK=2\r");
-    case ATCD_SB_POWERSAVE + 6:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_POWERSAVE + 6;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_POWERSAVE + ATCD_SO_ERR;
-      atcd.sleep_mode = ATCD_SM_AUTO;*/
-
     case ATCD_SB_POWERSAVE + 7:
 
     case ATCD_SB_POWERSAVE + ATCD_SO_ERR:
@@ -680,6 +655,7 @@ uint16_t atcd_proc_step()
     //------------------------------------------------------------------------
     case ATCD_SB_CONN_OPEN:
       if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
+      if(atcd.gprs.state != ATCD_GPRS_STATE_CONN) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
 
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
@@ -693,12 +669,9 @@ uint16_t atcd_proc_step()
       }
 
       if(conn == NULL) return ATCD_SB_CONN_OPEN;
-      if((conn->state != ATCD_CONN_STATE_W_OPEN1) &&
-         ((conn->state != ATCD_CONN_STATE_W_OPENFAILED) ||
-    	   (atcd_get_ms() - conn->timer <= 500))) return ATCD_SB_CONN_OPEN;
+      if(conn->state != ATCD_CONN_STATE_W_OPEN) return ATCD_SB_CONN_OPEN;
 
       ATCD_DBG_CONN_OPENING
-      //conn->state = ATCD_CONN_STATE_OPENING;
 
       atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 15000;
@@ -710,6 +683,7 @@ uint16_t atcd_proc_step()
        * certifikaty nejak pomoci AT+FSCREATE, AT+FSWRITE, AT+SSLSETROOT aspol.
        * nezkousel jsem to
        */
+
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
         snprintf(atcd.at_cmd.cmd, 64, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
@@ -723,42 +697,37 @@ uint16_t atcd_proc_step()
       else
       {
         ATCD_DBG_CONN_PROT_ERR
-        // Osetrit ze to nastalo - call back, stav spojeni...
-        return ATCD_SB_CONN_OPEN + ATCD_SO_END;
+        return ATCD_SB_CONN_OPEN + ATCD_SO_ERR;
       }
+
     case ATCD_SB_CONN_OPEN + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 1;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
         ATCD_DBG_CONN_W_CONN
-        conn->state = ATCD_CONN_STATE_OPENING;
-        conn->timer = atcd_get_ms();
-        // asi volat callback pokud je nastaven?
+        //Pozor - stav spojeni se pomoci async msg muze zmenit jeste drive,
+        //nez se dozvime, ze je prikaz dokoncen!!! Proto nasleduje testovani stavu!
+        if(conn->state == ATCD_CONN_STATE_W_OPEN) conn->state = ATCD_CONN_STATE_OPENING;
       }
       else
       {
         ATCD_DBG_CONN_OPENING_ERR
-        //atcd.conns.conn[conn->num]  = NULL;
+        //Nechame spojeni ve stavu jak je, pokud je ATCD_CONN_STATE_W_OPEN, bude to
+        //zkouset znovu do timeoutu...
+
         if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 3))
         {
-          //mohlo se podelat GPRS, udelej reinit
-          atcd_gprs_disconnect(0); //po dokonceni disco by se mel udelat autoconnect
+          // TODO mohlo se podelat GPRS, udelej reinit, doresit autoreconect
+          atcd_gprs_disconnect(1); //po dokonceni disco by se mel udelat autoconnect
         }
-        //atcd_conn_free(conn);
-        conn->state = ATCD_CONN_STATE_W_OPENFAILED;
-        conn->timer = atcd_get_ms();
-        // asi volat call back pokud je nastaven?
-        return ATCD_SB_CONN_OPEN + ATCD_SO_END;
       }
-
       return ATCD_SB_CONN_OPEN;
 
     case ATCD_SB_CONN_OPEN + ATCD_SO_ERR:
       //Otevreni spojeni selhalo
-      //Zalogovat!
-      //bude volat call back od close, pozor...
-      //opravdu to neni reduncance - kde vsude se vola, projit..
+      ATCD_DBG_CONN_OPEN_FAIL
       atcd_conn_free(conn);
+      // TODO FAIL nebo nechat CLOSE? Fail by mel byt asi nekde jinde nez ve stavu, ne?
       conn->state = ATCD_CONN_STATE_FAIL;
       return ATCD_SB_CONN_OPEN;
 
@@ -766,6 +735,10 @@ uint16_t atcd_proc_step()
     //------------------------------------------------------------------------
     // CONN WRITE
     //------------------------------------------------------------------------
+    // TODO melo by se delat jen pokud nebezi hovor a je GPRS! (pokud neni tak se mela vsechna spojeni automaticky zrusit... Overit...)
+    //if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
+    //if(atcd.gprs.state != ATCD_GPRS_STATE_CONN) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
+
     case ATCD_SB_CONN_WRITE:
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
@@ -783,71 +756,44 @@ uint16_t atcd_proc_step()
       tx_data_len = rbuff_size(&conn->tx_rbuff);
       if(tx_data_len == 0) return ATCD_SB_CONN_WRITE;
 
-      atcd_atc_set_defaults(&atcd.at_cmd);
-      atcd.at_cmd.timeout = 30000;
-
       ATCD_DBG_CONN_SEND
-      //conn->state = ATCD_CONN_STATE_OPENING;
 
       if(tx_data_len > 512) tx_data_len = 512;
 
+      atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
       atcd.at_cmd.timeout = 30000;
       atcd.at_cmd.data = &conn->tx_rbuff;
       atcd.at_cmd.data_len = tx_data_len;
 
       sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, (unsigned int)tx_data_len);
-
-      //je to jeste potreba?
-      atcd.tx_conn_num = conn->num;
-
       atcd_atc_exec(&atcd.at_cmd);
-
-      // ze by se mel nastavit stav parseru na conn tx pending
-      // to ovsem nejde - musi se provest az ke konkretnimu atc
-      // muze byt totiz nekde hloubeji ve fronte
-      // vymyslet jak s tim
 
       // provedeni testovat
       //0, SEND OK
+      // TODO jaktoze to prochazi i bez udane odpovedi k testu?
 
     case ATCD_SB_CONN_WRITE + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 1;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
-        //necekat na vyzvu az tady
-        //nemusi byt, u A6 je vyzva jeste v tele AT prikazu
-        //vetsinou v tele prijde i +IPD
-
-        //
-        //ne ne tady uz jsou data zadana
-
         //posunout ukazovatko dat
         rbuff_seek(&conn->tx_rbuff, atcd.at_cmd.data_len);
-
         // asi volat call back pokud je nastaven?
       }
       else
       {
         ATCD_DBG_CONN_SEND_ERR
-        //conn->state = ATCD_CONN_STATE_FAIL;
-
-        // asi volat call back pokud je nastaven?
         return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;
       }
-
-    case ATCD_SB_CONN_WRITE + 2:
-      //TODO: Co to je?!
-      //at_cmd nebo at_cmd2? Nedela nic tak dam return
-      return ATCD_SB_CONN_WRITE;
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_WRITE + 2;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_WRITE + ATCD_SO_ERR;
-
       return ATCD_SB_CONN_WRITE;
 
     case ATCD_SB_CONN_WRITE + ATCD_SO_ERR:
       //Zapis do spojeni selhal
-      //Zalogovat!
+      ATCD_DBG_CONN_SEND_FAIL
+      //Uzavrit spojeni...
+      atcd_conn_close(conn);
+
       return ATCD_SB_CONN_WRITE;
 
     case ATCD_SB_CONN_WRITE + ATCD_SO_END:
@@ -876,13 +822,13 @@ uint16_t atcd_proc_step()
       if(conn == NULL || conn->state != ATCD_CONN_STATE_W_CLOSE) return ATCD_SB_CONN_CLOSE;
 
       ATCD_DBG_CONN_CLOSING
-      //conn->state = ATCD_CONN_STATE_OPENING;
 
       atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.timeout = 15000;
 
       //TODO: Tohle by nemelo fungovat - %u, CLOSE OK\r\n se odchytava jako async...
       //TODO: nebude prehlednejsi makro?
+      //TODO: JE tu nastaveny response string, mel by byt v castech vyse, kterych se to tyka
       snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPCLOSE=%u\r\n", conn->num);
       snprintf(atcd.at_cmd_result_buff, sizeof(atcd.at_cmd_result_buff), "%u, CLOSE OK\r\n", conn->num);
 
@@ -893,27 +839,21 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
         ATCD_DBG_CONN_W_CLOSE
-        conn->state = ATCD_CONN_STATE_CLOSING;
-        conn->timer = atcd_get_ms();
-        // asi volat call back pokud je nastaven?
+        //Pozor - stav spojeni se pomoci async msg muze zmenit jeste drive,
+        //nez se dozvime, ze je prikaz dokoncen!!! Proto nasleduje testovani stavu!
+        if(conn->state == ATCD_CONN_STATE_W_CLOSE) conn->state = ATCD_CONN_STATE_CLOSING;
       }
       else
       {
         ATCD_DBG_CONN_CLOSING_ERR
-        //atcd.conns.conn[conn->num]  = NULL;
-
-        //atcd_conn_free(conn);
-        //conn->state = ATCD_CONN_STATE_FAIL;
-        // asi volat call back pokud je nastaven?
         return ATCD_SB_CONN_CLOSE + ATCD_SO_ERR;
       }
       return ATCD_SB_CONN_CLOSE;
 
     case ATCD_SB_CONN_CLOSE + ATCD_SO_ERR:
       //Uzavreni spojeni selhalo
-      //Zalogovat!
-      //bude volat call back od close, pozor...
-      //opravdu to neni redundance - kde vsude se vola, projit..
+      ATCD_DBG_CONN_CLOSE_FAIL
+      // TODO FAIL nebo nechat CLOSE? Fail by mel byt asi nekde jinde nez ve stavu, ne?
       atcd_conn_free(conn);
       conn->state = ATCD_CONN_STATE_FAIL;
       return ATCD_SB_CONN_CLOSE;

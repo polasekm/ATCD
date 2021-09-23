@@ -165,14 +165,17 @@
 
   #define ATCD_DBG_CONN_OPENING        atcd_dbg_inf("ATCD: CONN: ", "Otevitam spojeni.\r\n");
   #define ATCD_DBG_CONN_PROT_ERR       atcd_dbg_err("ATCD: CONN: ", "Pokus otevrit spojeni nepodporovanym protokolem!\r\n");
-  #define ATCD_DBG_CONN_W_CONN         atcd_dbg_inf("ATCD: CONN: ", "Prikaz pro otevreni spojeni dokoncen - cekam na spojeni.\r\n");
+  #define ATCD_DBG_CONN_W_CONN         atcd_dbg_inf("ATCD: CONN: ", "Prikaz pro otevreni spojeni dokoncen.\r\n");               //TODO Prejmenovat, uz to nema mit v nazvu wait... _W
   #define ATCD_DBG_CONN_OPENING_ERR    atcd_dbg_warn("ATCD: CONN: ", "Prikaz pro otevreni spojeni skoncil chybou!\r\n");
+  #define ATCD_DBG_CONN_OPEN_FAIL      atcd_dbg_warn("ATCD: CONN: ", "Pokus otevrit spojeni selhal - bude zruseno!\r\n");
   #define ATCD_DBG_CONN_SEND           atcd_dbg_inf("ATCD: CONN: ", "Odesilam prikaz pro odeslani dat.\r\n");
   #define ATCD_DBG_CONN_SEND_ERR       atcd_dbg_warn("ATCD: CONN: ", "Prikaz pro odeslani dat skoncil chybou.\r\n");
+  #define ATCD_DBG_CONN_SEND_FAIL      atcd_dbg_warn("ATCD: CONN: ", "Pokus o zapis do spojeni selhal - spojeni bude uzavreno!\r\n");
 
   #define ATCD_DBG_CONN_CLOSING        atcd_dbg_inf("ATCD: CONN: ", "Zaviram spojeni.\r\n");
   #define ATCD_DBG_CONN_CLOSING_ERR    atcd_dbg_warn("ATCD: CONN: ", "Prikaz pro ukoceni spojeni skoncil chybou!\r\n");
-  #define ATCD_DBG_CONN_W_CLOSE        atcd_dbg_inf("ATCD: CONN: ", "Prikaz pro uzavreni spojeni dokoncen - cekam na ukonceni\r\n");
+  #define ATCD_DBG_CONN_CLOSE_FAIL     atcd_dbg_warn("ATCD: CONN: ", "Pokus zavrit spojeni selhal - bude zruseno!\r\n");
+  #define ATCD_DBG_CONN_W_CLOSE        atcd_dbg_inf("ATCD: CONN: ", "Prikaz pro uzavreni spojeni dokoncen.\r\n");              //TODO Prejmenovat, uz to nema mit v nazvu wait... _W
 
   #define ATCD_DBG_CONN_SISW_DET       atcd_dbg_inf("ATCD: CONN: ", "^SISW: x detected.\r\n");
   #define ATCD_DBG_CONN_SISW_P         atcd_dbg_inf("ATCD: CONN: ", "Prompt \"AT^SISW=x,x,x\" detected.\r\n");

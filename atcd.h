@@ -140,7 +140,7 @@ typedef struct
 
   atcd_tx_state_t tx_state;                    //transmission state
   //uint8_t  tx_pending;                         //priznak cekajicicho vysilani
-  uint8_t  tx_conn_num;
+  //uint8_t  tx_conn_num;
   uint16_t tx_data_len;
   rbuff_t  tx_rbuff;
 
