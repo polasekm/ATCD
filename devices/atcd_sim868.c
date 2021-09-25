@@ -484,7 +484,10 @@ uint16_t atcd_proc_step()
       {
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 90;
-      };
+      }
+
+      atcd_conn_reset_all();
+
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
       if(atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
@@ -584,6 +587,7 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_GPRS_INIT + 89: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
       if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_GPRS_INIT + 89;
+
     case ATCD_SB_GPRS_INIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
       if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_INIT + 90;
 
@@ -637,6 +641,7 @@ uint16_t atcd_proc_step()
       ATCD_DBG_GPRS_DEINIT_OK
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
       atcd_gprs_autoconn(); //kdyz jsme chteli conn behem deinitu tak se pozadavek zahodil
+      atcd_conn_reset_all();
       return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
     case ATCD_SB_GPRS_DEINIT + 90: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
@@ -648,6 +653,8 @@ uint16_t atcd_proc_step()
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
       atcd.gprs.ip[0] = 0;
       atcd_gprs_autoconn();
+
+      atcd_conn_reset_all();
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_END:
     //------------------------------------------------------------------------
@@ -735,11 +742,10 @@ uint16_t atcd_proc_step()
     //------------------------------------------------------------------------
     // CONN WRITE
     //------------------------------------------------------------------------
-    // TODO melo by se delat jen pokud nebezi hovor a je GPRS! (pokud neni tak se mela vsechna spojeni automaticky zrusit... Overit...)
-    //if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
-    //if(atcd.gprs.state != ATCD_GPRS_STATE_CONN) return ATCD_SB_CONN_OPEN + ATCD_SO_END;
-
     case ATCD_SB_CONN_WRITE:
+      if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_CONN_WRITE + ATCD_SO_END;
+      if(atcd.gprs.state != ATCD_GPRS_STATE_CONN) return ATCD_SB_CONN_WRITE + ATCD_SO_END;
+
       if(atcd.conns.conn_num_proc >= ATCD_CONN_MAX_NUMBER)
       {
         atcd.conns.conn_num_proc = 0;

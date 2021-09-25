@@ -22,7 +22,7 @@ void atcd_conn_proc()                    //connections processing
 
     if(conn != NULL)
     {
-      // TODO tohle je staptne, dodelat...
+      // TODO tohle je spatne, dodelat...
       if((conn->state == ATCD_CONN_STATE_W_OPEN || /*conn->state == ATCD_CONN_STATE_W_OPENFAILED ||*/
           conn->state == ATCD_CONN_STATE_OPENING || conn->state == ATCD_CONN_STATE_CLOSING))
       {
@@ -56,17 +56,18 @@ void atcd_conn_reset_all()
       if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_CLOSE) != 0) conn->callback(conn, ATCD_CONN_EV_CLOSE);
     }
   }
+
   atcd_gprs_autoconn();
 }
 //------------------------------------------------------------------------------
 void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, uint8_t *tx_buff, uint16_t tx_buff_size)     //init connection
 {
-  conn->num      = ATCD_CONN_NO_NUM;
-  conn->state    = ATCD_CONN_STATE_CLOSE;
+  conn->num        = ATCD_CONN_NO_NUM;
+  conn->state      = ATCD_CONN_STATE_CLOSE;
   
-  conn->protocol = ATCD_CONN_T_TCP;
-  conn->host     = NULL;
-  conn->port     = 0;
+  conn->protocol   = ATCD_CONN_T_TCP;
+  conn->host       = NULL;
+  conn->port       = 0;
 
   conn->timeout    = 15000;
   conn->timer      = 0;
@@ -491,7 +492,7 @@ uint8_t atcd_conn_asc_msg()
         if(conn != NULL)
         {
           //TODO pokud spojeni existuje, tak jej chceme opravdu zavrit?
-          atcd_conn_close(conn);
+          atcd_conn_close(conn);   //Timto dojde i k uzavreni neznameho spojeni na strane modemu
         }
         else
         {

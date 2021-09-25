@@ -188,7 +188,7 @@
   #define ATCD_DBG_CONN_SIS_PARAM_XE   atcd_dbg_err("ATCD: CONN: ", "SIS: x,y... detect - x mimo rozah.\r\n");
 
   #define ATCD_DBG_CONN_SEND_OK_DET    atcd_dbg_inf("ATCD: CONN: ", "x, SEND OK.\r\n");
-  #define ATCD_DBG_CONN_ALRD_CON_DET   atcd_dbg_inf("ATCD: CONN: ", "x, ALREADY CONNECT.\r\n");
+  #define ATCD_DBG_CONN_ALRD_CON_DET   atcd_dbg_err("ATCD: CONN: ", "x, ALREADY CONNECT.\r\n");
   #define ATCD_DBG_CONN_DNS_FAIL_DET   atcd_dbg_inf("ATCD: CONN: ", "DNS Fail detect.\r\n");
 
   #define ATCD_DBG_CONN_BUFF_E         atcd_dbg_warn("ATCD: CONN: ", "V bufferu spojeni neni dostatek mista pro dalsi prijem dat!\r\n");
