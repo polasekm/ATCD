@@ -21,7 +21,7 @@
 
 /* Defines -------------------------------------------------------------------*/
 
-// Stav GSM registrace zazeni
+// Stav SIM
 #define ATCD_SIM_STATE_NONE         0
 #define ATCD_SIM_STATE_WAIT         2
 #define ATCD_SIM_STATE_OK           3

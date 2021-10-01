@@ -73,6 +73,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 10))
       {
+        atcd.sim.state = ATCD_SIM_STATE_NONE;
         init_time_inner=atcd_get_ms();
         return ATCD_SB_INIT + 90;
       };

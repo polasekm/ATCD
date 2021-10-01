@@ -72,7 +72,7 @@ void atcd_reset()               //Reset zarizeni
   ATCD_DBG_RESET
   atcd_state_reset();
 
-  atcd_sw_reset();
+  //atcd_sw_reset();
   atcd_hw_reset();
   //atcd_hw_igt();
 
