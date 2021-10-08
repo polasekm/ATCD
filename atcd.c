@@ -295,6 +295,9 @@ void atcd_rx_ch(char ch)
         atcd_dbg_warn("ATCD rx: ", tmps);
         #else
         atcd_dbg_warn("ATCD rx: ", "complete but not");
+        // [1081.189] AT+GMR
+        // [1081.190] $G[1081.190] ATCD rx: complete but not[1081.191] P[1081.191] ATCD: ATC: Odesilani bylo dokoceno - prechazime na W_ECHO...
+        // [1081.192] GSA,A,1,,,,,,,,,,,,,,,*1E
         #endif
       }
       dbg_fejla=2;
