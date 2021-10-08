@@ -69,19 +69,23 @@ uint8_t atcd_gps_asc_msg()
 {
   char *p, *np, *endl;
   uint8_t cs, scs;
+  char *str;
 
   // u moemu A7 je prvni veta uvozena sekvenci nize...
   // asi osetrit co kdyby pak nebyla NMEA veta...
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+GPSRD:", strlen("+GPSRD:")) == 0)
+
+  str = atcd.parser.buff + atcd.parser.line_pos;
+
+  if(strncmp(str, "+GPSRD:", strlen("+GPSRD:")) == 0)
   {
-    atcd.parser.line_pos += strlen("+GPSRD:");
+    str += strlen("+GPSRD:");
   }
 
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GP", 3) == 0 || //GPS
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GN", 3) == 0 || //"nejlepsi" z GP, GL, GA, BD
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GA", 3) == 0 || //Galileo
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$GL", 3) == 0 || //Glonass
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "$BD", 3) == 0)   //Beidou
+  if(strncmp(str, "$GP", 3) == 0 || //GPS
+     strncmp(str, "$GN", 3) == 0 || //"nejlepsi" z GP, GL, GA, BD
+     strncmp(str, "$GA", 3) == 0 || //Galileo
+     strncmp(str, "$GL", 3) == 0 || //Glonass
+     strncmp(str, "$BD", 3) == 0)   //Beidou
   {
     ATCD_DBG_GPS_SENTECE
 
@@ -93,10 +97,10 @@ uint8_t atcd_gps_asc_msg()
       return 1;
     }
 
-    p    = atcd.parser.buff + atcd.parser.line_pos + strlen("$GP");
+    p    = str + strlen("$GP");
     endl = atcd.parser.buff + atcd.parser.buff_pos;
 
-    cs = atcd_gps_checksum(atcd.parser.buff + atcd.parser.line_pos + 1);
+    cs = atcd_gps_checksum(str + 1);
     scs = strtoul(endl - 4, NULL, 16);
 
     if(cs != scs)
@@ -107,7 +111,7 @@ uint8_t atcd_gps_asc_msg()
       return 1;
     }
 
-    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "RMC,", strlen("RMC,")) == 0)
+    if(strncmp(p, "RMC,", strlen("RMC,")) == 0)
     {
       //RMC (Recommended Minimum Navigation Information)
       //Minimální doporučená informace pro navigac
@@ -210,7 +214,8 @@ uint8_t atcd_gps_asc_msg()
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
     }
-    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "GSA,", strlen("GSA,")) == 0)
+
+    if(strncmp(p, "GSA,", strlen("GSA,")) == 0)
     {
       //GSA, aktivní satelity a DOP (Dilution Of Precision)
       ATCD_DBG_GPS_GSA
@@ -357,7 +362,8 @@ uint8_t atcd_gps_asc_msg()
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
     }
-    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "GGA,", strlen("GGA,")) == 0)
+
+    if(strncmp(p, "GGA,", strlen("GGA,")) == 0)
     {
       uint8_t ggavalid=0;
       //GGA - zeměpisná délka a šířka, geodetická výška, čas určení souřadnic
@@ -481,7 +487,7 @@ uint8_t atcd_gps_asc_msg()
       return 1;
     }
 
-    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "GSV,", strlen("GSV,")) == 0)
+    if(strncmp(p, "GSV,", strlen("GSV,")) == 0)
     {
       //GSV (Satellites in View)
       // Informace o družicích
@@ -510,7 +516,7 @@ uint8_t atcd_gps_asc_msg()
       return 1;*/
     }
 
-    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "VTG,", strlen("VTG,")) == 0)
+    if(strncmp(p, "VTG,", strlen("VTG,")) == 0)
     {
       ATCD_DBG_GPS_VTG
 
@@ -525,7 +531,7 @@ uint8_t atcd_gps_asc_msg()
       return 1;*/
     }
 
-    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "ACCURACY,", strlen("ACCURACY,")) == 0)
+    if(strncmp(p, "ACCURACY,", strlen("ACCURACY,")) == 0)
     {
       ATCD_DBG_GPS_ACC
 
@@ -540,7 +546,7 @@ uint8_t atcd_gps_asc_msg()
       return 1;*/
     }
 
-    if(strncmp(atcd.parser.buff + atcd.parser.line_pos + strlen("$GP"), "HWBIAS,", strlen("HWBIAS,")) == 0)
+    if(strncmp(p, "HWBIAS,", strlen("HWBIAS,")) == 0)
     {
       ATCD_DBG_GPS_BIAS
 
