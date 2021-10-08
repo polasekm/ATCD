@@ -468,6 +468,35 @@ uint8_t atcd_conn_asc_msg()
       //      do async modu, kdy je odesle hned a ohlasi "DATA ACCEPT:<n>,<length>".
       //      Prepina se pomoci AT+CIPQSEND.
       //      M.P.: Jinak to sem naptri, ukonceni ATC by melo byy reseno v modulu ATC...
+
+      /* MV: a co reknes na tohle?
+[17.037] AT+CIPSEND=0,28
+[17.042] ATCD: ATC: Odesilani bylo dokoceno - prechazime na W_ECHO...
+[17.043] AT+CIPSEND=0,28
+[17.045] ATCD: ATC: ECHO detected.
+[17.045] > [17.046] ATCD: ATC: Prompt ">" detected.
+[17.046] ATCD: ATC: Odesilani dat bylo zahajeno.
+[17.046]  #06 00 00 65 00 00 0F A5 15 06 07 12 24 1E 34 30 30 35 31 36 36 35 30 30 30 30 30 90
+[17.053] ATCD: ATC: Odesilani bylo dokoceno - prechazime na W_END...
+[17.054]  #06 00 00 65 00 00 0F A5 15 06 07 12 24 1E 34 30 30 35 31 36 36 35 30 30 30 30 30 90
+$PMTK011,MTKGPS*08
+      -> unsolicited, preskoceno
+$PMTK010,001*2E
+      -> unsolicited, preskoceno
+
+1, CONNECT OK
+[17.281] ATCD: CONN: x, CONNECT OK detect.
+[17.282]
+>>> coap_make_request
+
+[17.283] send request
+[17.283] wait for response ...
+[17.284] ATCD: CONN: Ukladam data k odeslani do bufferu.
+[17.791]
+0, SEND OK
+[17.793] ATCD: CONN: x, SEND OK.
+[17.794] ATCD: ATC: OK detected.
+       */
       if(atcd.parser.at_cmd_top != NULL && atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_END)
       {
         // AT prikaz byl prave dokoncen

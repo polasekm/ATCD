@@ -559,6 +559,15 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 10:
       if((atcd.at_cmd.state == ATCD_ATC_STATE_W_END) && (atcd.at_cmd.resp_len > 0))
       {
+/*
+[16.023] AT+CIFSR
+[16.175] ATCD: ATC: Odesilani bylo dokoceno - prechazime na W_ECHO...
+[16.178] AT+CIFSR
+[16.180] ATCD: ATC: ECHO detected.
+[16.180] 10.173.126.18
+[16.182] ATCD: ATC: OK detected.
+
+ */
         size_t iplen;
         atcd.at_cmd.resp[atcd.at_cmd.resp_len] = '\0';
         iplen = strspn(atcd.at_cmd.resp, "1234567890.");
