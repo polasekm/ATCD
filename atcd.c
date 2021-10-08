@@ -7,6 +7,7 @@
 //------------------------------------------------------------------------------
 #include "atcd.h"
 
+#define DEBUG_TX_COMPLETE 0
 atcd_t atcd;
 
 extern rbuff_t atcd_rx_ring_buff;         //kruhovy buffer pro prijimana data
@@ -145,17 +146,37 @@ void atcd_set_system_callback(uint8_t eventmask, void (*system_callback)(uint8_t
   atcd.callback = system_callback;
 }
 //------------------------------------------------------------------------------
+#if DEBUG_TX_COMPLETE
+uint32_t rxed1, rxed2;
+atcd_tx_state_t txst1, txst2;
+uint8_t echo1, echo2;
+int atst1, atst2;
+#endif
+
 void atcd_proc()                         //data processing
 {
   atcd_hw_proc();
-  atcd_atc_proc();                       //AT commands processing
+#if DEBUG_TX_COMPLETE
+  rxed1=rbuff_size(&atcd_rx_ring_buff); txst1=atcd.tx_state; echo1=atcd.parser.echo_en;
+  if (atcd.parser.at_cmd_top)
+    atst1=atcd.parser.at_cmd_top->state;
+  else
+    atst1=12345;
+#endif
+  //sel do atcd_rx_proc   atcd_atc_proc(0);                       //AT commands processing
   // mozna radku vyse prohodit - atc se pred echem musi prenastavit
   // docasne opraveno takto, dole byt take musi - po prijmu se musi reagovat na pripadne udalosti
   // potiz je s dokoncenym vysilanim, kdy tak separovat...
-
+#if 0
+  rxed2=rbuff_size(&atcd_rx_ring_buff);  txst2=atcd.tx_state; echo2=atcd.parser.echo_en;
+  if (atcd.parser.at_cmd_top)
+    atst2=atcd.parser.at_cmd_top->state;
+  else
+    atst2=12345;
+#endif
   atcd_rx_proc();                        //Zpracovani prijatych dat
   atcd_parser_proc();                    //Parser processing
-  atcd_atc_proc();                       //AT commands processing 
+  atcd_atc_proc(1);                       //AT commands processing
 
   //----------------------------------------------
   if(atcd.state == ATCD_STATE_STARTING)
@@ -249,6 +270,7 @@ void atcd_rx_proc()                       //proc rx data
   n = rbuff_read_b(&atcd_rx_ring_buff, &ch);
   while(n == 1)
   {
+    atcd_atc_proc(0); //protoze behem atcd_rx_ch se muze 1) zacit at_cmd 2) dokoncit odesilani
     atcd_rx_ch((char) ch);
     n = rbuff_read_b(&atcd_rx_ring_buff, &ch);
   }
@@ -257,7 +279,30 @@ void atcd_rx_proc()                       //proc rx data
 void atcd_rx_ch(char ch)
 {
   atcd_at_cmd_t *at_cmd;
-  
+
+  static uint8_t dbg_fejla=0;
+  if (atcd.parser.at_cmd_top)
+    if(atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_TX && atcd.tx_state == ATCD_P_TX_COMPLETE)
+    {
+      if (dbg_fejla==0)
+      {
+        #if DEBUG_TX_COMPLETE
+        char tmps[100];
+        snprintf(tmps, sizeof(tmps), "complete but not: {%u %d %d %d} -> {%u %d %d %d} -> {%u %d %d %d}\r\n",
+            (unsigned int)rxed1, txst1, echo1, atst1,
+            (unsigned int)rxed2, txst2, echo2, atst2,
+            (unsigned int)rbuff_size(&atcd_rx_ring_buff), atcd.tx_state, atcd.parser.echo_en, atcd.parser.at_cmd_top->state);
+        atcd_dbg_warn("ATCD rx: ", tmps);
+        #else
+        atcd_dbg_warn("ATCD rx: ", "complete but not");
+        #endif
+      }
+      dbg_fejla=2;
+      __asm volatile ("nop"); //nevim v jakem #include je definovany __NOP(); //prejit do state == ATCD_ATC_STATE_W_ECHO ?
+    }
+  if (dbg_fejla>0)
+    dbg_fejla--;
+
   //TODO: Co to je?
   /*if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&

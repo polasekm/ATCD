@@ -141,7 +141,7 @@ atcd_r_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res)   //
   return atcd_atc_exec(at_cmd);
 }
 //------------------------------------------------------------------------------
-void atcd_atc_proc()                     //AT commands processing 
+void atcd_atc_proc(uint8_t timeouts_also)                     //AT commands processing
 {
   atcd_at_cmd_t *at_cmd;
  
@@ -179,7 +179,7 @@ void atcd_atc_proc()                     //AT commands processing
       ATCD_DBG_ATC_W_END
       at_cmd->state = ATCD_ATC_STATE_W_END;                   //Prejdeme do stavu cekani na konec odpovedi AT prikazu
     }
-    else if((at_cmd->state != ATCD_ATC_STATE_WAIT && at_cmd->state != ATCD_ATC_STATE_DONE) && (atcd_get_ms() - atcd.parser.at_cmd_timer > at_cmd->timeout))
+    else if(timeouts_also && (at_cmd->state != ATCD_ATC_STATE_WAIT && at_cmd->state != ATCD_ATC_STATE_DONE) && (atcd_get_ms() - atcd.parser.at_cmd_timer > at_cmd->timeout))
     {
       //AT prikazu vyprsel timeout
       ATCD_DBG_ATC_TIM
@@ -400,6 +400,10 @@ uint8_t atcd_atc_ln_proc()
         if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_ECHO) != 0) at_cmd->callback(ATCD_ATC_EV_ECHO);
         return 1;
       }
+      else if ((atcd.parser.buff_pos>=atcd.parser.line_pos+2) && (atcd.parser.buff[atcd.parser.line_pos]=='\r') && (atcd.parser.buff[atcd.parser.line_pos+1]=='\n')) //ignoruj prazdny radek
+        return 0;
+      else
+        atcd_dbg_err("@sys unso", "xxx"); //TODO: smazat
     } 
     else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
     {
