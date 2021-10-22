@@ -160,6 +160,9 @@
   #define ATCD_DBG_CONN_CLOSE_DET      atcd_dbg_inf("ATCD: CONN: ", "x, CLOSED detect.\r\n");
   #define ATCD_DBG_CONN_CLOSE_RNG_E    atcd_dbg_err("ATCD: CONN: ", "x, CLOSED detect - x mimo rozah.\r\n");
 
+  #define ATCD_DBG_CONN_FAIL_DET      atcd_dbg_inf("ATCD: CONN: ", "x, CONNECT FAIL detect.\r\n");
+  #define ATCD_DBG_CONN_FAIL_RNG_E    atcd_dbg_err("ATCD: CONN: ", "x, CONNECT FAIL detect - x mimo rozah.\r\n");
+
   #define ATCD_DBG_CONN_CLOSE_OK_DET   atcd_dbg_inf("ATCD: CONN: ", "x, CLOSE OK detect.\r\n");
   #define ATCD_DBG_CONN_CLOSE_OK_RE    atcd_dbg_err("ATCD: CONN: ", "x, CLOSE OK detect - x mimo rozah.\r\n");
 

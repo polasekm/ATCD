@@ -267,7 +267,7 @@ uint8_t atcd_conn_asc_msg()
   }
   #endif /* ATCD_DATA_RX_NL */
 
-  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr
+  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr //TODO dodelat !
   {
     if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
     {
@@ -413,6 +413,34 @@ uint8_t atcd_conn_asc_msg()
         }
       }
       else ATCD_DBG_CONN_CLOSE_OK_RE
+
+      atcd.parser.buff_pos = atcd.parser.line_pos;  //vymaze prijaty radek
+      return 1;
+    }
+    else if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CONNECT FAIL\r\n", strlen(", CONNECT FAIL\r\n")) == 0)
+    {
+      conn_id = (uint8_t)atoi(atcd.parser.buff + atcd.parser.line_pos);
+
+      if(conn_id < ATCD_CONN_MAX_NUMBER)
+      {
+        ATCD_DBG_CONN_FAIL_DET
+        conn = atcd.conns.conn[conn_id];
+        if(conn != NULL)
+        {
+          atcd.conns.conn[conn_id] = NULL;
+          conn->state = ATCD_CONN_STATE_FAIL;
+          conn->num   = ATCD_CONN_NO_NUM;
+
+          atcd.parser.buff_pos = atcd.parser.line_pos;
+          if(conn->callback != NULL && (conn->cb_events & ATCD_CONN_EV_FAIL) != 0) conn->callback(conn, ATCD_CONN_EV_FAIL);
+          atcd_gprs_autoconn();
+        }
+        else
+        {
+          ATCD_DBG_CONN_UNREG
+        }
+      }
+      else ATCD_DBG_CONN_FAIL_RNG_E
 
       atcd.parser.buff_pos = atcd.parser.line_pos;  //vymaze prijaty radek
       return 1;
