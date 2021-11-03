@@ -402,8 +402,8 @@ uint8_t atcd_atc_ln_proc()
       }
       else if ((atcd.parser.buff_pos>=atcd.parser.line_pos+2) && (atcd.parser.buff[atcd.parser.line_pos]=='\r') && (atcd.parser.buff[atcd.parser.line_pos+1]=='\n')) //ignoruj prazdny radek
         return 0;
-      else
-        atcd_dbg_err("@sys unso", "xxx"); //TODO: smazat
+      //Martina to rusi else
+        //Martina to rusi atcd_dbg_err("@sys unso", "xxx"); //TODO: smazat   asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
     } 
     else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
     {
