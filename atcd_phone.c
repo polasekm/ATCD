@@ -349,7 +349,7 @@ uint8_t atcd_phone_sms_proc(char ch)
   if(atcd.parser.mode == ATCD_P_MODE_SMS)
   {
     // Pokud je v bufferu misto
-    if(atcd.parser.buff_pos - atcd.parser.line_pos <= 160)
+    if(atcd.parser.buff_pos - atcd.parser.line_pos < sizeof(atcd.phone.sms_message_buff)-1) //max [159]
     {
       // Zapise prijaty byte do bufferu
       atcd.phone.sms.message[atcd.parser.buff_pos - atcd.parser.line_pos] = ch;
