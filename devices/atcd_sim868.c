@@ -177,6 +177,11 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 22;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG=2\r\n");
+    case ATCD_SB_INIT + 23:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 23;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
