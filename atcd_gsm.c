@@ -34,10 +34,14 @@ uint8_t atcd_gsm_asc_msg()
 {
   uint8_t val;
   uint8_t state_p;
+  const char *str = atcd.parser.buff + atcd.parser.line_pos;
 
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CREG: ", strlen("+CREG: ")) == 0)
-  {
-    val = (uint8_t)atoi(atcd.parser.buff + atcd.parser.buff_pos - ATCD_RX_NL_LEN - 1);
+  if(strncmp(str, "+CREG: ", strlen("+CREG: ")) == 0)
+  { //muze prijit +CREG: 0,1 ale taky +CREG: 2,1,"9664","3873" a nevyzadana +CREG: 1 nebo +CREG: 1,"9664","3873"
+    if ((str[8]=='\r') || (str[8]==0) || ((str[8]==',') && (str[9]=='\"')))
+      val = (uint8_t)atoi(str+7);
+    else
+      val = (uint8_t)atoi(str+9);
 
     if(val <= ATCD_REG_STATE__MAX)
     {

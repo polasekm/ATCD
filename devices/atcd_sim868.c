@@ -231,6 +231,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 
       //Zpracovat stav registrace...
+      //odpoved se chyta jako unso
 
       // Doplnit sleepmode...
 
