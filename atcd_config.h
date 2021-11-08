@@ -284,7 +284,7 @@
 #endif /* ATCD_USE_DEVICE */
 //-----------------------------
 #if(ATCD_USE_DEVICE == ATCD_SIM868)
-  #define ATCD_STR_START_SEQ        "\r\nRDY\r\n"
+  #define ATCD_STR_START_SEQ        "RDY\r\n"//nemuze zacinat \r\n protoze minuly radek se zpracuje   "\r\nRDY\r\n"
   #define ATCD_STR_DATA_RX          "+RECEIVE,"
 
   #define ATCD_STR_SIM_READY        "+CPIN: READY"

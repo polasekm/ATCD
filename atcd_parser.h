@@ -30,7 +30,7 @@ typedef enum
   //ATCD_P_MODE_WAKING,         //cekani na probuzeni
   ATCD_P_MODE_IDLE,           //cekani nez poslu modem spat
   ATCD_P_MODE_ATC,            //cekani na OK, muze si odskocit do TX_PEND a PROMPT
-  ATCD_P_MODE_IPD,
+  ATCD_P_MODE_IPD, //TODO: potrebujeme taky rezim "preskoc X bajtu" kvuli echo na AT+CIPSEND, potom nastavit line_pos:=buff_pos a vratit do _ATC. Takhle chytim aspon druhy radek
   ATCD_P_MODE_SMS
 
 } atcd_parser_mode_t;
@@ -57,8 +57,8 @@ typedef struct
 {
   char buff[ATCD_P_BUFF_SIZE];    //rx data buffer
 
-  uint16_t buff_pos;              //position in buffer
-  uint16_t line_pos;              //last line position in buffer
+  uint16_t buff_pos;              //position in buffer;           buff[line_pos..buff_pos-1]=latest line
+  uint16_t line_pos;              //last line position in buffer; buff[0..line_pos-1]=previous lines
 
   atcd_parser_mode_t mode;        //parser mode
   uint8_t echo_en;                //AT cmd echo enable

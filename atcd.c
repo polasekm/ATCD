@@ -81,6 +81,21 @@ void atcd_reset()               //Reset zarizeni
   atcd.state = ATCD_STATE_STARTING;
 }
 //------------------------------------------------------------------------------
+void atcd_begin()
+{
+  if (atcd.state != ATCD_STATE_STARTING)
+    atcd_dbg_err("atcd_begin: ", "not in STARTING");
+  else
+  {
+    atcd.state = ATCD_STATE_NO_INIT;
+    atcd.parser.buff_pos = atcd.parser.line_pos;
+    atcd_state_reset();
+    atcd.proc_step = 0; //Asi je dublovano, nastavi se uz v resetu
+    atcd.err_max   = 5;
+    if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
+  }
+}
+//------------------------------------------------------------------------------
 void atcd_state_reset()                  //state machine reset
 {
   atcd_conns_reset();
@@ -191,9 +206,9 @@ void atcd_proc()                         //data processing
     }
 
     #if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
-      // Modemy, ktere nehlasi svuj start
-      atcd.state = ATCD_STATE_NO_INIT;
-      atcd.timer = atcd_get_ms();
+      // Modemy, ktere nehlasi svuj start...
+      // ...cekaji na atcd_begin() (dokonceni IGNITION) atcd.state = ATCD_STATE_NO_INIT_;
+      // atcd.timer = atcd_get_ms();
     #endif
   }
   else if(atcd.state == ATCD_STATE_NO_INIT)
@@ -373,17 +388,13 @@ void atcd_rx_ch(char ch)
   //------------------------------
   // Zpracovani startovaci sekvence
   //------------------------------
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
-  {
-    ATCD_DBG_BOOT_SEQ
-    atcd.state = ATCD_STATE_NO_INIT;
-    atcd.parser.buff_pos = atcd.parser.line_pos;
-    atcd_state_reset();
-    atcd.proc_step = 0; //Asi je dublovano, nastavi se uz v resetu
-    atcd.err_max   = 5;
-    if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
-    return;
-  }
+  if (atcd.parser.buff_pos>=atcd.parser.line_pos+strlen(ATCD_STR_START_SEQ))
+    if(strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
+    {
+      ATCD_DBG_BOOT_SEQ
+      atcd_begin();
+      //RDY se musi zahodit z bufferu return;
+    }
   //------------------------------
   // Aktualizace zacatku posledniho radku
   // Zalezi, jesli se zrovna zpracovava nejaky AT prikaz

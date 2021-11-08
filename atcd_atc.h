@@ -38,6 +38,20 @@ typedef enum
   ATCD_ATC_STATE_W_PROMPT = 5,
   ATCD_ATC_STATE_TX_DATA  = 6,
   ATCD_ATC_STATE_W_END    = 7
+  /*
+  TODO: asi by se musel rozdelit W_END na W_REPLY a W_OPRAVDU_END
+  jenze to by kazdy prikaz muset rict kde prepnout z reply na end
+  nebo to proste nabastlit jenom k AT+CIPSEND
+  nebo rozpoznat $PMTK ze tam nepatri
+
+  [16.905] AT+CIPSEND=0,28
+  [16.909] AT+CIPSEND=0,28
+  > [16.911]  06 00 00e 00 00 0F A0 15 06 07 12$ 1E4000166500000 81
+  [16.915]  06 00 00e 00 00 0F A0 15 06 07 12$ 1E4000166500000 81
+  $PMTK011,MTKGPS*08    -> chape se jako odpoved na AT+CIPSEND
+  $PMTK010,001*2E
+  0, SEND OK            -> teprve tohle ukonci W_END
+   */
 
 } atcd_atc_state_t;
 

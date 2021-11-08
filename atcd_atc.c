@@ -401,7 +401,11 @@ uint8_t atcd_atc_ln_proc()
         return 1;
       }
       else if ((atcd.parser.buff_pos>=atcd.parser.line_pos+2) && (atcd.parser.buff[atcd.parser.line_pos]=='\r') && (atcd.parser.buff[atcd.parser.line_pos+1]=='\n')) //ignoruj prazdny radek
-        return 0;
+      {
+        atcd.parser.buff_pos = 0;
+        atcd.parser.line_pos = 0;
+        return 1;
+      }
       //Martina to rusi else
         //Martina to rusi atcd_dbg_err("@sys unso", "xxx"); //TODO: smazat   asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
     } 
@@ -465,6 +469,19 @@ uint8_t atcd_atc_ln_proc()
         atcd_atc_complete(at_cmd);
         return 1;
       }
+
+      //TODO: predelat cely ATCD_ATC_STATE_W_END, nebo zde odchytit $PMTK...
+      if (strncmp(at_cmd->cmd, "AT+CIPSEND=", 11)==0)
+        atcd.parser.line_pos=atcd.parser.line_pos;
+      if (atcd.parser.buff_pos > atcd.parser.line_pos+5)
+      {
+        if (strncmp(atcd.parser.buff+atcd.parser.line_pos, "$PMTK", 5)==0)
+        { //idealne bych dal return 0 ale tam mi smazou dosud prijatou cast odpovedi
+          if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
+          atcd.parser.buff_pos=atcd.parser.line_pos; //zahodit posledni radek ($PMTK...)
+          return 1;
+        }
+      };
 
       //AT prikaz nebyl dokoncen a v radce je nejaky text - zkopirujeme ji do odpovedi...
       if(at_cmd->resp != atcd.parser.buff)              //Pokud ma ATC vlastni buffer

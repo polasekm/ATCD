@@ -189,6 +189,7 @@ typedef struct
 void atcd_init();                //init AT command device
 void atcd_reset();               //reset AT command device
 void atcd_start();               //start AT command device
+void atcd_begin();               //received RDY or MODEM_STAT went active
 
 //void atcd_set_powersave(atcd_powersave_req_t mode);   //enable power saving
 //void atcd_set_powersave_hwsetter(void (*powersave_hwsetter)(uint8_t awake));
