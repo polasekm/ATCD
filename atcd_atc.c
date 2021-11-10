@@ -199,6 +199,11 @@ void atcd_atc_proc(uint8_t timeouts_also)                     //AT commands proc
       {
         //AT prikaz mel odesilat data do kozole
         ATCD_DBG_ATC_ESC_DATA
+        {
+          char tmps[50];
+          snprintf(tmps, sizeof(tmps), "timeout->send %d whites\n", at_cmd->data_len + 1);
+          atcd_dbg_err("@atcd error: ", tmps);
+        }
         //TODO: poresit abu se neprali o ukazatel na TX data, pokud se zrovna vysila...
         atcd_hw_tx_esc("/r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
       }
@@ -325,6 +330,11 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
     {
       //AT prikaz mel odesilat data do kozole
       ATCD_DBG_ATC_ESC_DATA
+      {
+        char tmps[50];
+        snprintf(tmps, sizeof(tmps), "cancel->send %d whites\n", at_cmd->data_len + 1);
+        atcd_dbg_err("@atcd error: ", tmps);
+      }
       //TODO: poresit abu se neprali o ukazatel na TX data, pokud se zrovna vysila...
       atcd_hw_tx_esc("/r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
     }
@@ -406,8 +416,21 @@ uint8_t atcd_atc_ln_proc()
         atcd.parser.line_pos = 0;
         return 1;
       }
-      //Martina to rusi else
-        //Martina to rusi atcd_dbg_err("@sys unso", "xxx"); //TODO: smazat   asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
+      else //to je nejdulezitejsi chyba ze vsech - prislo poskozene echo (nebo mozna nejake unso)
+      {
+        if ((atcd.parser.buff_pos-atcd.parser.line_pos>=3) &&
+            (atcd.parser.buff[atcd.parser.line_pos]=='A') &&
+            (atcd.parser.buff[atcd.parser.line_pos+1]=='T')) //echo ale ne to nase
+        { //ztraceji se znaky v echu, ladim jak moc. Prikazy slysi spravne
+          atcd_dbg_err("@sys unso: ", "echo-bad"); //asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
+          atcd.stat.echo_bad++;
+        }
+        else
+        {
+          atcd_dbg_warn("@sys unso: ", "echo-uns");
+          atcd.stat.echo_uns++;
+        }
+      }
     } 
     else if(at_cmd->state == ATCD_ATC_STATE_W_END) 
     {

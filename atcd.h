@@ -131,6 +131,8 @@ typedef struct
   uint32_t wake_time;
   uint32_t awake_time_acc;
 
+  uint32_t echo_bad;
+  uint32_t echo_uns;
 } atcd_stat_t;
 
 typedef struct

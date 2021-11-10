@@ -40,6 +40,9 @@ void atcd_init()                          //init AT command device
   atcd.stat.wake_time = 0;
   atcd.stat.awake_time_acc = 0;
 
+  atcd.stat.echo_bad = 0;
+  atcd.stat.echo_uns = 0;
+
   atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
