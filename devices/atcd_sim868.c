@@ -814,7 +814,7 @@ uint16_t atcd_proc_step()
       //Zapis do spojeni selhal
       ATCD_DBG_CONN_SEND_FAIL
       //Uzavrit spojeni...
-      atcd_conn_close(conn);
+      atcd_conn_close(conn, 1);
 
       return ATCD_SB_CONN_WRITE;
 

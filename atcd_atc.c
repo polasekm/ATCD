@@ -422,12 +422,12 @@ uint8_t atcd_atc_ln_proc()
             (atcd.parser.buff[atcd.parser.line_pos]=='A') &&
             (atcd.parser.buff[atcd.parser.line_pos+1]=='T')) //echo ale ne to nase
         { //ztraceji se znaky v echu, ladim jak moc. Prikazy slysi spravne
-          atcd_dbg_err("@sys unso: ", "echo-bad"); //asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
+          atcd_dbg_err("@sys unso: ", "echo-bad\n"); //asi kdyz cekam echo a neprijde echo ani prazdny radek, obcas se to zrejme deje
           atcd.stat.echo_bad++;
         }
         else
         {
-          atcd_dbg_warn("@sys unso: ", "echo-uns");
+          atcd_dbg_warn("@sys unso: ", "echo-uns\n");
           atcd.stat.echo_uns++;
         }
       }

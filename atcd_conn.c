@@ -29,7 +29,7 @@ void atcd_conn_proc()                    //connections processing
         if(atcd_get_ms() - conn->timer > conn->timeout)
         {
           ATCD_DBG_CONN_TIM
-          atcd_conn_close(conn);
+          atcd_conn_close(conn, 1);
         }
       }
     }
@@ -141,10 +141,11 @@ uint32_t atcd_conn_write_rb(atcd_conn_t *conn, rbuff_t *data)   //write data to 
     return 0;
 }
 //------------------------------------------------------------------------------
-void atcd_conn_close(atcd_conn_t *conn)                       //close connection
+void atcd_conn_close(atcd_conn_t *conn, uint8_t force_free)                       //close connection
 {
   //if(conn->state != ATCD_CONN_STATE_W_CLOSE && conn->state != ATCD_CONN_STATE_CLOSING)
-  if(conn->state == ATCD_CONN_STATE_OPEN || conn->state == ATCD_CONN_STATE_OPENING)
+  if(conn->state == ATCD_CONN_STATE_OPEN || conn->state == ATCD_CONN_STATE_OPENING ||
+     (force_free && conn->state == ATCD_CONN_STATE_W_OPEN)) //kdyz prislo x, ALREADY CONNECT musim se zbavit toho co tam je
   {
     ATCD_DBG_CONN_CLOSE_W
 
@@ -549,7 +550,7 @@ $PMTK010,001*2E
         if(conn != NULL)
         {
           //TODO pokud spojeni existuje, tak jej chceme opravdu zavrit?
-          atcd_conn_close(conn);   //Timto dojde i k uzavreni neznameho spojeni na strane modemu
+          atcd_conn_close(conn, 1);   //Timto dojde i k uzavreni neznameho spojeni na strane modemu
         }
         else
         {
