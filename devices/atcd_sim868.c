@@ -14,6 +14,7 @@ extern atcd_t atcd;
 
 uint32_t init_time_inner;
 uint32_t init_time_outer;
+uint32_t step_time;
 
 struct  //je potreba vsechny chyby pocitat zvlast, aby jedna neresetovala druhou
 {
@@ -263,9 +264,16 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
 */
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r\n");  // TCP/UDP connections status
+      atcd.conns.awaitingC5__=1;
+      step_time=atcd_get_ms();
     case ATCD_SB_STAT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+      //if ((atcd.conns.awaitingC5__) && (atcd_get_ms()-step_time<100)) //normalne asi 25ms
+      if ((atcd.conns.awaitingC5__) && (atcd_get_ms()-step_time<100)) //normalne asi 25ms
+      { //prijem z modemu ho tak zdrzuje ze se sem vetsinou prijde az po prijeti "C5: ," ale ne uplne vzdy
+        return ATCD_SB_STAT+6;
+      };
 
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSQ\r\n");      // Signal quality
     case ATCD_SB_STAT + 7:
@@ -322,7 +330,7 @@ uint16_t atcd_proc_step()
           {
           case 0: atcd.phone.state=ATCD_PHONE_STATE_IDLE; break;
           case 3: atcd.phone.state=ATCD_PHONE_STATE_RING; break;
-          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break;
+          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break; //a nebo taky out
           }
 
           //cpas2 neresit, nema signal...
@@ -356,7 +364,7 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_STAT + ATCD_SO_ERR:
       // Dotazovani na stav selhalo
-      if(atcd.phone.state != ATCD_PHONE_STATE_CALL)
+      if(atcd.phone.state != ATCD_PHONE_STATE_CALL) // || CALL_OUT
       {
         ATCD_DBG_STAT_ERR
         atcd.err_cnt++;

@@ -29,6 +29,7 @@ typedef struct
   uint8_t conn_num_proc;          //number of processing connections
   
   uint32_t timer;                 //connection timer
+  uint8_t awaitingC5__;
 
 } atcd_conns_t;
 

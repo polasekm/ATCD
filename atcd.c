@@ -43,6 +43,8 @@ void atcd_init()                          //init AT command device
   atcd.stat.echo_bad = 0;
   atcd.stat.echo_uns = 0;
 
+  memset(&atcd.profiler, 0x00, sizeof(atcd.profiler));
+
   atcd_sim_init();
   atcd_gsm_init();
   atcd_phone_init();
@@ -296,6 +298,8 @@ void atcd_rx_proc()                       //proc rx data
 //------------------------------------------------------------------------------
 void atcd_rx_ch(char ch)
 {
+  uint32_t tick_start=atcd_get_ms();
+  uint32_t time_dbgin, time_dataproc;
   atcd_at_cmd_t *at_cmd;
 
   static uint8_t dbg_fejla=0;
@@ -332,11 +336,15 @@ void atcd_rx_ch(char ch)
   { }
   else*/
   atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
-
+  time_dbgin=atcd_get_ms();
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
-  if(atcd_conn_data_proc(ch) != 0) return;       // Zpracovani prichozich dat TCP/UDP spojeni
+  if ((atcd_conn_data_proc(ch) != 0) ||       // Zpracovani prichozich dat TCP/UDP spojeni
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
-  if(atcd_phone_sms_proc(ch) != 0) return;      // Zpracovani prichozich dat prijimane SMS zpravy
+      (atcd_phone_sms_proc(ch) != 0))         // Zpracovani prichozich dat prijimane SMS zpravy
+  {
+    atcd.profiler.return1+=(atcd_get_ms()-tick_start);
+    return;
+  }
   //---------------------------------------
   // Test volneho mista v bufferu
   if(atcd.parser.buff_pos >= ATCD_P_BUFF_SIZE - 1)
@@ -369,10 +377,15 @@ void atcd_rx_ch(char ch)
   //------------------------------
   // Pokud se nejedna o konec radku
   //------------------------------
+  time_dataproc=atcd_get_ms();
   if(ch != '\n')
   {
-    if(atcd_conn_ipd_tst() != 0) return;
-    if(atcd_atc_prompt_tst() != 0) return;
+    if ((atcd_conn_ipd_tst() != 0) ||
+        (atcd_atc_prompt_tst() != 0))
+    { }
+    atcd.profiler.dbgin+=time_dbgin-tick_start;         //48
+    atcd.profiler.dataproc+=time_dataproc-tick_start;   //57
+    atcd.profiler.return2+=(atcd_get_ms()-tick_start);  //61
     return;
   }
   //------------------------------
@@ -382,12 +395,15 @@ void atcd_rx_ch(char ch)
   // Je potreba volat jen pokud doslo skutecne k detekci, neboi je to ve stavu mimo ATC...
   //if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
 
-  if(atcd_conn_asc_msg() != 0) return;  // Zpracovani TCP/UDP spojeni
-  if(atcd_wifi_asc_msg() != 0) return;  // Zpracovani udalosti WLAN
-  if(atcd_gsm_asc_msg() != 0) return;   // Zpracovani udalosti GSM site
-  if(atcd_phone_asc_msg() != 0) return; // Zpracovani udalosti telefonu
-
-  if(atcd_gps_asc_msg() != 0) return;   // Zpracovani udalosti GPS
+  if ((atcd_conn_asc_msg() != 0) ||  // Zpracovani TCP/UDP spojeni
+      (atcd_wifi_asc_msg() != 0) ||  // Zpracovani udalosti WLAN
+      (atcd_gsm_asc_msg() != 0) ||   // Zpracovani udalosti GSM site
+      (atcd_phone_asc_msg() != 0) || // Zpracovani udalosti telefonu
+      (atcd_gps_asc_msg() != 0))   // Zpracovani udalosti GPS
+  {
+    atcd.profiler.return3+=(atcd_get_ms()-tick_start);
+    return;
+  }
   //------------------------------
   // Zpracovani startovaci sekvence
   //------------------------------
@@ -403,13 +419,18 @@ void atcd_rx_ch(char ch)
   // Zalezi, jesli se zrovna zpracovava nejaky AT prikaz
   // Pokud ano, drzi se buffer a posouvaji radky, jinak muzeme resetovat na zacatek
   //------------------------------
-  if(atcd_atc_ln_proc() != 0) return;   // Zpracovani AT prikazu
+  if(atcd_atc_ln_proc() != 0)   // Zpracovani AT prikazu
+  {
+    atcd.profiler.return4+=(atcd_get_ms()-tick_start);
+    return;
+  }
   //------------------------------
   // Callback pro zpracovani nezpracovanych nevyzadanych zprav
   if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
   //------------------------------
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
+  atcd.profiler.return5+=(atcd_get_ms()-tick_start);
 }
 //------------------------------------------------------------------------------
 uint8_t atcd_state()

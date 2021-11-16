@@ -110,6 +110,7 @@ typedef enum
 
 #define ATCD_SB_END                 1200
 
+#define ATCD_SO_ERR_NEEDNOT         97
 #define ATCD_SO_ERR                 98
 #define ATCD_SO_END                 99
 
@@ -177,6 +178,16 @@ typedef struct
   void (*state_update_callback)();      //called every 30s after state is updated
 
   atcd_stat_t stat;                     //statistiky
+  struct
+  {
+    uint32_t return1;
+    uint32_t return2;
+    uint32_t return3;
+    uint32_t return4;
+    uint32_t return5;
+    uint32_t dbgin;
+    uint32_t dataproc;
+  } profiler;
 
   /*struct
   {

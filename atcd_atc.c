@@ -548,6 +548,8 @@ uint8_t atcd_atc_ln_proc()
 uint8_t atcd_atc_prompt_tst()
 {
   // "> " test
+  if (atcd.parser.at_cmd_top==NULL)
+    return 0;
   if(atcd.parser.at_cmd_top->state == ATCD_ATC_STATE_W_PROMPT && strncmp(atcd.parser.buff + atcd.parser.line_pos, "> ", strlen("> ")) == 0)
   {
     //AT prikaz ceka na vyzvu k zadani dat a ta prisla
