@@ -183,6 +183,11 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 23;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLCC=1\r\n");
+    case ATCD_SB_INIT + 24:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 24;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
@@ -291,6 +296,33 @@ uint16_t atcd_proc_step()
         };
       };
 
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLCC\r\n");      // Probihajici hovory
+    case ATCD_SB_STAT + 8:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 8;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+      //+CLCC: 1,0,0,0,0,"777262425",129,""
+      //nesezerou mi odpovedi v unso? asi jo, tady nejsou
+      /*takze nic uint8_t prevcallout=atcd.phone.state_call_out;
+      atcd.phone.state_call_out=0;
+      if (atcd.at_cmd.resp_len>=16) //+CLCC: 1,0,0,0,0\r\n
+      { //idealne projit vsechny radky odpovedi ale co uz
+        if (strncmp(atcd.at_cmd.resp, "+CLCC:", 6)==0)
+        {
+          int id=atcd.at_cmd.resp[7]-'0';
+          int inco=atcd.at_cmd.resp[9]-'0';//atoi(atcd.at_cmd.resp+9);
+          int stat=atcd.at_cmd.resp[11]-'0';
+          if ((id>=1) && (id<=7) && (inco==0) && (stat==0))
+            atcd.phone.state_call_out|=(1<<(id-1));
+        };
+      };
+      if (prevcallout!=atcd.phone.state_call_out)
+      {
+        char tmps[30];
+        snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
+        atcd_dbg_inf2("call_out", tmps);
+      };*/
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPAS\r\n");
     case ATCD_SB_STAT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 10;
@@ -325,13 +357,22 @@ uint16_t atcd_proc_step()
           }
 
           if (doit>=0)
-            atcd_dbg_warn("@atcd", "FIX phone.state");
+            atcd_dbg_warn("@atcd", "FIX phone.state\n");
           switch (doit)
           {
           case 0: atcd.phone.state=ATCD_PHONE_STATE_IDLE; break;
           case 3: atcd.phone.state=ATCD_PHONE_STATE_RING; break;
-          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break; //a nebo taky out
+          case 4: atcd.phone.state=ATCD_PHONE_STATE_CALL; break; //CALL_IN nebo taky CALL_OUT
           }
+          if ((cpas==0) && (atcd.phone.state_call_out!=0))
+          {
+            char tmps[30];
+
+            uint8_t prevcallout=atcd.phone.state_call_out;
+            atcd.phone.state_call_out=0;
+            snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
+            atcd_dbg_inf2("call_out", tmps);
+          };
 
           //cpas2 neresit, nema signal...
           /*if (cpas==2)

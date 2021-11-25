@@ -89,7 +89,11 @@ void atcd_reset()               //Reset zarizeni
 void atcd_begin()
 {
   if (atcd.state != ATCD_STATE_STARTING)
-    atcd_dbg_err("atcd_begin: ", "not in STARTING");
+  {
+    //zakomentuju nez vymyslim co s RDY po startu
+    //normalne se startuje po H na M_STAT_Pin
+    //atcd_dbg_err("atcd_begin: ", "not in STARTING");
+  }
   else
   {
     atcd.state = ATCD_STATE_NO_INIT;
@@ -328,7 +332,7 @@ void atcd_rx_ch(char ch)
   if (dbg_fejla>0)
     dbg_fejla--;
 
-  //TODO: Co to je?
+  //TODO: Co to je? Odpoved: nevypisuj na terminal stahovani firmware
   /*if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&

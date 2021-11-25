@@ -274,7 +274,7 @@ uint8_t atcd_conn_asc_msg()
       atcd.conns.awaitingC5__=0;;
   };
 
-  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr //TODO dodelat !
+  if(atcd.gprs.state == ATCD_GPRS_STATE_CONN)     //pokud je pripojeno WiFi a ma IP addr
   {
     if(strncmp(atcd.parser.buff + atcd.parser.line_pos + 1, ", CONNECT OK\r\n", strlen(", CONNECT OK\r\n")) == 0)
     {

@@ -87,6 +87,7 @@ struct atcd_sms_ts
 typedef struct
 {
   atcd_phone_state_t state;       //phone state
+  uint8_t state_call_out;   //bitmaska call id 8..1 aby se to lip mazalo//mozna jako jeden ze stavu modemu ale zatim takhle
 
   char dtmf_rx_tone;              //DTMF TX tone
   char dtmf_tx_tone;              //DTMF TX tone
@@ -119,7 +120,7 @@ void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uin
 //nejde dat do init ani do reset
 //sms.cb_events funguji nejak divne, sam si to nastavuje
 
-void atcd_phone_call(char *number);          //vytocit hovor
+void atcd_phone_call(const char *number);          //vytocit hovor
 void atcd_phone_call_answer();               //zvednout hovor
 void atcd_phone_call_hang_up();              //polozit hovor
 
@@ -135,6 +136,7 @@ uint8_t atcd_phone_asc_msg();
 uint8_t atcd_phone_sms_proc(char ch);
 
 uint8_t atcd_phone_state();
+atcd_phone_t *atcd_phone_fullstate();
 uint16_t atcd_phone_ring_cnt();
 const char *atcd_phone_ring_number(int *ntyp/*=nullptr*/);        //nikdy nevraci NULL ale muze ""
 //------------------------------------------------------------------------------

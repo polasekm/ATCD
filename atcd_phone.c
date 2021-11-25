@@ -239,6 +239,39 @@ uint8_t atcd_phone_asc_msg()
     return 1;
   }
 
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLCC: ", 7/*strlen("+CLCC: ")*/) == 0)
+  {
+    ATCD_DBG_PHONE_CALL_DET
+    //<id>,<dir>,<stat>,<mode>,<mpty>[,<number>,<type>,<alphaID>]<CR><LF>
+    //id 1..7 takze jen 1 znak
+    //dir 0..mobile orig, 1..mobile term
+    //stat 0..active 1..held 2..dialing (MO) 3..alerting (MO) 4..incoming (MT) 5..waiting (MT) 6..disconnect
+    //mode 0..voice 1..data 2..fax
+    int id=atcd.parser.buff[atcd.parser.line_pos+7]-'0';
+    if ((id>=1) && (id<=7))
+    {
+      uint8_t prevcallout=atcd.phone.state_call_out;
+      int dir=atcd.parser.buff[atcd.parser.line_pos+9]-'0';
+      int stat=atcd.parser.buff[atcd.parser.line_pos+11]-'0';
+      if ((dir==0))
+      {
+        if (stat==0)
+          atcd.phone.state_call_out|= 1<<(id-1);
+        else
+          atcd.phone.state_call_out&=~ (1<<(id-1));
+      };
+      if (prevcallout!=atcd.phone.state_call_out)
+      {
+        char tmps[30];
+        snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
+        atcd_dbg_inf2("call_out", tmps);
+      };
+    };
+
+    atcd.parser.buff_pos = atcd.parser.line_pos; //proc asi vracim 1
+    return 1;
+  }
+
   if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLIP:", strlen("+CLIP:")) == 0)
   { //+CLIP: "+420777262425",145,"",0,"",0
     ATCD_DBG_PHONE_CALL_N_DET
@@ -311,7 +344,7 @@ void atcd_phone_call_answer()
   if(atcd.phone.state == ATCD_PHONE_STATE_RING) atcd.phone.state = ATCD_PHONE_STATE_RING_WA;
 }
 //------------------------------------------------------------------------------
-void atcd_phone_call(char *number)
+void atcd_phone_call(const char *number)
 {
   if(atcd.phone.state == ATCD_PHONE_STATE_IDLE)
   {
@@ -389,6 +422,11 @@ uint8_t atcd_phone_sms_proc(char ch)
 atcd_phone_state_t atcd_phone_state()
 {
   return atcd.phone.state;
+}
+//------------------------------------------------------------------------------
+atcd_phone_t *atcd_phone_fullstate()
+{
+  return &atcd.phone;
 }
 //------------------------------------------------------------------------------
 uint16_t atcd_phone_ring_cnt()
