@@ -80,6 +80,7 @@ typedef struct atcd_conn
 
   //TODO: Co to je? Odpoved: zkus si precist komentar
   uint8_t dontPrint; //nevypisuj na terminal, nestiha vypisovat firmware
+  uint8_t in_overflow;
 
 } atcd_conn_t;
 

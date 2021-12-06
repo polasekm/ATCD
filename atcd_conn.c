@@ -79,6 +79,7 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->callback   = NULL;
 
   conn->dontPrint  = 0;
+  conn->in_overflow = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_t type) //open conenction
@@ -602,16 +603,18 @@ uint8_t atcd_conn_data_proc(char ch)
     if(conn != NULL)
     {
       // Pokud je v bufferu misto
-      if(rbuff_available(&conn->rx_rbuff) != 0)
+      // Zapise prijaty byte do bufferu
+      if (rbuff_write_b(&conn->rx_rbuff, ch))
+        conn->in_overflow=0;
+      else
       {
-        // Zapise prijaty byte do bufferu
-        rbuff_write(&conn->rx_rbuff, (uint8_t*)&ch, 1);
-      } 
-      else 
-      {
-        ATCD_DBG_CONN_BUFF_E
+        if (!conn->in_overflow)
+        {
+          ATCD_DBG_CONN_BUFF_E //staci 1x, nemusis pro kazdy znak
+          conn->in_overflow=1;
+        };
         conn->cb_events |=  ATCD_CONN_EV_OVERRUN;
-      }   
+      }
 
       atcd.parser.buff_pos++;
 

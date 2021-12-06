@@ -333,13 +333,13 @@ void atcd_rx_ch(char ch)
     dbg_fejla--;
 
   //TODO: Co to je? Odpoved: nevypisuj na terminal stahovani firmware
-  /*if (((atcd.parser.mode==ATCD_P_MODE_IPD) || (atcd.parser.mode == ATCD_P_MODE_IPD_WAITOK) || (atcd.parser.mode == ATCD_P_MODE_IPD_SLEEP)) &&
+  if ((atcd.parser.mode==ATCD_P_MODE_IPD) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]->dontPrint))
   { }
-  else*/
-  atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
+  else
+    atcd_dbg_in(&ch, 1);                           // Logovani prijatych dat
   time_dbgin=atcd_get_ms();
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if ((atcd_conn_data_proc(ch) != 0) ||       // Zpracovani prichozich dat TCP/UDP spojeni

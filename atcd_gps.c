@@ -620,14 +620,18 @@ void atcd_gps_set_callback(uint8_t events, void (*gps_callback)(uint8_t event, c
 //-----------------------------------------------------------------------------
 //zjisteni stazenych almanachu
 //at+cgnscmd=0,"$PMTK661,01*1E"
-//$PMTK001,661,3,f7ffffff*4C ma docela dost
+//$PMTK001,661,3,f7ffffff*4C jsou asi vsechny
+//$PMTK001,661,3,7fc003f*7A  neco jo neco ne
 
 //zjisteni stazenych efemerid
 //at+cgnscmd=0,"$PMTK660,01*1F"
 //$PMTK001,660,3,4800*10  .. znamena ?
 //$PMTK001,660,3,20080010*17 = 20 080010
-//                             satelity 71-68 67-64 protoze 0x20 je urcite sat 69
+//                             satelity 71-68 67-64 protoze 0x20 je urcite sat 69   ale i 72
 //                                24-21 20-17 16-13 12-9 8-5 4-1 protoze 080010 je urcite 20 a 5
+//$PMTK001,660,3,20084000*12  15,19,24,72
+//$PMTK001,660,3,20484000*16  15,24,30,5  72,65
+//$PMTK001,660,3,81010*24    nemel by mit spis nic
 
 //$PMTK001,660,3,804000*10 ma jen par
 //$GPGSA,A,1,,,,,,,,,,,,,,,*1E    na GP mame 2 satelity se sig 17 a 18
