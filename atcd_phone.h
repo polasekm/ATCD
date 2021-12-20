@@ -135,7 +135,7 @@ void atcd_phone_reset();                     //phone state reset
 uint8_t atcd_phone_asc_msg();
 uint8_t atcd_phone_sms_proc(char ch);
 
-uint8_t atcd_phone_state();
+atcd_phone_state_t atcd_phone_state();
 atcd_phone_t *atcd_phone_fullstate();
 uint16_t atcd_phone_ring_cnt();
 const char *atcd_phone_ring_number(int *ntyp/*=nullptr*/);        //nikdy nevraci NULL ale muze ""
