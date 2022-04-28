@@ -29,8 +29,8 @@ typedef enum
   ATCD_GPS_STATE_W_OFF       = 1,
   ATCD_GPS_STATE_SEARCHING   = 2,
   ATCD_GPS_STATE_W_SEARCH    = 3,
-  ATCD_GPS_STATE_FIX         = 4
-
+  ATCD_GPS_STATE_FIX         = 4,
+  ATCD_GPS_STATE__COUNT
 } atcd_gps_state_t;
 
 #define ATCD_GPS_FIX_M_NO            0

@@ -602,12 +602,15 @@ uint32_t atcd_gps_last_fix()
   return atcd.gps.last_fix;
 }
 //------------------------------------------------------------------------------
+static uint8_t classify_gps_state_power[]={0, 0, 1, 1, 1};
+
 uint32_t atcd_gps_runtime()
 {
   uint32_t run_time;
+  static_assert(sizeof(classify_gps_state_power)==ATCD_GPS_STATE__COUNT);
 
   run_time = atcd.gps.stat.run_time_acc;
-  if(atcd.gps.state != ATCD_GPS_STATE_OFF) run_time += atcd_get_ms() - atcd.gps.stat.start_time;
+  if(classify_gps_state_power[atcd.gps.state]) run_time += atcd_get_ms() - atcd.gps.stat.start_time;
 
   return run_time;
 }
