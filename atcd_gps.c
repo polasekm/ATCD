@@ -50,6 +50,7 @@ void atcd_gps_reset()
   atcd.gps.vdop = 0;
 
   atcd.gps.last_fix = 0;
+  atcd.gps.last_nmea_time = 0;
   atcd.gps.stat.time_to_fix = 0;
   atcd.gps.stat.first_search = 0;
   atcd.gps.stat.start_time = 0;
@@ -88,6 +89,8 @@ uint8_t atcd_gps_asc_msg()
      strncmp(str, "$BD", 3) == 0)   //Beidou
   {
     ATCD_DBG_GPS_SENTECE
+
+    atcd.gps.last_nmea_time = atcd_get_ms();
 
     if(atcd.gps.state == ATCD_GPS_STATE_OFF || atcd.gps.state == ATCD_GPS_STATE_W_OFF)
     {

@@ -82,9 +82,10 @@ struct atcd_gps_ts
 
   uint32_t last_fix;              //atcd_get_ms() v dobe fixu
   atcd_gps_stat_t stat;
+  uint32_t last_nmea_time;         //atcd_get_ms() kdyz prislo nejnovejsi cokoli NMEA (kontrola baudrate)
 
   uint8_t cb_events;              //GPS events
-  void (*callback)(uint8_t event, const atcd_gps_t *gps);      //events callback
+  void (*callback)(uint8_t event, const atcd_gps_t *gps);      //events callback $__RMC, GSA, GGA -> event=ATCD_GPS_EV_UPDATE
 };
 
 // Functions -------------------------------------------------------------------
