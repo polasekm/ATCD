@@ -850,6 +850,7 @@ uint16_t atcd_proc_step()
       {
         //posunout ukazovatko dat
         rbuff_seek(&conn->tx_rbuff, atcd.at_cmd.data_len);
+        atcd.gprs.stat.bytes_sent+=atcd.at_cmd.data_len;
         // asi volat call back pokud je nastaven?
       }
       else

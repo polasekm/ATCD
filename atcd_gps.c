@@ -605,7 +605,7 @@ uint32_t atcd_gps_last_fix()
   return atcd.gps.last_fix;
 }
 //------------------------------------------------------------------------------
-static uint8_t classify_gps_state_power[]={0, 0, 1, 1, 1};
+static uint8_t classify_gps_state_power[]={0, 1, 1, 0, 1};
 
 uint32_t atcd_gps_runtime()
 {

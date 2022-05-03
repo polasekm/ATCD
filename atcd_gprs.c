@@ -27,6 +27,9 @@ void atcd_gprs_init()      //inializace gprs
 
   atcd.gprs.cb_events = ATCD_GPRS_EV_NONE;
   atcd.gprs.callback = NULL;
+
+  atcd.gprs.stat.bytes_sent=0;
+  atcd.gprs.stat.bytes_recv=0;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_reset()                   //gprs state reset
@@ -35,6 +38,12 @@ void atcd_gprs_reset()                   //gprs state reset
   atcd.gprs.timer = 0;
 
   atcd.gprs.ip[0] = 0;
+}
+//------------------------------------------------------------------------------
+void atcd_gprs_reset_stat()
+{
+  atcd.gprs.stat.bytes_sent_base=atcd.gprs.stat.bytes_sent;
+  atcd.gprs.stat.bytes_recv_base=atcd.gprs.stat.bytes_recv;
 }
 //------------------------------------------------------------------------------
 void atcd_gprs_proc()                    //gprs connection processing

@@ -598,6 +598,7 @@ uint8_t atcd_conn_data_proc(char ch)
   // If parser in IPD receiving mode
   if(atcd.parser.mode == ATCD_P_MODE_IPD)
   {
+    atcd.gprs.stat.bytes_recv++;
     conn = atcd.conns.conn[atcd.parser.rx_conn_num];
     // If any connection
     if(conn != NULL)

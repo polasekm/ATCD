@@ -48,6 +48,14 @@ typedef struct
   uint8_t cb_events;              //gprs events
   void (*callback)(uint8_t);      //events callback
 
+  struct
+  {
+    uint32_t bytes_sent;
+    uint32_t bytes_recv;
+    uint32_t bytes_sent_base;
+    uint32_t bytes_recv_base;
+  } stat;
+
 } atcd_gprs_t;
 
 // Functions -------------------------------------------------------------------
@@ -64,6 +72,7 @@ void atcd_gprs_set_apn(char *apn, char *name, char *psswd);  //set apn, name and
 
 void atcd_gprs_proc();                           //gprs processing
 void atcd_gprs_reset();                          //gprs state reset
+void atcd_gprs_reset_stat();
 
 atcd_gprs_state_t atcd_gprs_state();
 //------------------------------------------------------------------------------
