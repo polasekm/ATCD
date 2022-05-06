@@ -39,7 +39,7 @@ typedef enum {
 #define ATCD_PHONE_EV_UNREG         0b00000010
 #define ATCD_PHONE_EV_RING          0b00000100
 #define ATCD_PHONE_EV_RING_END      0b00001000 //never happens
-#define ATCD_PHONE_EV_SMS_IN        0b00010000 //+CMT: only, sms incomplete, ATCD_SMS_EV_SMS_IN will follow
+#define ATCD_PHONE_EV_SMS_IN        0b00010000 //+CMT: only, sms incomplete, atcd.phone.callback; next come atcd.phone.sms.callback(ATCD_SMS_EV_SMS_IN)
 #define ATCD_PHONE_EV_CALL          0b00100000 //muze chodit opakovane pro in i out
 #define ATCD_PHONE_EV_CALL_END      0b01000000 //muze chodit opakovane pro in i out
 #define ATCD_PHONE_EV_ALL           0xFF
