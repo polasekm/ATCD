@@ -427,7 +427,9 @@ uint8_t atcd_atc_ln_proc()
         }
         else
         {
-          atcd_dbg_warn("@sys unso: ", "echo-uns\n");
+          char tmps[45];
+          snprintf(tmps, sizeof(tmps), "echo-uns: %.30s\n", atcd.parser.buff+atcd.parser.line_pos);
+          atcd_dbg_warn("@sys unso: ", tmps);
           atcd.stat.echo_uns++;
         }
       }
