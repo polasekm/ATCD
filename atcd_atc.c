@@ -418,7 +418,11 @@ uint8_t atcd_atc_ln_proc()
       }
       else //to je nejdulezitejsi chyba ze vsech - prislo poskozene echo (nebo mozna nejake unso)
       {
-        if ((atcd.parser.buff_pos-atcd.parser.line_pos>=3) &&
+        if ((atcd.parser.buff_pos > atcd.parser.line_pos+5) &&
+          (strncmp(atcd.parser.buff+atcd.parser.line_pos, "$PMTK", 5)==0))
+        {
+        }
+        else if ((atcd.parser.buff_pos-atcd.parser.line_pos>=3) &&
             (atcd.parser.buff[atcd.parser.line_pos]=='A') &&
             (atcd.parser.buff[atcd.parser.line_pos+1]=='T')) //echo ale ne to nase
         { //ztraceji se znaky v echu, ladim jak moc. Prikazy slysi spravne
@@ -427,8 +431,8 @@ uint8_t atcd_atc_ln_proc()
         }
         else
         {
-          char tmps[45];
-          snprintf(tmps, sizeof(tmps), "echo-uns: %.30s\n", atcd.parser.buff+atcd.parser.line_pos);
+          char tmps[60];
+          snprintf(tmps, sizeof(tmps), "echo-uns %d,%d: %.30s\n", atcd.parser.buff_pos, atcd.parser.line_pos, atcd.parser.buff+atcd.parser.line_pos);
           atcd_dbg_warn("@sys unso: ", tmps);
           atcd.stat.echo_uns++;
         }
@@ -496,8 +500,8 @@ uint8_t atcd_atc_ln_proc()
       }
 
       //TODO: predelat cely ATCD_ATC_STATE_W_END, nebo zde odchytit $PMTK...
-      if (strncmp(at_cmd->cmd, "AT+CIPSEND=", 11)==0)
-        atcd.parser.line_pos=atcd.parser.line_pos;
+      //if (strncmp(at_cmd->cmd, "AT+CIPSEND=", 11)==0)
+        //atcd.parser.line_pos=atcd.parser.line_pos;
       if (atcd.parser.buff_pos > atcd.parser.line_pos+5)
       {
         if (strncmp(atcd.parser.buff+atcd.parser.line_pos, "$PMTK", 5)==0)
