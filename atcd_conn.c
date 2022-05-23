@@ -15,18 +15,24 @@ void atcd_conn_proc()                    //connections processing
 {
   uint8_t i;
   atcd_conn_t *conn;
+  uint8_t extend=0;
+  uint32_t ms=atcd_get_ms();
 
+  if (atcd.gprs.state==ATCD_GPRS_STATE_CONNECTING && ms-atcd.gprs.timer<30000)
+    extend=1;
   for(i = 0; i < ATCD_CONN_MAX_NUMBER; i++)
   {
     conn = atcd.conns.conn[i];
 
     if(conn != NULL)
     {
+      if (extend)
+        conn->timer=ms;
       // TODO tohle je spatne, dodelat...
       if((conn->state == ATCD_CONN_STATE_W_OPEN || /*conn->state == ATCD_CONN_STATE_W_OPENFAILED ||*/
           conn->state == ATCD_CONN_STATE_OPENING || conn->state == ATCD_CONN_STATE_CLOSING))
       {
-        if(atcd_get_ms() - conn->timer > conn->timeout)
+        if(ms - conn->timer > conn->timeout)
         {
           ATCD_DBG_CONN_TIM
           atcd_conn_close(conn, 1);
@@ -396,6 +402,8 @@ uint8_t atcd_conn_asc_msg()
           {
             //TODO: Muze probohat ATC kteremu se prepisi data - opravit!!! //Nechapu...
             //TODO: Tohle bych si rad nechal vysvetlit...
+            //v podstate tu neni jiste, ze prave rozdelany prikaz je ten ktery poslal AT+CIPCLOSE
+            //nebo ze tento prikaz je zrovna v atcd.at_cmd a ne nekde bokem
 
             if(strncmp(atcd.at_cmd_result_buff, atcd.parser.buff + atcd.parser.line_pos, strlen("0, CLOSE OK\r\n")) == 0)
             {

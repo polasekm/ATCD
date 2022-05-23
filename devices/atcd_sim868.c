@@ -123,10 +123,11 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       init_time_inner=atcd_get_ms();
       init_time_outer=init_time_inner;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");//system nerozlisi skutecny OK od _res , "SMS Ready\r\n"); // --- Test vyuziti pametovych prostoru na SMS
+      atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPMS?\r\n", "+CMS ERROR: 302");//system nerozlisi skutecny OK od _res , "SMS Ready\r\n"); // --- Test vyuziti pametovych prostoru na SMS
     case ATCD_SB_INIT + 11:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
-      if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 302))
+      //if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 302))
+      if (atcd.at_cmd.result == ATCD_ATC_RESULT_MATCH)
       {
         //mozna cekat na SMS Ready\r\n ? V tomhle systemu se unso nedelaji tak snadno
         //a predtim taky prijde Call Ready\r\n, mozna proste mit priznak ze prisly?
@@ -135,7 +136,7 @@ uint16_t atcd_proc_step()
         if (atcd_get_ms()-init_time_inner>=500)
         {
           init_time_inner=atcd_get_ms();
-          atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPMS?\r\n");           // --- Test vyuziti pametovych prostoru na SMS
+          atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPMS?\r\n", "+CMS ERROR: 302");           // --- Test vyuziti pametovych prostoru na SMS
         }
         return ATCD_SB_INIT + 11;
       }
@@ -829,7 +830,8 @@ uint16_t atcd_proc_step()
 
       ATCD_DBG_CONN_SEND
 
-      if(tx_data_len > 512) tx_data_len = 512;
+      if (conn->protocol!=ATCD_CONN_T_UDP)
+        if(tx_data_len > 512) tx_data_len = 512;
 
       atcd_atc_set_defaults(&atcd.at_cmd);
       atcd.at_cmd.cmd = atcd.at_cmd_buff;
@@ -904,11 +906,12 @@ uint16_t atcd_proc_step()
       snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPCLOSE=%u\r\n", conn->num);
       snprintf(atcd.at_cmd_result_buff, sizeof(atcd.at_cmd_result_buff), "%u, CLOSE OK\r\n", conn->num);
 
-      atcd_atc_exec_cmd_res(&atcd.at_cmd, atcd.at_cmd_buff, atcd.at_cmd_result_buff);
+      atcd_atc_exec_cmd_res_(&atcd.at_cmd, atcd.at_cmd_buff, atcd.at_cmd_result_buff);
 
     case ATCD_SB_CONN_CLOSE + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_CLOSE + 1;
-      if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
+      if((atcd.at_cmd.result == ATCD_ATC_RESULT_OK) || //ve skutecnosti se prijme jako unso v atcd_conn_asc_msg a nastavi se na OK
+         (atcd.at_cmd.result == ATCD_ATC_RESULT_MATCH)) //k tomuhle se vubec nedostane
       {
         ATCD_DBG_CONN_W_CLOSE
         //Pozor - stav spojeni se pomoci async msg muze zmenit jeste drive,

@@ -65,7 +65,8 @@ typedef enum
   ATCD_ATC_RESULT_TIMEOUT   = 4,
   ATCD_ATC_RESULT_CANCELL   = 5,
   ATCD_ATC_RESULT_OVERRUN   = 6,
-  ATCD_ATC_RESULT_OVERWRITE = 7
+  ATCD_ATC_RESULT_OVERWRITE = 7,
+  ATCD_ATC_RESULT_MATCH     = 8,
 
 } atcd_atc_result_t;
 
@@ -119,7 +120,7 @@ uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd);  //check AT command state
 
 atcd_r_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);                   //execute AT command
 atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd);    //execute and set AT command
-atcd_r_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res);   //execute and set AT command with result string
+atcd_r_t atcd_atc_exec_cmd_res_(atcd_at_cmd_t *at_cmd, char *cmd, char *res); //WARNING now returns ATCD_ATC_RESULT_MATCH not ATCD_ATC_RESULT_OK  //execute and set AT command with result string
 
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execute AT command
 void atcd_atc_cancel_all();                             //cancel all AT commands in queue

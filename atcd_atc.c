@@ -134,7 +134,7 @@ atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd)    //execute and se
   return atcd_atc_exec(at_cmd);
 }
 //------------------------------------------------------------------------------
-atcd_r_t atcd_atc_exec_cmd_res(atcd_at_cmd_t *at_cmd, char *cmd, char *res)   //execute and set AT command with result string
+atcd_r_t atcd_atc_exec_cmd_res_(atcd_at_cmd_t *at_cmd, char *cmd, char *res)   //execute and set AT command with result string
 {
   at_cmd->cmd = cmd;
   at_cmd->result_str = res;
@@ -468,7 +468,7 @@ uint8_t atcd_atc_ln_proc()
       else if(at_cmd->result_str != NULL && strncmp(atcd.parser.buff + atcd.parser.line_pos, at_cmd->result_str, strlen(at_cmd->result_str)) == 0)
       {
         ATCD_DBG_ATC_OK_DET
-        at_cmd->result = ATCD_ATC_RESULT_OK;
+        at_cmd->result = ATCD_ATC_RESULT_MATCH;
       }
       // Neni tohle nahodou i asynchronni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
