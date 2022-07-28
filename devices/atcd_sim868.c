@@ -202,10 +202,17 @@ uint16_t atcd_proc_step()
       if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_INIT + 90;
     case ATCD_SB_INIT + ATCD_SO_ERR:
       // V prubehu inicializace doslo k chybe
-      ATCD_DBG_INIT_ERR
+    {
+      char hlaska[37+3*5 +10];
+      snprintf(hlaska, sizeof(hlaska), "Inicializace selhala s=%u c.s=%d c.r=%d !\r\n",
+          atcd.proc_step_initfailed, atcd.at_cmd.state, atcd.at_cmd.result);
+      atcd_dbg_err("ATCD: INIT: ", hlaska);
+      //ATCD_DBG_INIT_ERR
+
       atcd.err_cnt++;
       //nekde resit reset pri prekroceni poctu pokusu
       return ATCD_SB_INIT;
+    }
 
     case ATCD_SB_INIT + ATCD_SO_END:
     //------------------------------------------------------------------------

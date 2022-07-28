@@ -148,6 +148,7 @@ typedef struct
   rbuff_t  tx_rbuff;
 
   uint16_t proc_step;                          //aktualni krok v sekvencnim automatu ovladani modemu
+  uint16_t proc_step_initfailed;               //posledni krok pred prechodem do ATCD_SB_INIT + ATCD_SO_ERR
   uint16_t err_cnt;                            //pocitadlo chyb
   uint16_t err_max;                            //maximalni pocet chyb
   

@@ -473,10 +473,15 @@ uint8_t atcd_atc_ln_proc()
       // Neni tohle nahodou i asynchronni zprava?
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CME ERROR:", strlen("+CME ERROR:")) == 0)
       {
-        ATCD_DBG_ATC_CME_ERR_DET
         atcd.parser.stat.atc_err++;
         at_cmd->result = ATCD_ATC_RESULT_ERROR;
         at_cmd->result_code = atoi(atcd.parser.buff + atcd.parser.line_pos + strlen("+CME ERROR:"));
+
+        char hlaska[27+2*5 +10];
+        snprintf(hlaska, sizeof(hlaska), "CME ERROR detected: %u @ s=%u\r\n",
+            at_cmd->result_code, atcd.proc_step);
+        atcd_dbg_warn("ATCD: ATC: ", hlaska);
+        //ATCD_DBG_ATC_CME_ERR_DET
       }
       else if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CMS ERROR:", strlen("+CMS ERROR:")) == 0)
       {

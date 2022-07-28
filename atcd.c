@@ -100,6 +100,7 @@ void atcd_begin()
     atcd.parser.buff_pos = atcd.parser.line_pos;
     atcd_state_reset();
     atcd.proc_step = 0; //Asi je dublovano, nastavi se uz v resetu
+    atcd.proc_step_initfailed = 0;
     atcd.err_max   = 5;
     if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
   }
@@ -127,6 +128,7 @@ void atcd_state_reset()                  //state machine reset
   rbuff_init(&atcd.at_cmd_data, NULL, 0);
 
   atcd.proc_step = 0;
+  atcd.proc_step_initfailed = 0;
   atcd.err_cnt   = 0;
   atcd.err_max   = 10;
 
@@ -239,7 +241,10 @@ void atcd_proc()                         //data processing
       return;
     }
 
+    uint16_t prev_step=atcd.proc_step;
     atcd.proc_step = atcd_proc_step();     // Provede krok sekvencniho automatu
+    if (atcd.proc_step==ATCD_SB_INIT + ATCD_SO_ERR)
+      atcd.proc_step_initfailed=prev_step;
   }
   //else if(atcd.state == ATCD_STATE_ON || atcd.state == ATCD_STATE_SLEEP)
   else if(atcd.state == ATCD_STATE_ON)
@@ -255,7 +260,10 @@ void atcd_proc()                         //data processing
       return;
     }
 
+    uint16_t prev_step=atcd.proc_step;
     atcd.proc_step = atcd_proc_step();     // Provede krok sekvencniho automatu
+    if (atcd.proc_step==ATCD_SB_INIT + ATCD_SO_ERR)
+      atcd.proc_step_initfailed=prev_step;
 
     atcd_gsm_proc();
     atcd_phone_proc();                     //phone processing
