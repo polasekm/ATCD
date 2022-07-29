@@ -182,7 +182,12 @@ void atcd_atc_proc(uint8_t timeouts_also)                     //AT commands proc
     else if(timeouts_also && (at_cmd->state != ATCD_ATC_STATE_WAIT && at_cmd->state != ATCD_ATC_STATE_DONE) && (atcd_get_ms() - atcd.parser.at_cmd_timer > at_cmd->timeout))
     {
       //AT prikazu vyprsel timeout
-      ATCD_DBG_ATC_TIM
+      {
+        //ATCD_DBG_ATC_TIM
+        char bufajzl[44+20 +10];
+        snprintf(bufajzl, sizeof(bufajzl), "Probihajicimu AT prikazu vyprsel timeout: %s\r\n", at_cmd->cmd);
+        atcd_dbg_warn("ATCD: ATC: ", bufajzl);
+      }
       atcd.parser.stat.atc_tim++;
 
       if(at_cmd->state == ATCD_ATC_STATE_W_ECHO)

@@ -88,7 +88,7 @@ void atcd_reset()               //Reset zarizeni
 //------------------------------------------------------------------------------
 void atcd_begin()
 {
-  if (atcd.state != ATCD_STATE_STARTING)
+  if (atcd.state != ATCD_STATE_STARTING) //nebo ==NO_INIT?
   {
     //zakomentuju nez vymyslim co s RDY po startu
     //normalne se startuje po H na M_STAT_Pin
@@ -423,6 +423,13 @@ void atcd_rx_ch(char ch)
     if(strncmp(atcd.parser.buff + atcd.parser.line_pos, ATCD_STR_START_SEQ, strlen(ATCD_STR_START_SEQ)) == 0)
     {
       ATCD_DBG_BOOT_SEQ
+
+      if (atcd.state != ATCD_STATE_STARTING && atcd.state != ATCD_STATE_NO_INIT)
+      {
+        atcd.timer = atcd_get_ms();
+        atcd.state = ATCD_STATE_STARTING;
+        atcd_dbg_err("RDY", "Prislo necekane RDY");
+      };
       atcd_begin();
       //RDY se musi zahodit z bufferu return;
     }
