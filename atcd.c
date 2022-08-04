@@ -426,7 +426,7 @@ void atcd_rx_ch(char ch)
 
       if (atcd.state != ATCD_STATE_STARTING && atcd.state != ATCD_STATE_NO_INIT)
       {
-#if 0 //prechodne zase zrusit
+#if 1 //prechodne zase zrusit
         atcd.timer = atcd_get_ms();
         atcd.state = ATCD_STATE_STARTING;
         atcd_dbg_err("RDY", "Prislo necekane RDY");

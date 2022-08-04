@@ -437,7 +437,8 @@ uint8_t atcd_atc_ln_proc()
         else
         {
           char tmps[60];
-          snprintf(tmps, sizeof(tmps), "echo-uns %d,%d: %.30s\n", atcd.parser.buff_pos, atcd.parser.line_pos, atcd.parser.buff+atcd.parser.line_pos);
+          snprintf(tmps, sizeof(tmps), "echo-uns %d,%d: %.*s\n",
+              atcd.parser.buff_pos, atcd.parser.line_pos, atcd.parser.buff_pos-atcd.parser.line_pos, atcd.parser.buff+atcd.parser.line_pos);
           atcd_dbg_warn("@sys unso: ", tmps);
           atcd.stat.echo_uns++;
         }

@@ -189,6 +189,29 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 24;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+IPR?\r\n");
+    case ATCD_SB_INIT + 25:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 25;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      if ((atcd.at_cmd.resp_len>=6+1+2) && (strncmp(atcd.at_cmd.resp, "+IPR: ", 6)==0))
+      {
+        int ipr=atoi(atcd.at_cmd.resp+strlen("+IPR: "));
+        if (ipr==115200)
+          return ATCD_SB_INIT+28;
+      }
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+IPR=115200\r\n");
+    case ATCD_SB_INIT + 26:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 26;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT&W\r\n");
+    case ATCD_SB_INIT + 27:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 27;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+    case ATCD_SB_INIT + 28:
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
@@ -394,6 +417,41 @@ uint16_t atcd_proc_step()
             };
           };*/
         }
+      }
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSCLK?\r\n");
+    case ATCD_SB_STAT + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 11;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
+
+      {
+        if ((atcd.at_cmd.resp_len>=11) && (strncmp(atcd.at_cmd.resp, "+CSCLK: ", 8)==0))
+        {
+          int csclk=atoi(atcd.at_cmd.resp+strlen("+CSCLK: "));
+
+          //univerzalni fix
+          atcd_sleep_mode_t next_sleep_mode=ATCD_SM__UNUSED;
+          switch (atcd.sleep_mode)
+          {
+          case ATCD_SM_OFF: if (csclk!=0) next_sleep_mode=ATCD_SM_W_OFF; break;
+          case ATCD_SM_AUTO: if (csclk!=2) next_sleep_mode=ATCD_SM_W_AUTO; break;
+          case ATCD_SM_MANUAL: if (csclk!=1) next_sleep_mode=ATCD_SM_W_MANUAL; break;
+          default: ;
+          }
+
+          //tipcove-spaci fix
+          if (csclk!=1 && atcd.sleep_mode!=ATCD_SM_W_MANUAL)
+            next_sleep_mode=ATCD_SM_W_MANUAL;
+
+          if (next_sleep_mode!=ATCD_SM__UNUSED)
+          {
+            char tmps[50];
+            snprintf(tmps, sizeof(tmps), " =%d, mode=%d->%d", csclk, atcd.sleep_mode, next_sleep_mode);
+            atcd_dbg_warn("CSCLK: ", tmps);
+            atcd_begin();
+            atcd.sleep_mode=next_sleep_mode;
+          };
+        };
       }
 
       /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r\n");

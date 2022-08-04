@@ -37,7 +37,7 @@ uint8_t atcd_gsm_asc_msg()
   const char *str = atcd.parser.buff + atcd.parser.line_pos;
 
   if(strncmp(str, "+CREG: ", strlen("+CREG: ")) == 0)
-  { //muze prijit +CREG: 0,1 ale taky +CREG: 2,1,"9664","3873" a nevyzadana +CREG: 1 nebo +CREG: 1,"9664","3873"
+  { //muze prijit +CREG: 0,1 ale taky +CREG: 2,1,"9664","3873" a nevyzadana +CREG: 1 nebo +CREG: 1,"9664","3873" ano i +CREG: (0-2)
     if ((str[8]=='\r') || (str[8]==0) || ((str[8]==',') && (str[9]=='\"')))
       val = (uint8_t)atoi(str+7);
     else

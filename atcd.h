@@ -59,8 +59,9 @@ typedef enum
   ATCD_SM_W_AUTO      = 2,
   ATCD_SM_AUTO        = 3,
   ATCD_SM_W_MANUAL    = 4,
-  ATCD_SM_MANUAL      = 5
+  ATCD_SM_MANUAL      = 5,
 
+  ATCD_SM__UNUSED     = 255
 } atcd_sleep_mode_t;
 
 typedef enum

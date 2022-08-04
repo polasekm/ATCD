@@ -88,7 +88,7 @@
   #define ATCD_DBG_START_TIM            atcd_dbg_err("ATCD: ", "Vyprsel timeout na start!\r\n");
   #define ATCD_DBG_INIT_TIM             atcd_dbg_err("ATCD: ", "Vyprsel timeout na inicializaci!\r\n");
 
-  #define ATCD_DBG_INIT_DONE            atcd_dbg_inf("ATCD: INIT: ", "Sekvence byla dokoncena.\r\n");
+  #define ATCD_DBG_INIT_DONE            atcd_dbg_inf3("ATCD: INIT: ", "Sekvence byla dokoncena.\r\n");
   #define ATCD_DBG_INIT_ERR_R           atcd_dbg_err("ATCD: INIT: ", "atcd.init_seq je  mimo rozsah - zacinam znovu!\r\n");
   #define ATCD_DBG_INIT_START           atcd_dbg_inf("ATCD: INIT: ", "Zacina inicializace zarizeni.\r\n");
   #define ATCD_DBG_INIT_STEP            atcd_dbg_inf("ATCD: INIT: ", "Provadim krok inicializace zarizeni.\r\n");

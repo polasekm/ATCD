@@ -33,7 +33,8 @@ void atcd_hw_tx(rbuff_t *rbuff, uint16_t len);         //tx data
 void atcd_hw_tx_esc(char *pattern, uint16_t len);   //tx escape data
 
 void atcd_dbg_inf(const char *header, const char *str);   //debug info print
-void atcd_dbg_inf2(const char *header, const char *str);
+void atcd_dbg_inf2(const char *header, const char *str);  //info ale ne tak casto
+void atcd_dbg_inf3(const char *header, const char *str);  //inf2 + poslat do TB
 void atcd_dbg_warn(const char *header, const char *str);  //debug warning print
 void atcd_dbg_err(const char *header, const char *str);   //debug error print
 void atcd_dbg_in(const char *str, uint16_t len);    //debug data in print
