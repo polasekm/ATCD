@@ -135,6 +135,9 @@ void atcd_state_reset()                  //state machine reset
   atcd.sleep_state = ATCD_SS_SLEEP;
   atcd.sleep_disable = 0;
   atcd.sleep_timer = 0;
+  if(atcd.sleep_mode == ATCD_SM_OFF) atcd.sleep_mode = ATCD_SM_W_OFF;
+  else if(atcd.sleep_mode == ATCD_SM_MANUAL) atcd.sleep_mode = ATCD_SM_W_MANUAL;
+  else if(atcd.sleep_mode == ATCD_SM_AUTO) atcd.sleep_mode = ATCD_SM_W_AUTO;
 
   atcd_sim_reset();
   atcd_gsm_reset();
@@ -212,6 +215,7 @@ void atcd_proc()                         //data processing
     {
       // Vyprsel cas na start
       ATCD_DBG_START_TIM
+      atcd_dbg_err("ATCD: ", "Prekrocena doba v STARTING");
       atcd_reset();
       return;
     }
@@ -229,6 +233,7 @@ void atcd_proc()                         //data processing
     {
       // Prekrocen maximalni pocet chyb v inicializace
       //ZALOGOVAT!
+      //atcd_dbg_err("ATCD: ", "Prekrocen pocet chyb v NO_INIT");
       //atcd_reset();
       //return;
     }
@@ -255,7 +260,7 @@ void atcd_proc()                         //data processing
     if(atcd.err_cnt >= atcd.err_max)
     {
       // Prekrocen maximalni pocet chyb v sekvencnim automatu
-      //ZALOGOVAT!
+      atcd_dbg_err("ATCD: ", "Prekrocen pocet chyb v STATE_ON");
       atcd_reset();
       return;
     }
@@ -328,7 +333,7 @@ void atcd_rx_ch(char ch)
             (unsigned int)rbuff_size(&atcd_rx_ring_buff), atcd.tx_state, atcd.parser.echo_en, atcd.parser.at_cmd_top->state);
         atcd_dbg_warn("ATCD rx: ", tmps);
         #else
-        atcd_dbg_warn("ATCD rx: ", "complete but not");
+        atcd_dbg_warn("ATCD rx: ", "complete but not"); //mozna hazard s interruptem?
         // [1081.189] AT+GMR
         // [1081.190] $G[1081.190] ATCD rx: complete but not[1081.191] P[1081.191] ATCD: ATC: Odesilani bylo dokoceno - prechazime na W_ECHO...
         // [1081.192] GSA,A,1,,,,,,,,,,,,,,,*1E

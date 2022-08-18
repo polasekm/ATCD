@@ -73,10 +73,16 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 10))
-      {
+      { //err 14= SIM BUSY
         atcd.sim.state = ATCD_SIM_STATE_NONE;
         init_time_inner=atcd_get_ms();
-        return ATCD_SB_INIT + 90;
+        return ATCD_SB_INIT + 90; //pockej 5s
+      };
+      if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 14))
+      { //err 14= SIM BUSY
+        //atcd.sim.state = ATCD_SIM_STATE_WAIT ?;
+        init_time_inner=atcd_get_ms();
+        return ATCD_SB_INIT + 91; //pockej 0.5s
       };
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
@@ -101,7 +107,7 @@ uint16_t atcd_proc_step()
         atcd.sim.state = ATCD_SIM_STATE_PUK;
         //Bude to chtit PUK
         //Co delat?
-        //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\\r\n");            // Zadame PUK
+        //atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN=\"1234\"\r\n");            // Zadame PUK
         //TODO: Doimplementovat
       }
       else
@@ -223,6 +229,8 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_INIT + 90:
       if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_INIT + 90;
+    case ATCD_SB_INIT + 91:
+      if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_INIT + 91;
     case ATCD_SB_INIT + ATCD_SO_ERR:
       // V prubehu inicializace doslo k chybe
     {
@@ -592,6 +600,7 @@ uint16_t atcd_proc_step()
       ATCD_DBG_GPRS_INIT_START
 
       atcd_atc_set_defaults(&atcd.at_cmd);
+      //TODO: co je toto, nechybi tu nejaky AT prikaz? nebo zrusit cekani, az se dokonci
 
     case ATCD_SB_GPRS_INIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
@@ -759,9 +768,22 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
       if(atcd.phone.state!=ATCD_PHONE_STATE_IDLE) return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
+      atcd.at_cmd.timeout = 20000; //typicke je, ze selze AT+CIPSTART, jde se sem, AT+CIPSHUT se zrejme udela OK
+        //a pak vytimeoutuje tohle, tim pristimu prikazu selze echo a vznika nekonecne peklo
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=0\r\n");
     case ATCD_SB_GPRS_DEINIT + 3:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 3;
+
+      {
+        uint32_t take_time=atcd_get_ms() - atcd.parser.at_cmd_timer;// > at_cmd->timeout
+        if (take_time>500)
+        {
+          char bufajzl[40]; //~25
+          snprintf(bufajzl, sizeof(bufajzl), "DEINIT/2: %u ms -> %d/%d", (unsigned int)take_time, atcd.at_cmd.result, atcd.at_cmd.result_code);
+          atcd_dbg_warn("ATCD: CONN: ", bufajzl);
+        };
+      }
+
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 4))
       {
         init_time_inner=atcd_get_ms();
