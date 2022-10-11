@@ -47,8 +47,10 @@ uint16_t atcd_proc_step()
 
       atcd.at_cmd.timeout        = 5000;*/
       atcd_atc_set_defaults(&atcd.at_cmd);
+      init_time_inner=atcd_get_ms();
 
     case ATCD_SB_INIT + 1:
+      if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_INIT + 1; //kdyz prijde RDY a mam rozdelany prikaz, tak me nejak neslysi nebo to neposlu nebo nevim
       atcd_atc_exec_cmd(&atcd.at_cmd, "ATE1\r\n");         // Enable AT cmd echo
     case ATCD_SB_INIT + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 2;
@@ -846,12 +848,12 @@ uint16_t atcd_proc_step()
 
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
-        snprintf(atcd.at_cmd.cmd, 64, "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
+        snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else if(conn->protocol == ATCD_CONN_T_UDP)
       {
-        snprintf(atcd.at_cmd.cmd, 64, "AT+CIPSTART=%u,\"UDP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
+        snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPSTART=%u,\"UDP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
         atcd_atc_exec(&atcd.at_cmd);
       }
       else
@@ -926,7 +928,7 @@ uint16_t atcd_proc_step()
       atcd.at_cmd.data = &conn->tx_rbuff;
       atcd.at_cmd.data_len = tx_data_len;
 
-      sprintf(atcd.at_cmd.cmd, "AT+CIPSEND=%u,%u\r\n", conn->num, (unsigned int)tx_data_len);
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPSEND=%u,%u\r\n", conn->num, (unsigned int)tx_data_len);
       atcd_atc_exec(&atcd.at_cmd);
 
       // provedeni testovat
@@ -1092,6 +1094,7 @@ uint16_t atcd_proc_step()
       //------------------------------------------------------------------------
     case ATCD_SB_END:
       //Konec, navrat na pocatek...
+      atcd.stat.full_cycles++;
       return ATCD_SB_STAT;
       //------------------------------------------------------------------------
     default:

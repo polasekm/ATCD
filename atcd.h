@@ -135,6 +135,10 @@ typedef struct
 
   uint32_t echo_bad;
   uint32_t echo_uns;
+
+  uint32_t full_cycles; //kolikrat se proslo z ATCD_SB_END zpatky na ATCD_SB_STAT, nulovani v odeslani CoAP
+  uint32_t atcd_begin_time; //(atcd_get_ms)
+  uint32_t last_modemoff_time; //podle pinu M_STAT_Pin (HAL_GetTick)
 } atcd_stat_t;
 
 typedef struct
@@ -150,8 +154,8 @@ typedef struct
 
   uint16_t proc_step;                          //aktualni krok v sekvencnim automatu ovladani modemu
   uint16_t proc_step_initfailed;               //posledni krok pred prechodem do ATCD_SB_INIT + ATCD_SO_ERR
-  uint16_t err_cnt;                            //pocitadlo chyb
-  uint16_t err_max;                            //maximalni pocet chyb
+  uint16_t err_cnt;                            //pocitadlo chyb - 1) v initu 2) v kolecku / ale ne v jinych stavech
+  uint16_t err_max;                            //maximalni pocet chyb (a init se kontroluje jen podle casu)
   
   atcd_sleep_mode_t  sleep_mode;               //nastaveny mod rezimu spanku
   atcd_sleep_state_t sleep_state;              //aktualni stav rezimu spanku

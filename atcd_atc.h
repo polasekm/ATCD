@@ -86,7 +86,7 @@ typedef enum
 //------------------------------------------------------------------------------
 typedef struct atcd_at_cmd
 {
-  char *cmd;                      //AT command
+  const char *cmd;                //AT command
   char *result_str;               //OK result string (ATC, ktere pri uspechu nekonci "OK")
 
   char *resp;                     //response buffer
@@ -119,7 +119,7 @@ typedef struct atcd_at_cmd
 uint8_t atcd_atc_check_success(atcd_at_cmd_t *at_cmd);  //check AT command state and result
 
 atcd_r_t atcd_atc_exec(atcd_at_cmd_t *at_cmd);                   //execute AT command
-atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd);    //execute and set AT command
+atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, const char *cmd);    //execute and set AT command
 atcd_r_t atcd_atc_exec_cmd_res_(atcd_at_cmd_t *at_cmd, char *cmd, char *res); //WARNING now returns ATCD_ATC_RESULT_MATCH not ATCD_ATC_RESULT_OK  //execute and set AT command with result string
 
 uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd);                //cancell execute AT command

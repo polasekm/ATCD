@@ -127,7 +127,7 @@ uint8_t atcd_atc_exec(atcd_at_cmd_t *at_cmd)         //execute AT command
   return ATCD_OK;
 }
 //------------------------------------------------------------------------------
-atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, char *cmd)    //execute and set AT command
+atcd_r_t atcd_atc_exec_cmd(atcd_at_cmd_t *at_cmd, const char *cmd)    //execute and set AT command
 {
   at_cmd->cmd = cmd;
   at_cmd->result_str = NULL;
@@ -366,7 +366,7 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
 
   if(at_cmd == atcd.parser.at_cmd_end)
   {
-    //Prikaz je na klonci fronty
+    //Prikaz je na konci fronty
     atcd.parser.at_cmd_end = at_cmd_pre;
   }
 
