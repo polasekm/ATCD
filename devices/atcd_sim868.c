@@ -652,7 +652,14 @@ uint16_t atcd_proc_step()
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 90;
       }
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
+      { //pri vypnuti modemu kvuli slabe baterii mi to nejspis ufikne a vrati se to SB_INIT, ale zkusim
+        char errbuf[20];
+        snprintf(errbuf, sizeof(errbuf), "cgatt=1 -> %d", atcd.at_cmd.result);
+        atcd_dbg_inf2("GPRS: ", errbuf);
+
+        return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+      }
       if (atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
