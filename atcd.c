@@ -86,6 +86,14 @@ void atcd_reset()               //Reset zarizeni
   atcd.state = ATCD_STATE_STARTING;
 }
 //------------------------------------------------------------------------------
+void atcd_delayed_reset()
+{
+  if(atcd.parser.at_cmd_end == NULL)
+    atcd_reset();
+  else
+    atcd.reset_needed=1;
+}
+//------------------------------------------------------------------------------
 void atcd_begin()
 {
   /*
@@ -120,6 +128,7 @@ void atcd_state_reset()                  //state machine reset
 
   //atcd.powersave_act = -1;
   atcd.timer = atcd_get_ms();
+  atcd.reset_needed = 0;
 
   atcd.tx_state    = ATCD_P_TX_COMPLETE;
   //atcd.tx_pending  = 0;

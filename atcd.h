@@ -145,6 +145,7 @@ typedef struct
 {
   atcd_state_t state;                          //device state
   uint32_t timer;                              //current operation timer
+  uint8_t reset_needed;                        //from atcd_delayed_reset to atcd_atc_send_cmd_top
 
   atcd_tx_state_t tx_state;                    //transmission state
   //uint8_t  tx_pending;                         //priznak cekajicicho vysilani
@@ -207,6 +208,7 @@ typedef struct
 // ATC Device
 void atcd_init();                //init AT command device
 void atcd_reset();               //reset AT command device
+void atcd_delayed_reset();       //wait for completion of current AT command and then reset
 void atcd_start();               //start AT command device
 void atcd_begin();               //received RDY or MODEM_STAT went active
 

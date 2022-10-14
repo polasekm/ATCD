@@ -298,6 +298,13 @@ uint8_t atcd_phone_asc_msg()
     return 1;
 
   skip_proc2:
+    //odpoved na AT+CLIP? je +CLIP: 1,1 coz neobsahuje uvozovky takze to jde sem, pustim to dal
+    if (*p==' ') p++;
+    if (atcd.parser.buff + atcd.parser.buff_pos - p==5 &&
+        (p[0]=='0' || p[0]=='1') &&
+        p[1]==',' &&
+        (p[2]=='0' || p[2]=='1' || p[2]=='2'))
+      return 0;
     ATCD_DBG_PHONE_CALL_N_DET_E
     atcd.parser.buff_pos = atcd.parser.line_pos;
     return 1;

@@ -71,21 +71,36 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CPIN?\r\n");    // Je vyzadovan PIN?
+
+
+      init_time_inner=atcd_get_ms();
+      init_time_outer=init_time_inner;
+      atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPIN?\r\n", "+CME ERROR: 14"); //system nerozlisi skutecny OK od _res // Je vyzadovan PIN?
     case ATCD_SB_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 10))
-      { //err 14= SIM BUSY
+      { //err 10= NO SIM
         atcd.sim.state = ATCD_SIM_STATE_NONE;
         init_time_inner=atcd_get_ms();
         return ATCD_SB_INIT + 90; //pockej 5s
       };
-      if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 14))
-      { //err 14= SIM BUSY
-        //atcd.sim.state = ATCD_SIM_STATE_WAIT ?;
+      if (atcd.at_cmd.result == ATCD_ATC_RESULT_MATCH)
+      { //a tady muzu cekat na unso +CPIN: READY
+        if (atcd_get_ms()-init_time_outer>=12000)
+          return ATCD_SB_INIT + ATCD_SO_ERR;
+        if (atcd_get_ms()-init_time_inner>=500)
+        {
+          init_time_inner=atcd_get_ms();
+          atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPIN?\r\n", "+CME ERROR: 14");
+        }
+        return ATCD_SB_INIT + 7;
+      }
+      /* ted uz je cekani v INIT+1 tak snad to bude ok
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
+      {
         init_time_inner=atcd_get_ms();
         return ATCD_SB_INIT + 91; //pockej 0.5s
-      };
+      }*/
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, ATCD_STR_SIM_READY, strlen(ATCD_STR_SIM_READY)) == 0)
       {

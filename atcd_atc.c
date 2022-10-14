@@ -210,7 +210,7 @@ void atcd_atc_proc(uint8_t timeouts_also)                     //AT commands proc
           atcd_dbg_err("@atcd error: ", tmps);
         }
         //TODO: poresit abu se neprali o ukazatel na TX data, pokud se zrovna vysila...
-        atcd_hw_tx_esc("/r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
+        atcd_hw_tx_esc("\r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
       }
 
       atcd.parser.at_cmd_top = at_cmd->next;
@@ -264,6 +264,14 @@ void atcd_atc_queue_proc()               //AT commands queue processing
 void atcd_atc_send_cmd_top()                     //send AT command
 {
   uint16_t len;
+
+  if (atcd.reset_needed)
+  {
+    atcd.reset_needed=0;
+    atcd_dbg_warn("ATCD: ", "delayed reset\r\n");
+    atcd_reset();
+    return;
+  }
 
   ATCD_DBG_ATC_SEND_CMD
   atcd.parser.stat.atc_cnt++;
@@ -340,13 +348,13 @@ uint8_t atcd_atc_cancell(atcd_at_cmd_t *at_cmd)       //cancell execute AT comma
         snprintf(tmps, sizeof(tmps), "cancel->send %d whites\n", at_cmd->data_len + 1);
         atcd_dbg_err("@atcd error: ", tmps);
       }
-      //TODO: poresit abu se neprali o ukazatel na TX data, pokud se zrovna vysila...
-      atcd_hw_tx_esc("/r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
+      //TODO: poresit aby se neprali o ukazatel na TX data, pokud se zrovna vysila...
+      atcd_hw_tx_esc("\r", at_cmd->data_len + 1);  //Odesle plonkova data o dane delce pokud by je modem nahodou ocekaval
     }
   }
   else
   {
-    //Prikaz je unitr fronty
+    //Prikaz je uvnitr fronty
     at_cmd_pre = atcd.parser.at_cmd_top;
 
     //Hledame, ktery mu predchazi
