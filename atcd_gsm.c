@@ -39,9 +39,9 @@ uint8_t atcd_gsm_asc_msg()
   if(strncmp(str, "+CREG: ", strlen("+CREG: ")) == 0)
   { //muze prijit +CREG: 0,1 ale taky +CREG: 2,1,"9664","3873" a nevyzadana +CREG: 1 nebo +CREG: 1,"9664","3873" ano i +CREG: (0-2)
     if ((str[8]=='\r') || (str[8]==0) || ((str[8]==',') && (str[9]=='\"')))
-      val = (uint8_t)atoi(str+7);
+      val = (uint8_t)atoi(str+7); //+CREG: 1 nebo +CREG: 1,"966...
     else
-      val = (uint8_t)atoi(str+9);
+      val = (uint8_t)atoi(str+9); //+CREG: 0,1 nebo +CREG: 2,1,"966...
 
     if(val <= ATCD_REG_STATE__MAX)
     {
@@ -63,6 +63,13 @@ uint8_t atcd_gsm_asc_msg()
       //5     1       reset           t
       //prvni AT+CREG? se dela az po otevreni GPRS a po tomhle bych si zavolal atcd_gprs_disconnect
       if(state_p != val)
+      { //!(s==0 && v==2 || s==2 && v==1) = (s!=0 || v!=2) && (s!=2 || v!=1)
+        if ((state_p!=0 || val!=2) && (state_p!=2 || val!=1)) //z initu do 2 a z 2 do 1 je normalka, to nemusis logovat
+        {
+          char buf[10];
+          snprintf(buf, sizeof(buf), "%d->%d", state_p, val);
+          atcd_dbg_inf3("ATCD CREG", buf);
+        };
         if ((state_p==1) ||
             (state_p==5) ||
             ((val!=1) && (val!=5)))
@@ -70,6 +77,7 @@ uint8_t atcd_gsm_asc_msg()
           atcd_conn_reset_all();
           if(atcd.gsm.callback != NULL && (atcd.gsm.cb_events & ATCD_GSM_EV_REG) != 0) atcd.gsm.callback(ATCD_GSM_EV_REG);
         }
+      }
     }
     else
     {

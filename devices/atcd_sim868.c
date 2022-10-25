@@ -330,7 +330,6 @@ uint16_t atcd_proc_step()
     case ATCD_SB_STAT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_STAT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_STAT + ATCD_SO_ERR;
-      //if ((atcd.conns.awaitingC5__) && (atcd_get_ms()-step_time<100)) //normalne asi 25ms
       if ((atcd.conns.awaitingC5__) && (atcd_get_ms()-step_time<100)) //normalne asi 25ms
       { //prijem z modemu ho tak zdrzuje ze se sem vetsinou prijde az po prijeti "C5: ," ale ne uplne vzdy
         return ATCD_SB_STAT+6;
@@ -665,7 +664,7 @@ uint16_t atcd_proc_step()
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && ((atcd.at_cmd.result_code == 4) || (atcd.at_cmd.result_code == 100)))
       {
         init_time_inner=atcd_get_ms();
-        return ATCD_SB_GPRS_INIT + 90;
+        return ATCD_SB_GPRS_INIT + 85;
       }
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
       { //pri vypnuti modemu kvuli slabe baterii mi to nejspis ufikne a vrati se to SB_INIT, ale zkusim
@@ -749,6 +748,33 @@ uint16_t atcd_proc_step()
       atcd_gprs_autoconn(); //kdyz jsme chteli disco behem initu tak se pozadavek zahodil
       return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
+    case ATCD_SB_GPRS_INIT + 85: //vysetreni velmi bezne chyby +CME ERROR: 100 v INIT+7 (at+cgatt=1)
+      if (atcd_get_ms()-init_time_inner<500) return ATCD_SB_GPRS_INIT + 85;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+COPS?;+CREG?;+CPAS;+CGATT?;+CPIN?\r");
+    case ATCD_SB_GPRS_INIT + 86:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 86;
+      //AT+COPS?;+CREG?;+CPAS;+CGATT?
+      //+COPS: 0,0,"OSKAR"
+      //+CREG: 2,1,"9664","3873"
+      //+CPAS: 0
+      //+CGATT: 1
+      //OK
+      atcd_dbg_inf3("INV7ION", atcd.at_cmd.resp);
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSTATUS\r");
+      atcd.conns.awaitingC5__=1;
+    case ATCD_SB_GPRS_INIT + 87:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 87;
+      //OK + unso
+      //atcd_dbg_inf3("INV7ION", atcd.at_cmd.resp);
+      init_time_inner=atcd_get_ms();
+    case ATCD_SB_GPRS_INIT + 88:
+      if (atcd_get_ms()-init_time_inner<3000) return ATCD_SB_GPRS_INIT + 88;
+      atcd_dbg_inf3("GPRS ST", atcd.conns.parsedCipStatus.state);
+      atcd_dbg_inf3("GPRS 0", atcd.conns.parsedCipStatus.chans[0]);
+      atcd_dbg_inf3("GPRS 1", atcd.conns.parsedCipStatus.chans[1]);
+      atcd_dbg_inf3("GPRS 2", atcd.conns.parsedCipStatus.chans[2]);
+      return ATCD_SB_GPRS_INIT + ATCD_SO_ERR;
+
     case ATCD_SB_GPRS_INIT + 89: //nebyl by lepsi priznak "skip_all_gprs +_time" ? takhle zastavim vsechno
       if (atcd_get_ms()-init_time_inner<5000) return ATCD_SB_GPRS_INIT + 89;
 
@@ -801,7 +827,7 @@ uint16_t atcd_proc_step()
       {
         uint32_t take_time=atcd_get_ms() - atcd.parser.at_cmd_timer;// > at_cmd->timeout
         if (take_time>500)
-        {
+        { //naprosto vyjimecne 704ms -> OK (result_code=3 mozna od minula)
           char bufajzl[40]; //~25
           snprintf(bufajzl, sizeof(bufajzl), "DEINIT/2: %u ms -> %d/%d", (unsigned int)take_time, atcd.at_cmd.result, atcd.at_cmd.result_code);
           atcd_dbg_warn("ATCD: CONN: ", bufajzl);
@@ -826,6 +852,11 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR:
       //GPRS deinit selhalo
+      if (atcd_get_ms()-atcd.gprs.timer<65000)
+      { //zkusim jednou zacyklit, jestli se to nespravi... jinak zbyva uz jen reset modemu
+        atcd_dbg_warn("ATCD GPRS: ", "deinit fail");
+        return ATCD_SB_GPRS_DEINIT;
+      }
       ATCD_DBG_GPRS_DEINIT_ERR
       atcd.gprs.state = ATCD_GPRS_STATE_DISCONN;
       atcd.gprs.ip[0] = 0;
@@ -1124,6 +1155,32 @@ uint16_t atcd_proc_step()
       ATCD_DBG_SW_ERR
       return ATCD_SB_INIT;
   }
+}
+
+void atcd_proc_linepreview()
+{
+  if (atcd.conns.awaitingC5__)
+  {
+    if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "STATE: ", 7) == 0)
+    {
+      atcd.parser.buff[atcd.parser.buff_pos]=0;
+      strncpy(atcd.conns.parsedCipStatus.state, atcd.parser.buff + atcd.parser.line_pos+6, sizeof(atcd.conns.parsedCipStatus.state));
+    }
+    else if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "C: ", 3) == 0)
+    {
+      const char *ptr=atcd.parser.buff + atcd.parser.line_pos+3;
+      int ch=*ptr-'0';
+      if (ch>=0 && ch<sizeof(atcd.conns.parsedCipStatus.chans)/sizeof(atcd.conns.parsedCipStatus.chans[0]))
+      {
+        atcd.parser.buff[atcd.parser.buff_pos]=0;
+        strncpy(atcd.conns.parsedCipStatus.chans[ch], ptr+2, sizeof(atcd.conns.parsedCipStatus.chans[ch]));
+      };
+    }
+    //necham v atcd_conn.c
+    //if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "C: 5,", strlen("C: 5,")) == 0)
+    //  atcd.conns.awaitingC5__=0;;
+  };
+
 }
 //------------------------------------------------------------------------------
 void atcd_sw_reset()            //SW reset

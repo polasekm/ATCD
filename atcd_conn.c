@@ -34,7 +34,11 @@ void atcd_conn_proc()                    //connections processing
       {
         if(ms - conn->timer > conn->timeout)
         {
-          ATCD_DBG_CONN_TIM
+          if (conn->state == ATCD_CONN_STATE_OPENING) ATCD_DBG_CONN_TIM_OPE
+          else if (conn->state == ATCD_CONN_STATE_CLOSING) ATCD_DBG_CONN_TIM_CLO
+          else ATCD_DBG_CONN_TIM_WOP //if (conn->state == ATCD_CONN_STATE_W_OPEN)
+
+
           atcd_conn_close(conn, 1);
         }
       }
@@ -276,7 +280,7 @@ uint8_t atcd_conn_asc_msg()
   #endif /* ATCD_DATA_RX_NL */
 
   if (atcd.conns.awaitingC5__)
-  {
+  { //C: 5 je posledni
     if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "C: 5,", strlen("C: 5,")) == 0)
       atcd.conns.awaitingC5__=0;;
   };

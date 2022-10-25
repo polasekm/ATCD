@@ -19,6 +19,7 @@ void atcd_proc_ch(char ch);               //Zpracovani prijateho znaku
 void atcd_state_reset();                  //Reset stavoveho automatu ATCD
 
 uint16_t atcd_proc_step();                //pruchod jednim krokem kolecka modemu
+void atcd_proc_linepreview();
 //--------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -427,6 +428,8 @@ void atcd_rx_ch(char ch)
   // Tohle nebude fungovat --- !
   // Je potreba volat jen pokud doslo skutecne k detekci, neboi je to ve stavu mimo ATC...
   //if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0) atcd.callback(ATCD_EV_ASYNC_MSG);
+
+  atcd_proc_linepreview();
 
   if ((atcd_conn_asc_msg() != 0) ||  // Zpracovani TCP/UDP spojeni
       (atcd_wifi_asc_msg() != 0) ||  // Zpracovani udalosti WLAN

@@ -137,7 +137,9 @@
   #define ATCD_DBG_WIFI_GOT_IP         atcd_dbg_inf("ATCD: WIFI: ", "WIFI GOT IP detect..\r\n");
   #define ATCD_DBG_WIFI_DISCONN_DET    atcd_dbg_inf("ATCD: WIFI: ", "WIFI DISCONNECT detect...\r\n");
 
-  #define ATCD_DBG_CONN_TIM            atcd_dbg_warn("ATCD: CONN: ", "Spojeni vyprsel timeout - rusim jej.\r\n");
+  #define ATCD_DBG_CONN_TIM_WOP        atcd_dbg_warn("ATCD: CONN: ", "Spojeni vyprsel timeout/wop - rusim jej.\r\n"); //want open
+  #define ATCD_DBG_CONN_TIM_OPE        atcd_dbg_warn("ATCD: CONN: ", "Spojeni vyprsel timeout/ope - rusim jej.\r\n"); //opening
+  #define ATCD_DBG_CONN_TIM_CLO        atcd_dbg_warn("ATCD: CONN: ", "Spojeni vyprsel timeout/clo - rusim jej.\r\n"); //closing
   #define ATCD_DBG_CONN_ALLOC          atcd_dbg_inf("ATCD: CONN: ", "Spojeni prirazeno.\r\n");
   #define ATCD_DBG_CONN_ALLOC_ERR      atcd_dbg_warn("ATCD: CONN: ", "Spojeni neprirazeno - vycerpan max pocet.\r\n");
 

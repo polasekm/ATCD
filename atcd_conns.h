@@ -30,6 +30,12 @@ typedef struct
   
   uint32_t timer;                 //connection timer
   uint8_t awaitingC5__;
+  struct
+  {
+    char state[20];
+    char chans[3][50]; //0,"TCP","78.110.212.250","47070","CLOSED" = 41
+             //3 staci, teoreticky 6 (0..5)
+  } parsedCipStatus;
 
 } atcd_conns_t;
 
