@@ -70,7 +70,7 @@ struct atcd_gps_ts
   double latitude;
   double longitude;
   float altitude;
-  float undulation;
+  float undulation; //geoid separation
   uint8_t fix_mode;
 
   float speed;
@@ -79,6 +79,7 @@ struct atcd_gps_ts
   float pdop;
   float hdop;
   float vdop;
+  float accuracy;
 
   uint32_t last_fix;              //atcd_get_ms() v dobe fixu
   atcd_gps_stat_t stat;

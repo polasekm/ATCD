@@ -66,8 +66,8 @@ uint8_t atcd_gsm_asc_msg()
       { //!(s==0 && v==2 || s==2 && v==1) = (s!=0 || v!=2) && (s!=2 || v!=1)
         if ((state_p!=0 || val!=2) && (state_p!=2 || val!=1)) //z initu do 2 a z 2 do 1 je normalka, to nemusis logovat
         {
-          char buf[10];
-          snprintf(buf, sizeof(buf), "%d->%d", state_p, val);
+          char buf[15];
+          snprintf(buf, sizeof(buf), "%d->%d\r\n", state_p, val);
           atcd_dbg_inf3("ATCD CREG", buf);
         };
         if ((state_p==1) ||
