@@ -267,6 +267,7 @@ uint8_t atcd_phone_asc_msg()
         atcd_dbg_inf2("call_out", tmps);
       };
     };
+    //TODO: no ale incoming +CLCC se tu sezere a pritom ignoruje
 
     atcd.parser.buff_pos = atcd.parser.line_pos; //proc asi vracim 1
     return 1;
