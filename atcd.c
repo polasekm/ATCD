@@ -65,7 +65,8 @@ void atcd_start()               //Spusteni zarizeni
   atcd_hw_pwr(ATCD_PWR_ON);
 
 	#if(ATCD_USE_DEVICE == ATCD_SIM868 || ATCD_USE_DEVICE == ATCD_SIM7000)
-		atcd_hw_reset();
+		//atcd_hw_reset();
+    atcd_hw_igt();     //TODO doresit...
 	#elif
 		atcd_hw_igt();
 	#endif
@@ -227,7 +228,7 @@ void atcd_proc()                         //data processing
   //----------------------------------------------
   if(atcd.state == ATCD_STATE_STARTING)
   {
-     // Test timeoutu v rezimu startu modemu
+    // Test timeoutu v rezimu startu modemu
     if(atcd_get_ms() - atcd.timer > 10000)
     {
       // Vyprsel cas na start
@@ -241,6 +242,10 @@ void atcd_proc()                         //data processing
       // Modemy, ktere nehlasi svuj start...
       // ...cekaji na atcd_begin() (dokonceni IGNITION) atcd.state = ATCD_STATE_NO_INIT_;
       // atcd.timer = atcd_get_ms();
+
+      //Test
+      atcd.state = ATCD_STATE_NO_INIT;
+      //atcd.timer = atcd_get_ms();   //??
     #endif
   }
   else if(atcd.state == ATCD_STATE_NO_INIT)

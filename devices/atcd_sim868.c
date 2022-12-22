@@ -899,6 +899,13 @@ uint16_t atcd_proc_step()
        * nezkousel jsem to
        */
 
+      if(conn->ssl_en == 0) atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSSL=0\r\n");
+                       else atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSSL=1\r\n");
+
+    case ATCD_SB_CONN_OPEN + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 1;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_OPEN + ATCD_SO_ERR;
+
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
         snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
@@ -915,8 +922,8 @@ uint16_t atcd_proc_step()
         return ATCD_SB_CONN_OPEN + ATCD_SO_ERR;
       }
 
-    case ATCD_SB_CONN_OPEN + 1:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 1;
+    case ATCD_SB_CONN_OPEN + 2:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 2;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
         ATCD_DBG_CONN_W_CONN
