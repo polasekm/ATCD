@@ -550,8 +550,8 @@ uint8_t atcd_atc_ln_proc()
             ATCD_DBG_ATC_LN_BUFF_OV
             //ten priznak se ztrati
             //at_cmd->resp           = NULL;  //tohle je ultra nebezpecne!
-            at_cmd->resp_len       = 0;
-            at_cmd->resp_buff_size = 0;
+            at_cmd->resp_len       = 0; //MV            ostatne ani s timhle
+            at_cmd->resp_buff_size = 0; //MV 2023-02-08 s timhle zase nejsem uplne happy ja
 
             if(at_cmd->callback != NULL && (at_cmd->cb_events & ATCD_ATC_EV_OVERRUN) != 0) at_cmd->callback(ATCD_ATC_EV_OVERRUN);
           }
