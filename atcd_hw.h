@@ -37,6 +37,7 @@ void atcd_dbg_inf2(const char *header, const char *str);  //info ale ne tak cast
 void atcd_dbg_inf3(const char *header, const char *str);  //inf2 + poslat do TB
 void atcd_dbg_warn(const char *header, const char *str);  //debug warning print
 void atcd_dbg_err(const char *header, const char *str);   //debug error print
+void atcd_dbg_err2(const char *header, const char *str);  //red text, no reporting
 void atcd_dbg_in(const char *str, uint16_t len);    //debug data in print
 void atcd_dbg_out(const char *str, uint16_t len);   //debug data out print
 void atcd_dbg_out_rb(rbuff_t *rbuff, uint16_t len);  //debug data out print - ring buffer

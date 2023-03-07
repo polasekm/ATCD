@@ -29,10 +29,10 @@ typedef enum
   //ATCD_P_MODE_SLEEP,          //modem je (mozna) v powersaving
   //ATCD_P_MODE_WAKING,         //cekani na probuzeni
   ATCD_P_MODE_IDLE,           //cekani nez poslu modem spat
-  ATCD_P_MODE_ATC,            //cekani na OK, muze si odskocit do TX_PEND a PROMPT
+  //vono se to nepouziva ATCD_P_MODE_ATC,            //cekani na OK, muze si odskocit do TX_PEND a PROMPT
   ATCD_P_MODE_IPD, //TODO: potrebujeme taky rezim "preskoc X bajtu" kvuli echo na AT+CIPSEND, potom nastavit line_pos:=buff_pos a vratit do _ATC. Takhle chytim aspon druhy radek
-  ATCD_P_MODE_SMS
-
+  ATCD_P_MODE_SMS,
+  ATCD_P_MODE_BINARY,
 } atcd_parser_mode_t;
 
 // Opravdu - s ohledem na stav vyse asi smazat
@@ -63,6 +63,7 @@ typedef struct
   atcd_parser_mode_t mode;        //parser mode
   uint8_t echo_en;                //AT cmd echo enable
   uint32_t timer;                 //plati mimo ATCD_P_MODE_ATC; fix: kdyz neprijde text SMS, zasekne se to uplne vsechno naporad
+  uint16_t binary_len;
 
   uint32_t at_cmd_timer;          //timer provadeneho at prikazu
 
@@ -82,7 +83,8 @@ typedef struct
 // ATC Device
 void atcd_parser_init();         //init AT command device
 void atcd_parser_proc();         //Parser processing
-
+uint8_t atcd_parser_binary_proc(char ch);
+void atcd_parser_expect_binary(uint16_t len);
 
 //------------------------------------------------------------------------------
 #endif /* ATCD_PARSER_H_INCLUDED */

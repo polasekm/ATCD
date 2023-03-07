@@ -29,6 +29,7 @@
 #include "atcd_gsm.h"
 #include "atcd_phone.h"
 #include "atcd_gprs.h"
+#include "atcd_setup.h"
 #include "atcd_wifi.h"
 #include "atcd_gps.h"
 #include "atcd_conn.h"
@@ -109,7 +110,10 @@ typedef enum
 #define ATCD_SB_GPS_START           1000
 #define ATCD_SB_GPS_STOP            1100
 
-#define ATCD_SB_END                 1200
+#define ATCD_SB_SETUP               1200
+#define ATCD_SB_SELFCHECK           1300
+
+#define ATCD_SB_END                 1400
 
 #define ATCD_SO_ERR_NEEDNOT         97
 #define ATCD_SO_ERR                 98
@@ -122,6 +126,13 @@ typedef enum
   atcd_pwrsFull
 
 } atcd_powersave_req_t;*/
+typedef enum
+{
+  atcd_selfcheck_stateNOTYET,
+  atcd_selfcheck_stateBUSY,
+  atcd_selfcheck_stateOK,
+  atcd_selfcheck_stateWRONG
+} atcd_selfcheck_state_e;
 //------------------------------------------------------------------------------
 typedef struct
 {
@@ -139,6 +150,10 @@ typedef struct
   uint32_t full_cycles; //kolikrat se proslo z ATCD_SB_END zpatky na ATCD_SB_STAT, nulovani v odeslani CoAP
   uint32_t atcd_begin_time; //(atcd_get_ms)
   uint32_t last_modemoff_time; //podle pinu M_STAT_Pin (HAL_GetTick)
+
+  uint32_t selftest_run;
+  uint32_t selftest_wrong;
+  uint32_t selftest_fail;
 } atcd_stat_t;
 
 typedef struct
@@ -170,6 +185,8 @@ typedef struct
   char at_cmd_result_buff[32];                 //buffer pro nestandardni OK odpoved... spis regex ale to zase jindy
   rbuff_t at_cmd_data;                         //kruhovy buffer pro volitelna data k at prikazu
 
+  atcd_selfcheck_state_e selfcheck_state;      //
+
   atcd_conns_t conns;                          //TCP/UDP conections
 
   // Podmineny preklad
@@ -178,6 +195,7 @@ typedef struct
   atcd_phone_t phone;                   //
   atcd_gprs_t gprs;                     //
   atcd_gps_t gps;                       //
+  atcd_setup_t setup;
   atcd_wifi_t wifi;                     //
 
   uint8_t cb_events;                    //device callback events
@@ -226,6 +244,8 @@ void atcd_rx_ch(char ch);                        //zpracuje prijaty znak
 void atcd_tx_complete();         //call on tx data complete
 void atcd_sw_reset();            //SW reset
 void atcd_state_reset();
+void atcd_selfcheck_need();
+atcd_selfcheck_state_e atcd_selfcheck_getstate();
 
 void atcd_proc();                //data processing 
 

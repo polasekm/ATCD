@@ -16,6 +16,8 @@ uint32_t init_time_inner;
 uint32_t init_time_outer;
 uint32_t step_time;
 
+uint16_t expecting_binary=0;
+
 struct  //je potreba vsechny chyby pocitat zvlast, aby jedna neresetovala druhou
 {
   int cpas2;
@@ -182,7 +184,7 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
+      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
     case ATCD_SB_INIT + 17:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
@@ -196,7 +198,7 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 21:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 21;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-
+      */
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+SIDET=0,0\r\n");
     case ATCD_SB_INIT + 22:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 22;
@@ -263,6 +265,90 @@ uint16_t atcd_proc_step()
     }
 
     case ATCD_SB_INIT + ATCD_SO_END:
+
+    case ATCD_SB_SETUP:
+      if (atcd.setup.clean)
+        return ATCD_SB_SETUP + ATCD_SO_END;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL?\r");
+    case ATCD_SB_SETUP + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 1;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      if (strncmp(atcd.at_cmd.resp, "+CLVL:", 6)==0)
+      {
+        int clvl=atoi(atcd.at_cmd.resp+6);
+        if (clvl==atcd.setup.clvl)
+          return ATCD_SB_SETUP + 3;
+      };
+
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CLVL=%d\r", atcd.setup.clvl);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_SETUP + 2:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 2;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+    case ATCD_SB_SETUP + 3:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r");
+    case ATCD_SB_SETUP + 4:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 4;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      // +ECHO: (0,96,253,16388,20488),(1,0,0,0,0)
+      //default po factory reset: +ECHO: (0,96,253,16388,20488),(1,96,224,5256,20488)
+      //4 parametry si pamatuje, 5. nejde zjistit a po restartu je 1
+      if (strncmp(atcd.at_cmd.resp, "+ECHO: (0,", 10)==0)
+      {
+        int want_size=snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "%u,%u,%u,%u)",
+            atcd.setup.echo.np, atcd.setup.echo.ae, atcd.setup.echo.nr, atcd.setup.echo.ns);//, atcd.setup.echo_can_en);
+        if (strncmp(atcd.at_cmd.resp+10, atcd.at_cmd_buff, want_size)==0)
+        {
+          if (atcd.setup.echo.mirror_can==atcd.setup.echo.can)
+            return ATCD_SB_SETUP+6;
+        };
+      };
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+ECHO=0,%u,%u,%u,%u,%u\r",
+          atcd.setup.echo.np, atcd.setup.echo.ae, atcd.setup.echo.nr, atcd.setup.echo.ns, atcd.setup.echo.can);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+      atcd.setup.echo.mirror_can=atcd.setup.echo.can;
+    case ATCD_SB_SETUP + 5:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 5;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) { atcd.setup.echo.mirror_can=2; return ATCD_SB_SETUP + ATCD_SO_ERR; }
+    case ATCD_SB_SETUP + 6:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r");
+    case ATCD_SB_SETUP + 7:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 7;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      // +CMIC: (0,12),(1,0),(2,12),(3,0)
+      if (strncmp(atcd.at_cmd.resp, "+CMIC: (0,", 10)==0)
+      {
+        int cmic=atoi(atcd.at_cmd.resp+10);
+        if (cmic==atcd.setup.cmic)
+          return ATCD_SB_SETUP + 9;
+      };
+
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CMIC=0,%u\r", atcd.setup.cmic);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_SETUP + 8:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 8;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+    case ATCD_SB_SETUP + 9:
+      atcd.setup.clean=1;
+      return ATCD_SB_SETUP + ATCD_SO_END;
+    case ATCD_SB_SETUP + ATCD_SO_ERR:
+      // V prubehu inicializace doslo k chybe
+    {
+      char hlaska[37+3*5 +10];
+      snprintf(hlaska, sizeof(hlaska), "Setup selhal c.s=%d c.r=%d !\r\n",
+          atcd.at_cmd.state, atcd.at_cmd.result);
+      atcd_dbg_err("ATCD: SETUP: ", hlaska);
+      //ATCD_DBG_INIT_ERR
+
+      //setup vicemene funguje, pravdepodobnejsi je jednorazova chyba->nechat clean==0 a zkusi se znovu
+      //atcd.setup.clean=2; //nemam jinou moznost nez dat true, jinak pojede furt
+
+      return ATCD_SB_SETUP + ATCD_SO_END;
+    }
+
+
+    case ATCD_SB_SETUP + ATCD_SO_END:
     //------------------------------------------------------------------------
     // ---- Pocatek pravidelneho kolecka ----
     //------------------------------------------------------------------------
@@ -518,6 +604,10 @@ uint16_t atcd_proc_step()
       atcd_atc_exec_cmd(&atcd.at_cmd, "ATA\r\n");
     case ATCD_SB_PHONE + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 2;
+      //TODO: pokud hovor zmizi (+CME ERROR: 3), posilam ATA kazdych 20ms dokud se nezkusi AT+CPAS
+      //ale pro opravu bych potreboval timer na zpozdeni, priznak protoze nechci vynechat ATH a dalsi ale pockat az na konci,
+      //a jeste pocitadlo chyb abych to nebrzdil hned ale az treba po 3.
+      //snad to vyresi zpracovani +CLCC: x,1,6,0,0,"+xxx",145,""
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_PHONE + 3;
       atcd.phone.state = ATCD_PHONE_STATE_CALL;
 
@@ -1142,13 +1232,87 @@ uint16_t atcd_proc_step()
       //Zalogovat!
 
     case ATCD_SB_GPS_STOP + ATCD_SO_END:
+
+    case ATCD_SB_SELFCHECK:
+      if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
+        return ATCD_SB_SELFCHECK + ATCD_SO_END;
+      atcd.stat.selftest_run++;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsflsize=Z:\\NVRAM\\NVD_DATA\\MT6B_010\r");
+    case ATCD_SB_SELFCHECK + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 1;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
+      // +FSFLSIZE: 1854
+      if(atcd.at_cmd.resp_len != 0 && strncmp(atcd.at_cmd.resp, "+FSFLSIZE: 1854", 15) != 0)
+      {
+        atcd_dbg_err("atcd", "selfcheck 1: bad size");
+        return ATCD_SB_SELFCHECK + 3;
+      };
+
+      //fsread jde s uvozovkami i bez
+      atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsread=Z:\\NVRAM\\NVD_DATA\\MT6B_010,1,64,900\r");
+      expecting_binary=64;
+    case ATCD_SB_SELFCHECK + 2:
+    {
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 2;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
+      char tmp[50];
+      int zeros=0, resp_len=atcd.at_cmd.resp_len;
+      if (resp_len==64)
+      {
+        int i;
+        for (i=0; i<resp_len; i++)
+          if (atcd.at_cmd.resp[atcd.parser.line_pos+i]==0)
+            zeros++;
+      };
+
+      static uint32_t error_simulator=0;
+      if (error_simulator++==4)
+        zeros=100;
+
+      snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d",
+          resp_len, zeros, atcd.at_cmd.result, atcd.at_cmd.state); //res 1=OK, sta 0=DONE
+      atcd_dbg_inf3("atcd", tmp);
+
+      if (resp_len!=64)
+      {
+        atcd_dbg_err("atcd", "selfcheck 2: not 64");
+        return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
+      };
+
+
+      if (zeros<50) //64 po poruse, 5 po oprave
+        return ATCD_SB_SELFCHECK + 5;
+    }
+    case ATCD_SB_SELFCHECK + 3:
+      atcd.stat.selftest_wrong++;
+      //fsdel jde s uzovkami i bez
+      atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsdel=Z:\\NVRAM\\NVD_DATA\\MT6B_010\r");
+      //atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsdel=\"Z:\\NVRAM\\NVD_DATA\\MT6B_010\"\r");
+      //atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsdel=\"Z:\\NVRAM\\NVD_DATA\\xxx\"\r");
+    case ATCD_SB_SELFCHECK + 4:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 4;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK && atcd.at_cmd.result != ATCD_ATC_RESULT_ERROR) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
+      atcd.reset_needed=1;
+      atcd.selfcheck_state=atcd_selfcheck_stateWRONG;
+      return ATCD_SB_SELFCHECK + ATCD_SO_END;
+
+    case ATCD_SB_SELFCHECK + 5:
+      atcd.selfcheck_state=atcd_selfcheck_stateOK;
+      return ATCD_SB_SELFCHECK + ATCD_SO_END;
+
+    case ATCD_SB_SELFCHECK + ATCD_SO_ERR:
+      atcd_dbg_warn("atcd", "failed selfcheck");
+      atcd.stat.selftest_fail++;
+      atcd.selfcheck_state=atcd_selfcheck_stateWRONG;
+
+    case ATCD_SB_SELFCHECK + ATCD_SO_END:
       //------------------------------------------------------------------------
       // END
       //------------------------------------------------------------------------
     case ATCD_SB_END:
       //Konec, navrat na pocatek...
       atcd.stat.full_cycles++;
-      return ATCD_SB_STAT;
+      return ATCD_SB_SETUP;
       //------------------------------------------------------------------------
     default:
       //Chyba, logovat
@@ -1180,6 +1344,17 @@ void atcd_proc_linepreview()
     //if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "C: 5,", strlen("C: 5,")) == 0)
     //  atcd.conns.awaitingC5__=0;;
   };
+
+  if (expecting_binary>0)
+  {
+    if (strncmp(atcd.parser.buff + atcd.parser.line_pos, "at+fsread=", 10) == 0)
+      atcd_parser_expect_binary(expecting_binary);
+    else
+    {
+      atcd_dbg_err2("sim868-bin", atcd.parser.buff);
+    }
+    expecting_binary=0;
+  }
 
 }
 //------------------------------------------------------------------------------

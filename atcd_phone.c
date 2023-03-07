@@ -259,7 +259,20 @@ uint8_t atcd_phone_asc_msg()
           atcd.phone.state_call_out|= 1<<(id-1);
         else
           atcd.phone.state_call_out&=~ (1<<(id-1));
-      };
+      }
+      else
+      { //incoming +CLCC: 1,1,6,0,0,"+420777262425",145,""
+        if (stat==6) //hanged up
+        {
+          atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+          atcd.phone.ring_cnt = 0;
+          atcd.phone.number[0] = 0;
+          atcd.phone.numbertype = -1;
+        };
+
+        if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+
+      }
       if (prevcallout!=atcd.phone.state_call_out)
       {
         char tmps[30];
@@ -403,7 +416,7 @@ uint8_t atcd_phone_sms_proc(char ch)
 
     atcd.parser.buff_pos++;
 
-    // Pokud jsme dosahli komce bloku s textem SMS
+    // Pokud jsme dosahli konce bloku s textem SMS
     //if(atcd.buff_pos >= atcd.parser.ipd_len)
     if(atcd.parser.buff_pos - atcd.parser.line_pos >= atcd.phone.sms.len)
     {

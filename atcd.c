@@ -44,6 +44,12 @@ void atcd_init()                          //init AT command device
   atcd.stat.echo_bad = 0;
   atcd.stat.echo_uns = 0;
 
+  atcd.stat.selftest_run = 0;
+  atcd.stat.selftest_wrong = 0;
+  atcd.stat.selftest_fail = 0;
+
+  atcd.selfcheck_state=atcd_selfcheck_stateNOTYET;
+
   memset(&atcd.profiler, 0x00, sizeof(atcd.profiler));
 
   atcd_sim_init();
@@ -51,6 +57,7 @@ void atcd_init()                          //init AT command device
   atcd_phone_init();
   atcd_gprs_init();
   atcd_gps_init();
+  atcd_setup_init();
   atcd_wifi_init();
 
   atcd_state_reset();
@@ -149,6 +156,8 @@ void atcd_state_reset()                  //state machine reset
   atcd.err_cnt   = 0;
   atcd.err_max   = 10;
 
+  atcd.selfcheck_state=atcd_selfcheck_stateNOTYET;
+
   atcd.sleep_state = ATCD_SS_SLEEP;
   atcd.sleep_disable = 0;
   atcd.sleep_timer = 0;
@@ -161,9 +170,21 @@ void atcd_state_reset()                  //state machine reset
   atcd_phone_reset();
   atcd_gprs_reset();
   atcd_gps_reset();
+  atcd_setup_reset();
   atcd_wifi_reset();
 
   if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE_RESET) != 0) atcd.callback(ATCD_EV_STATE_RESET);
+}
+//------------------------------------------------------------------------------
+void atcd_selfcheck_need()
+{
+  //if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
+  atcd.selfcheck_state=atcd_selfcheck_stateBUSY;
+}
+//------------------------------------------------------------------------------
+atcd_selfcheck_state_e atcd_selfcheck_getstate()
+{
+  return atcd.selfcheck_state;
 }
 //------------------------------------------------------------------------------
 /*void atcd_set_powersave(atcd_powersave_req_t mode)          //set sleep mode
@@ -362,7 +383,7 @@ void atcd_rx_ch(char ch)
   if (dbg_fejla>0)
     dbg_fejla--;
 
-  //TODO: Co to je? Odpoved: nevypisuj na terminal stahovani firmware
+  //Co to je? Odpoved: nevypisuj na terminal stahovani firmware
   if ((atcd.parser.mode==ATCD_P_MODE_IPD) &&
       (atcd.parser.rx_conn_num<ATCD_CONN_MAX_NUMBER) &&
       (atcd.conns.conn[atcd.parser.rx_conn_num]!=NULL) &&
@@ -374,7 +395,8 @@ void atcd_rx_ch(char ch)
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
   if ((atcd_conn_data_proc(ch) != 0) ||       // Zpracovani prichozich dat TCP/UDP spojeni
   //sem mozna navratit if na stav parseru a pak mozne zpracovani dat...
-      (atcd_phone_sms_proc(ch) != 0))         // Zpracovani prichozich dat prijimane SMS zpravy
+      (atcd_phone_sms_proc(ch) != 0) ||         // Zpracovani prichozich dat prijimane SMS zpravy
+      (atcd_parser_binary_proc(ch) != 0))
   {
     atcd.profiler.return1+=(atcd_get_ms()-tick_start);
     return;

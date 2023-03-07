@@ -146,7 +146,17 @@ void atcd_atc_proc(uint8_t timeouts_also)                     //AT commands proc
   atcd_at_cmd_t *at_cmd;
  
   at_cmd = atcd.parser.at_cmd_top;
-  if(at_cmd != NULL)
+  if(at_cmd == NULL)
+  {
+    if (atcd.reset_needed) //don't wait until next AT command
+    {
+      atcd.reset_needed=0;
+      atcd_dbg_warn("ATCD: ", "delayed reset/p\r\n");
+      atcd_reset();
+      //return;
+    };
+  }
+  else
   {             
     //Na vrcholu fronty je AT prikaz
     if(at_cmd->state == ATCD_ATC_STATE_TX && atcd.tx_state == ATCD_P_TX_COMPLETE)
@@ -268,7 +278,7 @@ void atcd_atc_send_cmd_top()                     //send AT command
   if (atcd.reset_needed)
   {
     atcd.reset_needed=0;
-    atcd_dbg_warn("ATCD: ", "delayed reset\r\n");
+    atcd_dbg_warn("ATCD: ", "delayed reset/t\r\n");
     atcd_reset();
     return;
   }
