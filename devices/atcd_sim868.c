@@ -1265,9 +1265,9 @@ uint16_t atcd_proc_step()
             zeros++;
       };
 
-      static uint32_t error_simulator=0;
+      /*static uint32_t error_simulator=0;
       if (error_simulator++==4)
-        zeros=100;
+        zeros=100;*/
 
       snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d",
           resp_len, zeros, atcd.at_cmd.result, atcd.at_cmd.state); //res 1=OK, sta 0=DONE
