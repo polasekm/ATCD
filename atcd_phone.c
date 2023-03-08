@@ -239,7 +239,8 @@ uint8_t atcd_phone_asc_msg()
     return 1;
   }
 
-  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLCC: ", 7/*strlen("+CLCC: ")*/) == 0)
+  if(atcd.parser.buff_pos-atcd.parser.line_pos>10 && //don't catch response to at+clcc?
+     strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLCC: ", 7/*strlen("+CLCC: ")*/) == 0)
   {
     ATCD_DBG_PHONE_CALL_DET
     //<id>,<dir>,<stat>,<mode>,<mpty>[,<number>,<type>,<alphaID>]<CR><LF>
@@ -268,11 +269,11 @@ uint8_t atcd_phone_asc_msg()
           atcd.phone.ring_cnt = 0;
           atcd.phone.number[0] = 0;
           atcd.phone.numbertype = -1;
+
+          if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
         };
-
-        if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
-
       }
+
       if (prevcallout!=atcd.phone.state_call_out)
       {
         char tmps[30];

@@ -131,7 +131,8 @@ typedef enum
   atcd_selfcheck_stateNOTYET,
   atcd_selfcheck_stateBUSY,
   atcd_selfcheck_stateOK,
-  atcd_selfcheck_stateWRONG
+  atcd_selfcheck_stateFAILED,
+  atcd_selfcheck_stateWRONG,
 } atcd_selfcheck_state_e;
 //------------------------------------------------------------------------------
 typedef struct

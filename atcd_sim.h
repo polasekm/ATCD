@@ -22,18 +22,21 @@
 /* Defines -------------------------------------------------------------------*/
 
 // Stav SIM
-#define ATCD_SIM_STATE_NONE         0
-#define ATCD_SIM_STATE_WAIT         2
-#define ATCD_SIM_STATE_OK           3
-#define ATCD_SIM_STATE_PIN          4
-#define ATCD_SIM_STATE_PUK          5
-#define ATCD_SIM_STATE_ERROR        6
-#define ATCD_SIM_STATE_UNKNOWN      7
+typedef enum
+{
+  ATCD_SIM_STATE_NONE       = 0, //no sim
+  ATCD_SIM_STATE_WAIT       = 2,
+  ATCD_SIM_STATE_OK         = 3,
+  ATCD_SIM_STATE_PIN        = 4,
+  ATCD_SIM_STATE_PUK        = 5,
+  ATCD_SIM_STATE_ERROR      = 6,
+  ATCD_SIM_STATE_UNKNOWN    = 7  //after reset
+} atcd_sim_state_e;
 
 //------------------------------------------------------------------------------
 typedef struct
 {
-  uint8_t state;                  //state
+  atcd_sim_state_e state;         //state
   char *pin;                      //PIN
 
 } atcd_sim_t;
@@ -42,7 +45,7 @@ typedef struct
 void atcd_sim_init();
 void atcd_sim_reset();
 
-uint8_t atcd_sim_state();
+atcd_sim_state_e atcd_sim_state();
 
 void atcd_sim_set_pin(char *pin);
 
