@@ -272,6 +272,8 @@ uint16_t atcd_proc_step()
       if (atcd.setup.clean)
         return ATCD_SB_SETUP + ATCD_SO_END;
 
+      atcd_atc_set_defaults(&atcd.at_cmd);
+
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL?\r");
     case ATCD_SB_SETUP + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 1;
@@ -785,11 +787,16 @@ uint16_t atcd_proc_step()
       //podle doc az 85s ale prakticky pod 1s; jednou odpoved neprisla vubec ani OK ani ERR ani nic
 
       if (atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_GPRS_INIT + ATCD_SO_END;
+      atcd.at_cmd.timeout = 95000;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIICR\r\n");
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR)
-      {
+      { //muze prijit
+        //  +PDP: DEACT
+        //  ERROR
+        //trvalo 90.5s, mezitim nesly zadne AT prikazy
+        //podle doc max. 85s
         if(strcmp(atcd.at_cmd.resp, "+PDP: DEACT\r\n")==0)
         {
           init_time_inner = atcd_get_ms();
@@ -1238,6 +1245,9 @@ uint16_t atcd_proc_step()
     case ATCD_SB_SELFCHECK:
       if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
         return ATCD_SB_SELFCHECK + ATCD_SO_END;
+
+      atcd_atc_set_defaults(&atcd.at_cmd);
+
       atcd.stat.selftest_run++;
       atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsflsize=Z:\\NVRAM\\NVD_DATA\\MT6B_010\r");
     case ATCD_SB_SELFCHECK + 1:
