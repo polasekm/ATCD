@@ -87,6 +87,16 @@ void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uin
   atcd.phone.sms_tx.callback = sms_callback;
 }
 //------------------------------------------------------------------------------
+static void call_finished()
+{
+  atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+  atcd.phone.ring_cnt = 0;
+  atcd.phone.number[0] = 0;
+  atcd.phone.numbertype = -1;
+
+  if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+}
+//------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
 {
 
@@ -229,18 +239,12 @@ uint8_t atcd_phone_asc_msg()
     }
     else
     {
-      atcd.phone.state = ATCD_PHONE_STATE_IDLE;
-      atcd.phone.ring_cnt = 0;
-      atcd.phone.number[0] = 0;
-      atcd.phone.numbertype = -1;
-
-      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+      call_finished();
     }
     return 1;
   }
 
-  if(atcd.parser.buff_pos-atcd.parser.line_pos>10 && //don't catch response to at+clcc?
-     strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLCC: ", 7/*strlen("+CLCC: ")*/) == 0)
+  if(strncmp(atcd.parser.buff + atcd.parser.line_pos, "+CLCC: ", 7/*strlen("+CLCC: ")*/) == 0)
   {
     ATCD_DBG_PHONE_CALL_DET
     //<id>,<dir>,<stat>,<mode>,<mpty>[,<number>,<type>,<alphaID>]<CR><LF>
@@ -265,15 +269,9 @@ uint8_t atcd_phone_asc_msg()
       { //incoming +CLCC: 1,1,6,0,0,"+420777262425",145,""
         if (stat==6) //hanged up
         {
-          atcd.phone.state = ATCD_PHONE_STATE_IDLE;
-          atcd.phone.ring_cnt = 0;
-          atcd.phone.number[0] = 0;
-          atcd.phone.numbertype = -1;
-
-          if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+          call_finished();
         };
       }
-
       if (prevcallout!=atcd.phone.state_call_out)
       {
         char tmps[30];
@@ -329,16 +327,11 @@ uint8_t atcd_phone_asc_msg()
   {
     ATCD_DBG_PHONE_BUSY_DET
 
-    atcd.phone.state = ATCD_PHONE_STATE_IDLE;
-    atcd.phone.ring_cnt = 0;
-    atcd.phone.number[0] = 0;
-    atcd.phone.numbertype = -1;
-
     //neulozit nekam zmeskane cislo?
     //neinkrementovat pocet zmeskanych hovoru?
 
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+    call_finished();
     return 1;
   }
 
@@ -346,15 +339,9 @@ uint8_t atcd_phone_asc_msg()
   {
     ATCD_DBG_PHONE_NO_CAR_DET
 
-    atcd.phone.state = ATCD_PHONE_STATE_IDLE;
-    atcd.phone.ring_cnt = 0;
-    atcd.phone.number[0] = 0;
-    atcd.phone.numbertype = -1;
-
     //neindikovat odmitnuty hovor?
-
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+    call_finished();
     return 1;
   }
 

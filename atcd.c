@@ -156,8 +156,6 @@ void atcd_state_reset()                  //state machine reset
   atcd.err_cnt   = 0;
   atcd.err_max   = 10;
 
-  atcd.selfcheck_state=atcd_selfcheck_stateNOTYET;
-
   atcd.sleep_state = ATCD_SS_SLEEP;
   atcd.sleep_disable = 0;
   atcd.sleep_timer = 0;

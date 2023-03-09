@@ -461,6 +461,16 @@ uint8_t atcd_atc_ln_proc()
           snprintf(tmps, sizeof(tmps), "echo-uns %d,%d: %.*s\n",
               atcd.parser.buff_pos, atcd.parser.line_pos, atcd.parser.buff_pos-atcd.parser.line_pos, atcd.parser.buff+atcd.parser.line_pos);
           atcd_dbg_warn("@sys unso: ", tmps);
+          /*
+          - AT+CIPSTATUS
+          + AT+CIPSTATUS
+          + OK                 <- command "finished"
+          - AT+CAGCSET=1       <- starting new command
+          + STATE: PDP DEACT   <- unso instead of echo
+          @sys unso: echo-uns 18,0: STATE: PDP DEACT
+          ...
+
+           */
           atcd.stat.echo_uns++;
         }
       }
