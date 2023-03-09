@@ -83,6 +83,8 @@ uint16_t atcd_proc_step()
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 10))
       { //err 10= NO SIM
         atcd.sim.state = ATCD_SIM_STATE_NONE;
+        if (atcd.selfcheck_state==atcd_selfcheck_stateBUSY)
+          return ATCD_SB_SELFCHECK;
         init_time_inner=atcd_get_ms();
         return ATCD_SB_INIT + 90; //pockej 5s
       };
@@ -1255,7 +1257,7 @@ uint16_t atcd_proc_step()
     {
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
-      char tmp[50];
+      char tmp[65];
       int zeros=0, resp_len=atcd.at_cmd.resp_len;
       if (resp_len==64)
       {
@@ -1303,9 +1305,11 @@ uint16_t atcd_proc_step()
     case ATCD_SB_SELFCHECK + ATCD_SO_ERR:
       atcd_dbg_warn("atcd", "failed selfcheck");
       atcd.stat.selftest_fail++;
-      atcd.selfcheck_state=atcd_selfcheck_stateWRONG;
+      atcd.selfcheck_state=atcd_selfcheck_stateFAILED;
 
     case ATCD_SB_SELFCHECK + ATCD_SO_END:
+      if (atcd.sim.state == ATCD_SIM_STATE_NONE) //kdyz jsem si sem jenom odskocil z INIT protoze neni SIM
+        return ATCD_SB_INIT;
       //------------------------------------------------------------------------
       // END
       //------------------------------------------------------------------------
