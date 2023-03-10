@@ -887,7 +887,6 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPRS_INIT + 9:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 9;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR)
-      {
       { //muze prijit
         //  +PDP: DEACT
         //  ERROR
