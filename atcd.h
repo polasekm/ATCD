@@ -45,9 +45,9 @@
 // modulech
 typedef enum
 {
-  ATCD_STATE_OFF      = 0,
-  ATCD_STATE_STARTING = 1,
-  ATCD_STATE_NO_INIT  = 2,
+  ATCD_STATE_OFF      = 0, //po (prvnim?) startu
+  ATCD_STATE_STARTING = 1, //po atcd_hw_reset
+  ATCD_STATE_NO_INIT  = 2, //dokoncen hw_reset, proc_step mezi 0 a init_last
   //ATCD_STATE_SLEEP    = 3,
   ATCD_STATE_ON       = 4
 

@@ -69,7 +69,7 @@ void atcd_phone_reset()                   //phone state reset
   atcd.phone.sms_tx.next = NULL;
 }
 //------------------------------------------------------------------------------
-void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t))
+void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t, char const *))
 {
 	atcd.phone.cb_events = enable_events;
 	atcd.phone.callback = callback;
@@ -89,12 +89,15 @@ void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uin
 //------------------------------------------------------------------------------
 static void call_finished()
 {
+  uint8_t notify=(atcd.phone.state!=ATCD_PHONE_STATE_IDLE || atcd.phone.state_call_in!=0);
   atcd.phone.state = ATCD_PHONE_STATE_IDLE;
   atcd.phone.ring_cnt = 0;
   atcd.phone.number[0] = 0;
   atcd.phone.numbertype = -1;
 
-  if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END);
+  atcd.phone.state_call_in=0; //TODO: to by se melo udelat poradne ale jaxi se opet specha
+  if (notify)
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END, 0);
 }
 //------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
@@ -125,7 +128,7 @@ uint8_t atcd_phone_asc_msg()
     atcd.phone.ring_cnt++;
 
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING);
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_RING) != 0) atcd.phone.callback(ATCD_PHONE_EV_RING, NULL);
     return 1;
   }
   
@@ -215,7 +218,7 @@ uint8_t atcd_phone_asc_msg()
 
     //atcd.phone.state = ATCD_PHONE_STATE_REG_ROAM;
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_SMS_IN) != 0) atcd.phone.callback(ATCD_PHONE_EV_SMS_IN);
+    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_SMS_IN) != 0) atcd.phone.callback(ATCD_PHONE_EV_SMS_IN, NULL);
     return 1;
 
   skip_proc:
@@ -235,7 +238,7 @@ uint8_t atcd_phone_asc_msg()
     if(val == 1)
     {
       atcd.phone.state = ATCD_PHONE_STATE_CALL;
-      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL);
+      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, 0);
     }
     else
     {
@@ -256,6 +259,7 @@ uint8_t atcd_phone_asc_msg()
     if ((id>=1) && (id<=7))
     {
       uint8_t prevcallout=atcd.phone.state_call_out;
+      uint8_t prevcallin=atcd.phone.state_call_in;
       int dir=atcd.parser.buff[atcd.parser.line_pos+9]-'0';
       int stat=atcd.parser.buff[atcd.parser.line_pos+11]-'0';
       if ((dir==0))
@@ -269,14 +273,36 @@ uint8_t atcd_phone_asc_msg()
       { //incoming +CLCC: 1,1,6,0,0,"+420777262425",145,""
         if (stat==6) //hanged up
         {
+          atcd.phone.state_call_in&=~ (1<<(id-1));
           call_finished();
-        };
+        }
+        else if (stat==4 || stat==5 || stat==0)
+        {
+          atcd.phone.state_call_in|= (1<<(id-1));
+        }
       }
       if (prevcallout!=atcd.phone.state_call_out)
       {
         char tmps[30];
         snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
         atcd_dbg_inf2("call_out", tmps);
+        //TODO: nejlepsi by bylo if (atcd.phone.state_call_out) atcd.phone.state = ATCD_PHONE_STATE_CALL;
+        //ale muzu si tim rozbit inccall a nemam cas to prozkouset
+        //takze necham at se to samo opravi v +CPAS: 4
+      };
+      if (prevcallin!=atcd.phone.state_call_in)
+      {
+        char tmps[30];
+        snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallin, atcd.phone.state_call_in);
+        atcd_dbg_inf2("call_in", tmps);
+        if (atcd.phone.state_call_in&~prevcallin) //nektery bit 0->1
+        {
+          if (atcd.phone.state==ATCD_PHONE_STATE_IDLE || atcd.phone.state==ATCD_PHONE_STATE_RING)
+            atcd.phone.state = ATCD_PHONE_STATE_RING;
+          else
+            atcd_dbg_err("@+CLCC", "state!=idle");
+          if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, atcd.parser.buff + atcd.parser.line_pos);
+        }
       };
     };
     //TODO: no ale incoming +CLCC se tu sezere a pritom ignoruje
@@ -366,7 +392,7 @@ void atcd_phone_call(const char *number)
 void atcd_phone_call_hang_up()
 {
   if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) atcd.phone.state = ATCD_PHONE_STATE_HANG_W;
-  else if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) atcd.phone.state = ATCD_PHONE_STATE_IDLE;
+  else if(atcd.phone.state != ATCD_PHONE_STATE_DIAL_W) atcd.phone.state = ATCD_PHONE_STATE_IDLE; //ale tady uz vzdycky IDLE je
 }
 //------------------------------------------------------------------------------
 void atcd_phone_send_sms(char *number, char *msg)  //poslat SMS

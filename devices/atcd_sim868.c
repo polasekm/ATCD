@@ -581,8 +581,18 @@ uint16_t atcd_proc_step()
             snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
             atcd_dbg_inf2("call_out", tmps);
           };
+          if ((cpas==0) && (atcd.phone.state_call_in!=0))
+          {
+            char tmps[30];
+
+            uint8_t prevcallin=atcd.phone.state_call_in;
+            atcd.phone.state_call_in=0;
+            snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallin, atcd.phone.state_call_in);
+            atcd_dbg_inf2("call_in", tmps);
+          };
 
           //cpas2 neresit, nema signal...
+          //taky se stane, kdyz ma vybito, pomuze reset AT+CFUN=1,1 pokud se mezitim nabiji
           /*if (cpas==2)
           {
             atcd_dbg_err("fail_ai", "+CPAS: 2");
@@ -621,7 +631,7 @@ uint16_t atcd_proc_step()
             next_sleep_mode=ATCD_SM_W_MANUAL;
 
           if (next_sleep_mode!=ATCD_SM__UNUSED)
-          {
+          { //nebyli jsme v ATCD_SM_W_... a pritom to nesouhlasi -> asi byl reset, udelam reinit
             char tmps[50];
             snprintf(tmps, sizeof(tmps), " =%d, mode=%d->%d", csclk, atcd.sleep_mode, next_sleep_mode);
             atcd_dbg_warn("CSCLK: ", tmps);
@@ -667,7 +677,7 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_PHONE + 1:
 
-      if(atcd.phone.state != ATCD_PHONE_STATE_RING_WA) return ATCD_SB_PHONE + 3;
+      if(atcd.phone.state != ATCD_PHONE_STATE_RING_WA || atcd.selfcheck_state==atcd_selfcheck_stateBUSY) return ATCD_SB_PHONE + 3;
       atcd_atc_exec_cmd(&atcd.at_cmd, "ATA\r\n");
     case ATCD_SB_PHONE + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_PHONE + 2;
@@ -786,7 +796,7 @@ uint16_t atcd_proc_step()
     }
     case ATCD_SB_GPRS_INIT + 1:
       //if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
-      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+      if (atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
       atcd.at_cmd.timeout = 40000;
@@ -998,7 +1008,7 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_GPRS_DEINIT + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_DEINIT + 1;
-      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+      if (atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
       atcd.at_cmd.timeout = 40000; //tesne po skonceni hovoru trvalo CIPSHUT 9s
@@ -1011,7 +1021,7 @@ uint16_t atcd_proc_step()
         return ATCD_SB_GPRS_DEINIT + 90;
       }
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_GPRS_DEINIT + ATCD_SO_ERR;
-      if(atcd.phone.state!=ATCD_PHONE_STATE_IDLE) return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
+      if(atcd.phone.state != ATCD_PHONE_STATE_IDLE) return ATCD_SB_GPRS_DEINIT + ATCD_SO_END;
 
       atcd.at_cmd.timeout = 20000; //typicke je, ze selze AT+CIPSTART, jde se sem, AT+CIPSHUT se zrejme udela OK
         //a pak vytimeoutuje tohle, tim pristimu prikazu selze echo a vznika nekonecne peklo
@@ -1407,9 +1417,9 @@ uint16_t atcd_proc_step()
       if (error_simulator++==4)
         zeros=100;*/
 
-      snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d\r\n",
+      /*snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d\r\n",
           resp_len, zeros, atcd.at_cmd.result, atcd.at_cmd.state); //res 1=OK, sta 0=DONE
-      atcd_dbg_inf3("atcd", tmp);
+      atcd_dbg_inf3("atcd", tmp);*/
 
       if (resp_len!=64)
       {
@@ -1420,6 +1430,9 @@ uint16_t atcd_proc_step()
 
       if (zeros<50) //64 po poruse, 5 po oprave
         return ATCD_SB_SELFCHECK + 5;
+      snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d\r\n",
+          resp_len, zeros, atcd.at_cmd.result, atcd.at_cmd.state); //res 1=OK, sta 0=DONE
+      atcd_dbg_warn("atcd", tmp);
     }
     case ATCD_SB_SELFCHECK + 3:
       atcd.stat.selftest_wrong++;

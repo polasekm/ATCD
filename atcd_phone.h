@@ -25,12 +25,12 @@
 
 typedef enum {
   ATCD_PHONE_STATE_IDLE             = 0,
-  ATCD_PHONE_STATE_RING,
-  ATCD_PHONE_STATE_RING_WA,
-  ATCD_PHONE_STATE_CALL, //vetsinou CALL_IN ale ne vzdy
-  ATCD_PHONE_STATE_HANG_W,
-  ATCD_PHONE_STATE_DIAL,
-  ATCD_PHONE_STATE_DIAL_W
+  ATCD_PHONE_STATE_RING,       //prisel RING
+  ATCD_PHONE_STATE_RING_WA,    //posli ATA
+  ATCD_PHONE_STATE_CALL,       //vetsinou CALL_IN ale ne vzdy; odpovida +CPAS: 4
+  ATCD_PHONE_STATE_HANG_W,     //posli ATH
+  ATCD_PHONE_STATE_DIAL,       //poslano ATD
+  ATCD_PHONE_STATE_DIAL_W      //posli ATD...
 } atcd_phone_state_t;
 
 
@@ -87,7 +87,8 @@ struct atcd_sms_ts
 typedef struct
 {
   atcd_phone_state_t state;       //phone state
-  uint8_t state_call_out;   //bitmaska call id 8..1 aby se to lip mazalo//mozna jako jeden ze stavu modemu ale zatim takhle
+  uint8_t state_call_out;         //bitmaska call id 8..1 aby se to lip mazalo//mozna jako jeden ze stavu modemu ale zatim takhle
+  uint8_t state_call_in;          //bitmaska call id 8..1
 
   char dtmf_rx_tone;              //DTMF TX tone
   char dtmf_tx_tone;              //DTMF TX tone
@@ -106,14 +107,14 @@ typedef struct
   char sms_message_buff[161];     //rx sms text buff
 
   uint8_t cb_events;              //phone events
-  void (*callback)(uint8_t);      //events callback
+  void (*callback)(uint8_t evt, char const *info);      //events callback
 
 } atcd_phone_t;
 
 // Functions -------------------------------------------------------------------
 // Phone
 void atcd_phone_init();                      //inializace telefonu
-void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t event));
+void atcd_phone_set_callback(uint8_t enable_events, void (*callback)(uint8_t event, char const *info));
 void atcd_sms_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms));
 void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uint8_t event, const atcd_sms_t *sms));
 

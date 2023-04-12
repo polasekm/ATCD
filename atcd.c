@@ -109,24 +109,18 @@ void atcd_begin()
   krome toho je nejaka divnost po AT+CSCLK?, zrejme tam chybi atcd.state=ATCD_STATE_STARTING
   a v gtipec4_test/mpsOn3 zrovna tak
 
-  if (atcd.state != ATCD_STATE_STARTING) //nebo ==NO_INIT?
-  {
-    //zakomentuju nez vymyslim co s RDY po startu
-    //normalne se startuje po H na M_STAT_Pin
-    //atcd_dbg_err("atcd_begin: ", "not in STARTING");
-  }
-  else*/
-  {
-    atcd.state = ATCD_STATE_NO_INIT;
-    atcd.parser.buff_pos = atcd.parser.line_pos;
-    atcd_state_reset();
-    atcd.proc_step = 0; //Asi je dublovano, nastavi se uz v resetu
-    atcd.proc_step_initfailed = 0;
-    atcd.err_max   = 5;
-    atcd.stat.full_cycles=0;
-    atcd.stat.atcd_begin_time=atcd_get_ms();
-    if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
-  }
+  takze nepodminene state_reset
+  */
+
+  atcd.state = ATCD_STATE_NO_INIT;
+  atcd.parser.buff_pos = atcd.parser.line_pos;
+  atcd_state_reset();
+  atcd.proc_step = 0; //Asi je dublovano, nastavi se uz v resetu
+  atcd.proc_step_initfailed = 0;
+  atcd.err_max   = 5;
+  atcd.stat.full_cycles=0;
+  atcd.stat.atcd_begin_time=atcd_get_ms();
+  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_STATE) != 0) atcd.callback(ATCD_EV_STATE);
 }
 //------------------------------------------------------------------------------
 void atcd_state_reset()                  //state machine reset
@@ -472,7 +466,7 @@ void atcd_rx_ch(char ch)
       {
 #if 1 //prechodne zase zrusit
         atcd.timer = atcd_get_ms();
-        atcd.state = ATCD_STATE_STARTING;
+        //atcd.state = ATCD_STATE_STARTING;
         atcd_dbg_err("RDY", "Prislo necekane RDY");
 #else
         atcd_dbg_err("RDY", "Prislo necekane RDY -ignor");
