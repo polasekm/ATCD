@@ -22,7 +22,7 @@ void atcd_sim_reset()
   atcd.sim.state = ATCD_SIM_STATE_UNKNOWN;
 }
 //------------------------------------------------------------------------------
-uint8_t atcd_sim_state()
+atcd_sim_state_e atcd_sim_state()
 {
   return atcd.sim.state;
 }

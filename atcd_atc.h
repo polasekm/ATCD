@@ -100,7 +100,7 @@ typedef struct atcd_at_cmd
   rbuff_t *data;                  //optional tx data in AT command body
   uint16_t data_len;              //optional tx data size
 
-  uint16_t timeout;               //timeout in ms
+  uint32_t timeout;               //timeout in ms
 
   uint8_t cb_events;              //enabled AT command callback events
   void (*callback)(uint8_t);      //events callback

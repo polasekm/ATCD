@@ -26,6 +26,7 @@ void atcd_hw_proc();              //HW processing
 
 void atcd_hw_pwr(uint8_t state);  //PWR on
 void atcd_hw_reset();             //HW reset
+void atcd_hw_reset_sudden();      //turn off power to modem
 void atcd_hw_igt();               //HW ignition (GSM and LTE modem only)
 
 void atcd_hw_rx(uint8_t *data, uint16_t len);          //rx data
