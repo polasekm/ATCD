@@ -87,17 +87,17 @@ void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uin
   atcd.phone.sms_tx.callback = sms_callback;
 }
 //------------------------------------------------------------------------------
-static void call_finished()
+static void call_finished(char const *info)
 {
-  uint8_t notify=(atcd.phone.state!=ATCD_PHONE_STATE_IDLE || atcd.phone.state_call_in!=0);
+  //uint8_t notify=(atcd.phone.state!=ATCD_PHONE_STATE_IDLE || atcd.phone.state_call_in!=0);
   atcd.phone.state = ATCD_PHONE_STATE_IDLE;
   atcd.phone.ring_cnt = 0;
   atcd.phone.number[0] = 0;
   atcd.phone.numbertype = -1;
 
   atcd.phone.state_call_in=0; //TODO: to by se melo udelat poradne ale jaxi se opet specha
-  if (notify)
-    if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END, 0);
+  //radsi vic nez min; ted kdyz +CLCC: ...6 dela jen CALL tak by stejne duplicity nemely byt   if (notify)
+  if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL_END) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL_END, info);
 }
 //------------------------------------------------------------------------------
 void atcd_phone_proc()                    //phone processing
@@ -238,11 +238,11 @@ uint8_t atcd_phone_asc_msg()
     if(val == 1)
     {
       atcd.phone.state = ATCD_PHONE_STATE_CALL;
-      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, 0);
+      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, atcd.parser.buff + atcd.parser.line_pos);
     }
     else
     {
-      call_finished();
+      call_finished(atcd.parser.buff + atcd.parser.line_pos);
     }
     return 1;
   }
@@ -274,7 +274,7 @@ uint8_t atcd_phone_asc_msg()
         if (stat==6) //hanged up
         {
           atcd.phone.state_call_in&=~ (1<<(id-1));
-          call_finished();
+          //notify using CALL and wait for NO CARRIER   call_finished(atcd.parser.buff + atcd.parser.line_pos);
         }
         else if (stat==4 || stat==5 || stat==0)
         {
@@ -301,11 +301,10 @@ uint8_t atcd_phone_asc_msg()
             atcd.phone.state = ATCD_PHONE_STATE_RING;
           else
             atcd_dbg_err("@+CLCC", "state!=idle");
-          if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, atcd.parser.buff + atcd.parser.line_pos);
         }
       };
+      if(atcd.phone.callback != NULL && (atcd.phone.cb_events & ATCD_PHONE_EV_CALL) != 0) atcd.phone.callback(ATCD_PHONE_EV_CALL, atcd.parser.buff + atcd.parser.line_pos);
     };
-    //TODO: no ale incoming +CLCC se tu sezere a pritom ignoruje
 
     atcd.parser.buff_pos = atcd.parser.line_pos; //proc asi vracim 1
     return 1;
@@ -357,7 +356,7 @@ uint8_t atcd_phone_asc_msg()
     //neinkrementovat pocet zmeskanych hovoru?
 
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    call_finished();
+    call_finished(atcd.parser.buff + atcd.parser.line_pos);
     return 1;
   }
 
@@ -367,7 +366,7 @@ uint8_t atcd_phone_asc_msg()
 
     //neindikovat odmitnuty hovor?
     atcd.parser.buff_pos = atcd.parser.line_pos;
-    call_finished();
+    call_finished(atcd.parser.buff + atcd.parser.line_pos);
     return 1;
   }
 
