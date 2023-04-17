@@ -273,7 +273,13 @@ uint8_t atcd_phone_asc_msg()
         if (stat==6) //hanged up
         {
           atcd.phone.state_call_in&=~ (1<<(id-1));
-          //notify using CALL and wait for NO CARRIER   call_finished(atcd.parser.buff + atcd.parser.line_pos);
+          //if caller cancelled -> will be no "NO CARRIER"
+          if (atcd.phone.state==ATCD_PHONE_STATE_RING || atcd.phone.state==ATCD_PHONE_STATE_RING_WA)
+          {
+            //ideally this would be done after callback(ATCD_PHONE_EV_CALL)
+            call_finished(atcd.parser.buff + atcd.parser.line_pos);
+          };
+          //else notify using CALL and wait for NO CARRIER
         }
         else if (stat==4 || stat==5 || stat==0)
         {

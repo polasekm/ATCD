@@ -614,6 +614,8 @@ uint16_t atcd_proc_step()
       //a jeste pocitadlo chyb abych to nebrzdil hned ale az treba po 3.
       //snad to vyresi zpracovani +CLCC: x,1,6,0,0,"+xxx",145,""
       //jak to ze neprijde NO CARRIER? potrebuji aby CLCC: ..6 davalo jen notifikaci CALL, CALL_END az potom
+      //NO CARRIER neprijde kdyz prichozi hovor vzda nez se prijme, pak dostanu jen +CLCC
+      //ted by to melo byt OK
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_PHONE + 3;
       atcd.phone.state = ATCD_PHONE_STATE_CALL;
 
