@@ -52,6 +52,7 @@ void atcd_init()                          //init AT command device
   atcd_gprs_init();
   atcd_gps_init();
   atcd_wifi_init();
+  atcd_ble_init();
 
   atcd_state_reset();
 }
@@ -436,11 +437,13 @@ void atcd_rx_ch(char ch)
 
   atcd_proc_linepreview();
 
+  printf("Data\n");
   if ((atcd_conn_asc_msg() != 0) ||  // Zpracovani TCP/UDP spojeni
       (atcd_wifi_asc_msg() != 0) ||  // Zpracovani udalosti WLAN
       (atcd_gsm_asc_msg() != 0) ||   // Zpracovani udalosti GSM site
       (atcd_phone_asc_msg() != 0) || // Zpracovani udalosti telefonu
-      (atcd_gps_asc_msg() != 0))   // Zpracovani udalosti GPS
+      (atcd_gps_asc_msg() != 0) ||	// Zpracovani udalosti GPS
+	  (atcd_ble_asc_msg() != 0))   // Zpracovani udalosti BLE
   {
     atcd.profiler.return3+=(atcd_get_ms()-tick_start);
     return;
@@ -478,7 +481,8 @@ void atcd_rx_ch(char ch)
   }
   //------------------------------
   // Callback pro zpracovani nezpracovanych nevyzadanych zprav
-  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0 && (atcd.parser.buff_pos>2+atcd.parser.line_pos)) atcd.callback(ATCD_EV_ASYNC_MSG);
+  if(atcd.callback != NULL && (atcd.cb_events & ATCD_EV_ASYNC_MSG) != 0 && (atcd.parser.buff_pos>2+atcd.parser.line_pos))
+	  atcd.callback(ATCD_EV_ASYNC_MSG);
   //------------------------------
   atcd.parser.buff_pos = 0;
   atcd.parser.line_pos = 0;
