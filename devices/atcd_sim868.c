@@ -235,15 +235,12 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
     case ATCD_SB_INIT + 28:
+      if(atcd.ble.init == 0b01111111 ) {
+          return ATCD_SB_INIT + 80;
+      }
 
-
-
-	if(atcd.ble.init == 0b01111111 ){
-		return ATCD_SB_INIT + 80;
-	}
-
-	if(atcd.ble.init & 0b1 == 1) return ATCD_SB_INIT + 32;
-	atcd.at_cmd.timeout = 5000 * 3;
+    if((atcd.ble.init & 0b1) != 0) return ATCD_SB_INIT + 32;
+      atcd.at_cmd.timeout = 5000 * 3;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BTPOWER=1\r\n");
     case ATCD_SB_INIT + 31:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 31;
@@ -251,7 +248,7 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b1;
 
     case ATCD_SB_INIT + 32:
-    if(atcd.ble.init & 0b10 == 1) return ATCD_SB_INIT + 34;
+      if((atcd.ble.init & 0b10) != 0) return ATCD_SB_INIT + 34;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESREG\r\n");
     case ATCD_SB_INIT + 33:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 33;
@@ -261,13 +258,13 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b10;
 
     case ATCD_SB_INIT + 34:
-	if(atcd.ble.init & 0b100 == 1) return ATCD_SB_INIT + 36;
+      if((atcd.ble.init & 0b100) != 0) return ATCD_SB_INIT + 36;
       sprintf(atcd.at_cmd_buff, "AT+BLESSAD=%d,\"%s\",%d,%d,%d\r\n",
-    		  atcd.ble.server_index,
-			  "9ECADC240EE5A9E093F3A3B50100406E",
-			  15,
-			  1,
-			  1);
+              atcd.ble.server_index,
+              "9ECADC240EE5A9E093F3A3B50100406E",
+              15,
+              1,
+              1);
       atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
     case ATCD_SB_INIT + 35:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 35;
@@ -275,13 +272,13 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b100;
 
     case ATCD_SB_INIT + 36:
-    if(atcd.ble.init & 0b1000 == 1) return ATCD_SB_INIT + 38;
+      if((atcd.ble.init & 0b1000) != 0) return ATCD_SB_INIT + 38;
       sprintf(atcd.at_cmd_buff, "AT+BLESSC=%d,\"%s\",%d,%d,%d\r\n",
-    		  1,
-			  "9ECADC240EE5A9E093F3A3B50200406E",
-			  1,
-			  12,
-			  255);
+              1,
+              "9ECADC240EE5A9E093F3A3B50200406E",
+              1,
+              12,
+              255);
       atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
     case ATCD_SB_INIT + 37:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 37;
@@ -289,13 +286,13 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b1000;
 
     case ATCD_SB_INIT + 38:
-    if(atcd.ble.init & 0b10000 == 1) return ATCD_SB_INIT + 40;
+      if((atcd.ble.init & 0b10000) != 0) return ATCD_SB_INIT + 40;
       sprintf(atcd.at_cmd_buff, "AT+BLESSC=%d,\"%s\",%d,%d,%d\r\n",
-    		  1,
-			  "9ECADC240EE5A9E093F3A3B50300406E",
-			  1,
-			  16,
-			  255);
+              1,
+              "9ECADC240EE5A9E093F3A3B50300406E",
+              1,
+              16,
+              255);
       atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
     case ATCD_SB_INIT + 39:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 39;
@@ -303,7 +300,7 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b10000;
 
     case ATCD_SB_INIT + 40:
-    if(atcd.ble.init & 0b100000 == 1) return ATCD_SB_INIT + 42;
+      if((atcd.ble.init & 0b100000) != 0) return ATCD_SB_INIT + 42;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESSD=1,\"0229\",1,0\r\n");
     case ATCD_SB_INIT + 41:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 41;
@@ -311,7 +308,7 @@ uint16_t atcd_proc_step()
       atcd.ble.init |= 0b100000;
 
     case ATCD_SB_INIT + 42:
-    if(atcd.ble.init & 0b1000000 == 1) return ATCD_SB_INIT + 44;
+      if((atcd.ble.init & 0b1000000) != 0) return ATCD_SB_INIT + 44;
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESSSTART=1,0\r\n");
     case ATCD_SB_INIT + 43:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 43;

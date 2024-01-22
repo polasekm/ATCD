@@ -169,7 +169,7 @@ typedef struct
   atcd_parser_t parser;                        //parser prichozich dat
 
   atcd_at_cmd_t at_cmd;                        //AT cmd for internal usage
-  char at_cmd_buff[64];                        //TODO: kurva drat jakej imbecil NIKDE nekontroluje delku!!!!! buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni... //musi se tam vejit SMS nebo ne?
+  char at_cmd_buff[67];                        //TODO: kurva drat jakej imbecil NIKDE nekontroluje delku!!!!! buffer pro sestaveny AT prikaz - pohlidat delku a mozne preteceni... //musi se tam vejit SMS nebo ne?
   char at_cmd_result_buff[32];                 //buffer pro nestandardni OK odpoved... spis regex ale to zase jindy
   rbuff_t at_cmd_data;                         //kruhovy buffer pro volitelna data k at prikazu
 
