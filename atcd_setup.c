@@ -22,6 +22,9 @@ void atcd_setup_init()
   atcd.setup.echo.can=1;
   atcd.setup.echo.mirror_can=1;
   atcd.setup.cmic=12;
+  atcd.setup.cagcset=1;
+  atcd.setup.crsl=0;
+  atcd.setup.sidet0=0;
 }
 //------------------------------------------------------------------------------
 void atcd_setup_reset()
@@ -62,3 +65,20 @@ void atcd_setup_cmic(uint8_t cmic)
   atcd.setup.clean=0;
 }
 
+void atcd_setup_cagcset(uint8_t mic_agc_en)
+{
+  atcd.setup.cagcset=mic_agc_en;
+  atcd.setup.clean=0;
+}
+
+void atcd_setup_crsl(uint8_t crsl)
+{
+  atcd.setup.crsl=crsl;
+  atcd.setup.clean=0;
+}
+
+void atcd_setup_sidet(uint8_t sidet0)
+{
+  atcd.setup.sidet0=sidet0;
+  atcd.setup.clean=0;
+}

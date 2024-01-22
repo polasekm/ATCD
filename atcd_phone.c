@@ -89,6 +89,7 @@ void atcd_smstx_set_callback(uint8_t doesNotUnderstand, void (*sms_callback)(uin
 //------------------------------------------------------------------------------
 static void call_finished(char const *info)
 {
+  //uint8_t notify=(atcd.phone.state!=ATCD_PHONE_STATE_IDLE || atcd.phone.state_call_in!=0);
   atcd.phone.state = ATCD_PHONE_STATE_IDLE;
   atcd.phone.ring_cnt = 0;
   atcd.phone.number[0] = 0;
@@ -288,19 +289,18 @@ uint8_t atcd_phone_asc_msg()
       }
       if (prevcallout!=atcd.phone.state_call_out)
       {
-        //char tmps[30];
-        //snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
-        //atcd_dbg_inf2("call_out", tmps);
-
+        char tmps[30];
+        snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
+        atcd_dbg_inf2("call_out", tmps);
         //TODO: nejlepsi by bylo if (atcd.phone.state_call_out) atcd.phone.state = ATCD_PHONE_STATE_CALL;
         //ale muzu si tim rozbit inccall a nemam cas to prozkouset
         //takze necham at se to samo opravi v +CPAS: 4
       };
       if (prevcallin!=atcd.phone.state_call_in)
       {
-        //char tmps[30];
-        //snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallin, atcd.phone.state_call_in);
-        //atcd_dbg_inf2("call_in", tmps);
+        char tmps[30];
+        snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallin, atcd.phone.state_call_in);
+        atcd_dbg_inf2("call_in", tmps);
         if (atcd.phone.state_call_in&~prevcallin) //nektery bit 0->1
         {
           if (atcd.phone.state==ATCD_PHONE_STATE_IDLE || atcd.phone.state==ATCD_PHONE_STATE_RING)

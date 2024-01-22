@@ -69,17 +69,28 @@ uint16_t atcd_proc_step()
     case ATCD_SB_INIT + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CFUN=1\r\n");    // Plna fce zarizeni
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CFUN?\r");
     case ATCD_SB_INIT + 6:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 6;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      if (strncmp(atcd.at_cmd.resp, "+CFUN: ", 7)==0)
+      {
+        int cfun=atoi(atcd.at_cmd.resp+7);
+        if (cfun==1)
+          return ATCD_SB_INIT + 8;
+      };
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CFUN=1\r\n");    // Plna fce zarizeni
+    case ATCD_SB_INIT + 7:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-
+    case ATCD_SB_INIT + 8:
       init_time_inner=atcd_get_ms();
       init_time_outer=init_time_inner;
       atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPIN?\r\n", "+CME ERROR: 14"); //system nerozlisi skutecny OK od _res // Je vyzadovan PIN?
-    case ATCD_SB_INIT + 7:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 7;
+    case ATCD_SB_INIT + 9:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 9;
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 10))
       { //err 10= NO SIM
         atcd.sim.state = ATCD_SIM_STATE_NONE;
@@ -97,7 +108,7 @@ uint16_t atcd_proc_step()
           init_time_inner=atcd_get_ms();
           atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPIN?\r\n", "+CME ERROR: 14");
         }
-        return ATCD_SB_INIT + 7;
+        return ATCD_SB_INIT + 9;
       }
       /* ted uz je cekani v INIT+1 tak snad to bude ok
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK)
@@ -137,22 +148,22 @@ uint16_t atcd_proc_step()
         atcd.sim.state = ATCD_SIM_STATE_ERROR;
         return ATCD_SB_INIT + ATCD_SO_ERR;
       }      
-    case ATCD_SB_INIT + 8:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 8;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLIP=1\r\n");           // Zobrazovat cislo volajiciho
-    case ATCD_SB_INIT + 9:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 9;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMGF=1\r\n");           // Textovy rezim SMS
     case ATCD_SB_INIT + 10:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 10;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLIP=1\r\n");           // Zobrazovat cislo volajiciho
+    case ATCD_SB_INIT + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMGF=1\r\n");           // Textovy rezim SMS
+    case ATCD_SB_INIT + 12:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 12;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
       init_time_inner=atcd_get_ms();
       init_time_outer=init_time_inner;
       atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPMS?\r\n", "+CMS ERROR: 302");//system nerozlisi skutecny OK od _res , "SMS Ready\r\n"); // --- Test vyuziti pametovych prostoru na SMS
-    case ATCD_SB_INIT + 11:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 11;
+    case ATCD_SB_INIT + 13:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 13;
       //if ((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && (atcd.at_cmd.result_code == 302))
       if (atcd.at_cmd.result == ATCD_ATC_RESULT_MATCH)
       {
@@ -165,69 +176,66 @@ uint16_t atcd_proc_step()
           init_time_inner=atcd_get_ms();
           atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CPMS?\r\n", "+CMS ERROR: 302");           // --- Test vyuziti pametovych prostoru na SMS
         }
-        return ATCD_SB_INIT + 11;
+        return ATCD_SB_INIT + 13;
       }
       else if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMGD=1,4\r\n");           // Smaze vsechny SMS na karte
-    case ATCD_SB_INIT + 12:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 12;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSDH=1\r\n");           //
-    case ATCD_SB_INIT + 13:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 13;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CNMI=1,2,0,0,0\r\n");          // Rezim nakladani s novymi SMS
-    case ATCD_SB_INIT + 15:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 15;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL=0\r\n");
+      //+CPMS: "SM_P",0,20,"SM_P",0,20,"SM_P",0,20
+      if (strncmp(atcd.at_cmd.resp, "+CPMS: ", 7)==0)
+      {
+        const char *has=strstr(atcd.at_cmd.resp+7, "\"SM\",0,");
+        if (has==0)
+          has=strstr(atcd.at_cmd.resp+7, "\"SM_P\",0,");
+        if (has!=0)
+          return ATCD_SB_INIT + 15;
+      };
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMGD=1,4\r\n");           // Smaze vsechny SMS na karte
+    case ATCD_SB_INIT + 14:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 14;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+    case ATCD_SB_INIT + 15:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CSDH=1\r\n");           //
     case ATCD_SB_INIT + 16:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 16;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-
-      /*atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLVL=60\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CNMI=1,2,0,0,0\r\n");          // Rezim nakladani s novymi SMS
     case ATCD_SB_INIT + 17:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 17;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO=0,40000,40000,6200,6200,1\r\n");
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG=2\r\n");
+    case ATCD_SB_INIT + 18:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 18;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLCC?\r");
+    case ATCD_SB_INIT + 19:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 19;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      if (strncmp(atcd.at_cmd.resp, "+CLCC: ", 7)==0)
+      {
+        int clcc=atoi(atcd.at_cmd.resp+7);
+        if (clcc==1)
+          return ATCD_SB_INIT + 24;
+      };
+
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLCC=1\r\n");
     case ATCD_SB_INIT + 20:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 20;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC=0,12\r\n");
-    case ATCD_SB_INIT + 21:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 21;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-      */
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+SIDET=0,0\r\n");
-    case ATCD_SB_INIT + 22:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 22;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CREG=2\r\n");
-    case ATCD_SB_INIT + 23:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 23;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CLCC=1\r\n");
     case ATCD_SB_INIT + 24:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 24;
-      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+IPR?\r\n");
     case ATCD_SB_INIT + 25:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 25;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
-
       if ((atcd.at_cmd.resp_len>=6+1+2) && (strncmp(atcd.at_cmd.resp, "+IPR: ", 6)==0))
       {
         int ipr=atoi(atcd.at_cmd.resp+strlen("+IPR: "));
         if (ipr==115200)
           return ATCD_SB_INIT+28;
       }
-
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+IPR=115200\r\n");
     case ATCD_SB_INIT + 26:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 26;
@@ -284,12 +292,12 @@ uint16_t atcd_proc_step()
         if (clvl==atcd.setup.clvl)
           return ATCD_SB_SETUP + 3;
       };
-
       snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CLVL=%d\r", atcd.setup.clvl);
       atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
     case ATCD_SB_SETUP + 2:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+
     case ATCD_SB_SETUP + 3:
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+ECHO?\r");
     case ATCD_SB_SETUP + 4:
@@ -315,6 +323,7 @@ uint16_t atcd_proc_step()
     case ATCD_SB_SETUP + 5:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 5;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) { atcd.setup.echo.mirror_can=2; return ATCD_SB_SETUP + ATCD_SO_ERR; }
+
     case ATCD_SB_SETUP + 6:
       atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CMIC?\r");
     case ATCD_SB_SETUP + 7:
@@ -327,13 +336,67 @@ uint16_t atcd_proc_step()
         if (cmic==atcd.setup.cmic)
           return ATCD_SB_SETUP + 9;
       };
-
       snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CMIC=0,%u\r", atcd.setup.cmic);
       atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
     case ATCD_SB_SETUP + 8:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 8;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+
     case ATCD_SB_SETUP + 9:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CRSL?\r");
+    case ATCD_SB_SETUP + 10:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 10;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      // +CRSL: 0
+      if (strncmp(atcd.at_cmd.resp, "+CRSL: ", 7)==0)
+      {
+        int crsl=atoi(atcd.at_cmd.resp+7);
+        if (crsl==atcd.setup.crsl)
+          return ATCD_SB_SETUP + 12;
+      };
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CRSL=%u\r", atcd.setup.crsl);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_SETUP + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 11;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+
+    case ATCD_SB_SETUP + 12:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+SIDET?\r");
+    case ATCD_SB_SETUP + 13:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 13;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      // +SIDET: (0,0),(1,0),(2,0),(3,0)
+      if (strncmp(atcd.at_cmd.resp, "+SIDET: (0,", 11)==0)
+      {
+        int sidet0=atoi(atcd.at_cmd.resp+11);
+        if (sidet0==atcd.setup.sidet0)
+          return ATCD_SB_SETUP + 15;
+      };
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+SIDET=0,%u\r", atcd.setup.sidet0);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_SETUP + 14:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 14;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+
+    case ATCD_SB_SETUP + 15:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CAGCSET?\r");
+    case ATCD_SB_SETUP + 16:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 16;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+      // +CAGCSET: 1
+      if (strncmp(atcd.at_cmd.resp, "+CAGCSET: ", 10)==0)
+      {
+        int cagcset=atoi(atcd.at_cmd.resp+10);
+        if (cagcset==atcd.setup.cagcset)
+          return ATCD_SB_SETUP + 18;
+      };
+      snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CAGCSET=%u\r", atcd.setup.cagcset);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_SETUP + 17:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SETUP + 17;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SETUP + ATCD_SO_ERR;
+
+    case ATCD_SB_SETUP + 18:
       atcd.setup.clean=1;
       return ATCD_SB_SETUP + ATCD_SO_END;
     case ATCD_SB_SETUP + ATCD_SO_ERR:
@@ -517,6 +580,15 @@ uint16_t atcd_proc_step()
             atcd.phone.state_call_out=0;
             snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallout, atcd.phone.state_call_out);
             atcd_dbg_inf2("call_out", tmps);
+          };
+          if ((cpas==0) && (atcd.phone.state_call_in!=0))
+          {
+            char tmps[30];
+
+            uint8_t prevcallin=atcd.phone.state_call_in;
+            atcd.phone.state_call_in=0;
+            snprintf(tmps, sizeof(tmps), "%02x->%02x", prevcallin, atcd.phone.state_call_in);
+            atcd_dbg_inf2("call_in", tmps);
           };
 
           //cpas2 neresit, nema signal...
@@ -709,7 +781,13 @@ uint16_t atcd_proc_step()
     // GPRS INIT
     //------------------------------------------------------------------------
     case ATCD_SB_GPRS_INIT:
-      if(atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
+    {
+      atcd_reg_state_e reg=atcd_gsm_state();
+      atcd_sim_state_e sim=atcd_sim_state();
+      if(reg==ATCD_REG_STATE_OFF || reg==ATCD_REG_STATE_SEARCHING ||
+         reg==ATCD_REG_STATE_DENIED || reg==ATCD_REG_STATE_EMERGENCY ||
+         sim!=ATCD_SIM_STATE_OK ||
+         atcd.gprs.state != ATCD_GPRS_STATE_CONNECTING)
       {
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
       }
@@ -718,10 +796,10 @@ uint16_t atcd_proc_step()
 
       atcd_atc_set_defaults(&atcd.at_cmd);
       //TODO: co je toto, nechybi tu nejaky AT prikaz? nebo zrusit cekani, az se dokonci
-
+    }
     case ATCD_SB_GPRS_INIT + 1:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
-      if (atcd.phone.state!=ATCD_PHONE_STATE_IDLE)
+      //if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 1;
+      if (atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
       atcd.at_cmd.timeout = 40000;
@@ -759,11 +837,34 @@ uint16_t atcd_proc_step()
       if (atcd.phone.state != ATCD_PHONE_STATE_IDLE)
         return ATCD_SB_GPRS_INIT + ATCD_SO_END;
 
-      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CGATT=1\r\n");
+      init_time_inner=atcd_get_ms();
+      init_time_outer=init_time_inner;
+      atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CGATT=1\r\n", "+CME ERROR: 100");
     case ATCD_SB_GPRS_INIT + 7:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_GPRS_INIT + 7;
+      if (atcd.at_cmd.result == ATCD_ATC_RESULT_MATCH)
+      { //
+        if (atcd_get_ms()-init_time_outer>=5000)
+        {
+          char errbuf[20];
+          snprintf(errbuf, sizeof(errbuf), "reg=%d sim=%d\r\n", atcd_gsm_state(), atcd_sim_state());
+          atcd_dbg_inf2("GPRS: ", errbuf);
+          init_time_inner=atcd_get_ms();
+          return ATCD_SB_GPRS_INIT + 85;
+        };
+        if (atcd_get_ms()-init_time_inner>=500)
+        {
+          init_time_inner=atcd_get_ms();
+          atcd_atc_exec_cmd_res_(&atcd.at_cmd, "AT+CGATT=1\r\n", "+CME ERROR: 100");
+        }
+        return ATCD_SB_GPRS_INIT + 7;
+      };
+
       if((atcd.at_cmd.result == ATCD_ATC_RESULT_ERROR) && ((atcd.at_cmd.result_code == 4) || (atcd.at_cmd.result_code == 100)))
-      {
+      { //+CME ERROR: 100 not here any more, only : 4
+        char errbuf[20];
+        snprintf(errbuf, sizeof(errbuf), "reg=%d sim=%d\r\n", atcd_gsm_state(), atcd_sim_state());
+        atcd_dbg_inf2("GPRS: ", errbuf);
         init_time_inner=atcd_get_ms();
         return ATCD_SB_GPRS_INIT + 85;
       }
@@ -1251,13 +1352,43 @@ uint16_t atcd_proc_step()
     case ATCD_SB_GPS_STOP + ATCD_SO_END:
 
     case ATCD_SB_SELFCHECK:
+    {
       if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
         return ATCD_SB_SELFCHECK + ATCD_SO_END;
-
+      atcd_reg_state_e reg=atcd_gsm_state();
+      atcd_sim_state_e sim=atcd_sim_state();
+      /*  sim  reg  gprs
+          none off  ...    go
+          none sear ...    stop                       x
+          none emer ...    go
+          ok   off  ...    go
+          ok   sear ...    stop                       x
+          ok   home cing   stop                        x
+          ok   home coed   go
+          ok   home ding   stop
+          ok   home died   go
+          unk  ...  ...    stop                       x
+          wait ...  ...    stop                       x
+          pin,puk,err = none
+               roam = home
+               other = home?
+       */
+      /*
+      if(sim==ATCD_SIM_STATE_UNKNOWN || sim==ATCD_SIM_STATE_WAIT ||
+         reg==ATCD_REG_STATE_SEARCHING ||
+         (sim==ATCD_SIM_STATE_OK &&  //unsafe
+          (reg!=ATCD_REG_STATE_OFF && reg!=ATCD_REG_STATE_EMERGENCY) && //not safe
+          (atcd.gprs.state == ATCD_GPRS_STATE_CONNECTING || atcd.gprs.state == ATCD_GPRS_STATE_DISCONNING))) //unsafe
+      AT+CGATT=1 is inside ATCD_SB_GPRS_INIT, not now
+      */
+      if (sim==ATCD_SIM_STATE_UNKNOWN || sim==ATCD_SIM_STATE_WAIT ||
+          reg==ATCD_REG_STATE_SEARCHING)
+        return ATCD_SB_SELFCHECK + ATCD_SO_END;
       atcd_atc_set_defaults(&atcd.at_cmd);
 
       atcd.stat.selftest_run++;
       atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsflsize=Z:\\NVRAM\\NVD_DATA\\MT6B_010\r");
+    }
     case ATCD_SB_SELFCHECK + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 1;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
