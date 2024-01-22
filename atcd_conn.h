@@ -82,6 +82,8 @@ typedef struct atcd_conn
   uint8_t dontPrint; //nevypisuj na terminal, nestiha vypisovat firmware
   uint8_t in_overflow;
 
+  uint8_t ssl_en;
+
 } atcd_conn_t;
 
 // Functions -------------------------------------------------------------------

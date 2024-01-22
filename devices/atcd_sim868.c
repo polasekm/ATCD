@@ -247,6 +247,94 @@ uint16_t atcd_proc_step()
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
 
     case ATCD_SB_INIT + 28:
+
+
+
+	if(atcd.ble.init == 0b01111111 ){
+		return ATCD_SB_INIT + 80;
+	}
+
+	if(atcd.ble.init & 0b1 == 1) return ATCD_SB_INIT + 32;
+	atcd.at_cmd.timeout = 5000 * 3;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BTPOWER=1\r\n");
+    case ATCD_SB_INIT + 31:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 31;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) {atcd.at_cmd.timeout = 5000; return ATCD_SB_INIT + ATCD_SO_ERR;}
+      atcd.ble.init |= 0b1;
+
+    case ATCD_SB_INIT + 32:
+    if(atcd.ble.init & 0b10 == 1) return ATCD_SB_INIT + 34;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESREG\r\n");
+    case ATCD_SB_INIT + 33:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 33;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      sscanf (atcd.at_cmd.resp,"+BLESREG: %d,%s\r\n", &atcd.ble.server_index, atcd.ble.user_id);
+      atcd.ble.inst = 1;
+      atcd.ble.init |= 0b10;
+
+    case ATCD_SB_INIT + 34:
+	if(atcd.ble.init & 0b100 == 1) return ATCD_SB_INIT + 36;
+      sprintf(atcd.at_cmd_buff, "AT+BLESSAD=%d,\"%s\",%d,%d,%d\r\n",
+    		  atcd.ble.server_index,
+			  "9ECADC240EE5A9E093F3A3B50100406E",
+			  15,
+			  1,
+			  1);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_INIT + 35:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 35;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd.ble.init |= 0b100;
+
+    case ATCD_SB_INIT + 36:
+    if(atcd.ble.init & 0b1000 == 1) return ATCD_SB_INIT + 38;
+      sprintf(atcd.at_cmd_buff, "AT+BLESSC=%d,\"%s\",%d,%d,%d\r\n",
+    		  1,
+			  "9ECADC240EE5A9E093F3A3B50200406E",
+			  1,
+			  12,
+			  255);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_INIT + 37:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 37;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd.ble.init |= 0b1000;
+
+    case ATCD_SB_INIT + 38:
+    if(atcd.ble.init & 0b10000 == 1) return ATCD_SB_INIT + 40;
+      sprintf(atcd.at_cmd_buff, "AT+BLESSC=%d,\"%s\",%d,%d,%d\r\n",
+    		  1,
+			  "9ECADC240EE5A9E093F3A3B50300406E",
+			  1,
+			  16,
+			  255);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_INIT + 39:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 39;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd.ble.init |= 0b10000;
+
+    case ATCD_SB_INIT + 40:
+    if(atcd.ble.init & 0b100000 == 1) return ATCD_SB_INIT + 42;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESSD=1,\"0229\",1,0\r\n");
+    case ATCD_SB_INIT + 41:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 41;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd.ble.init |= 0b100000;
+
+    case ATCD_SB_INIT + 42:
+    if(atcd.ble.init & 0b1000000 == 1) return ATCD_SB_INIT + 44;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESSSTART=1,0\r\n");
+    case ATCD_SB_INIT + 43:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_INIT + 43;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_INIT + ATCD_SO_ERR;
+      atcd.ble.init |= 0b1000000;
+
+    case ATCD_SB_INIT + 44:
+
+
+
+    case ATCD_SB_INIT + 80:
       // Inicializace byla dokoncena
       ATCD_DBG_INIT_DONE
       // Inicializace je dokoncena
@@ -1107,6 +1195,13 @@ uint16_t atcd_proc_step()
        * nezkousel jsem to
        */
 
+      /*if(conn->ssl_en == 0) atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSSL=0\r\n");
+                       else atcd_atc_exec_cmd(&atcd.at_cmd, "AT+CIPSSL=1\r\n");
+
+    case ATCD_SB_CONN_OPEN + 1:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 1;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_CONN_OPEN + ATCD_SO_ERR;*/
+
       if(conn->protocol == ATCD_CONN_T_TCP)
       {
         snprintf(atcd.at_cmd_buff, sizeof(atcd.at_cmd_buff), "AT+CIPSTART=%u,\"TCP\",\"%s\",%u\r\n", conn->num, conn->host, conn->port);
@@ -1123,8 +1218,8 @@ uint16_t atcd_proc_step()
         return ATCD_SB_CONN_OPEN + ATCD_SO_ERR;
       }
 
-    case ATCD_SB_CONN_OPEN + 1:
-      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 1;
+    case ATCD_SB_CONN_OPEN + 2:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_CONN_OPEN + 2;
       if(atcd.at_cmd.result == ATCD_ATC_RESULT_OK)
       {
         ATCD_DBG_CONN_W_CONN
@@ -1311,7 +1406,7 @@ uint16_t atcd_proc_step()
       atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
       atcd.gps.last_nmea_time = atcd_get_ms();
       atcd.gps.stat.start_time = atcd_get_ms();
-      atcd.gps.stat.first_search = 1;
+      atcd.gps.stat.first_search = 1;           //TODO tohle se melo nastavovat jen pri prvni hledani, pokud uz jednou signal mela, tak 0!
       atcd.sleep_disable = 1;     //s uspanym modemem nechodi data od GPS, zapnout trvale probuzeni
       return ATCD_SB_GPS_START + ATCD_SO_END;
 
@@ -1350,8 +1445,93 @@ uint16_t atcd_proc_step()
       //Zalogovat!
 
     case ATCD_SB_GPS_STOP + ATCD_SO_END:
+    //------------------------------------------------------------------------
+    // BLE START
+    //------------------------------------------------------------------------
+	case ATCD_SB_BLE:
 
-    case ATCD_SB_SELFCHECK:
+	if(atcd.ble.init != 0b01111111){
+		return ATCD_SB_BLE + ATCD_SO_END;
+	}
+
+	if(atcd.ble.state == ATCD_BLE_STATE_TO_ON){
+		return ATCD_SB_BLE + 1;
+	}
+	else if(atcd.ble.state == ATCD_BLE_STATE_TO_OFF){
+		return ATCD_SB_BLE + 3;
+	}
+	else return ATCD_SB_BLE + 10;
+
+	case ATCD_SB_BLE + 1:
+	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
+	case ATCD_SB_BLE + 2:
+		if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 2;
+		if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+		atcd.ble.state = ATCD_BLE_STATE_ON;
+		return ATCD_SB_BLE + 10;
+
+	case ATCD_SB_BLE + 3:
+	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
+	case ATCD_SB_BLE + 4:
+		if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 4;
+		if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+		atcd.ble.state = ATCD_BLE_STATE_OFF;
+
+	case ATCD_SB_BLE + 10:
+	if(atcd.ble.state != ATCD_BLE_STATE_ON){
+		return ATCD_SB_BLE + ATCD_SO_END;
+	}
+
+	if(atcd.ble.devname_state == ATCD_BLE_DEVNAME_STATE_UPDATED){
+		return ATCD_SB_BLE + 20;
+	}
+
+	atcd.ble.devname_state = ATCD_BLE_DEVNAME_STATE_UPDATED;
+	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
+	case ATCD_SB_BLE + 11:
+	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 11;
+	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+	  atcd.ble.state = ATCD_BLE_STATE_OFF;
+
+    sprintf(atcd.at_cmd_buff, "AT+BTHOST=\"%s\"\r\n", atcd.ble.device_name);
+	atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+	case ATCD_SB_BLE + 12:
+	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 12;
+	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+
+	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
+	case ATCD_SB_BLE + 13:
+	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 13;
+	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+	  atcd.ble.state = ATCD_BLE_STATE_ON;
+
+
+	case ATCD_SB_BLE + 20:
+		if(atcd.ble.response_state == ATCD_BLE_RESP_STATE_COMM){
+			return ATCD_SB_BLE + ATCD_SO_END;
+		}
+		
+//	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESRSP=1\r\n");
+//		case ATCD_SB_BLE + 7:
+//		  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 7;
+//		  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+
+	sprintf(atcd.at_cmd_buff, "AT+BLESIND=2,\"%s\"\r\n",
+				  atcd.ble.resp_buff);
+	  atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+//	case ATCD_SB_BLE + 8:
+//	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 8;
+//	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+	  atcd.ble.response_state = ATCD_BLE_RESP_STATE_COMM;
+
+	case ATCD_SB_BLE + ATCD_SO_ERR:
+
+	case ATCD_SB_BLE + ATCD_SO_END:
+	
+	
+	
+	
+	    case ATCD_SB_SELFCHECK:
     {
       if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
         return ATCD_SB_SELFCHECK + ATCD_SO_END;
@@ -1461,7 +1641,7 @@ uint16_t atcd_proc_step()
 
     case ATCD_SB_SELFCHECK + ATCD_SO_END:
       if (atcd.sim.state == ATCD_SIM_STATE_NONE) //kdyz jsem si sem jenom odskocil z INIT protoze neni SIM
-        return ATCD_SB_INIT;
+        return ATCD_SB_INIT;	
       //------------------------------------------------------------------------
       // END
       //------------------------------------------------------------------------

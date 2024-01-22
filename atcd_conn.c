@@ -88,8 +88,10 @@ void atcd_conn_init(atcd_conn_t *conn, uint8_t *rx_buff, uint16_t rx_buff_size, 
   conn->cb_events  = ATCD_CONN_EV_ALL;
   conn->callback   = NULL;
 
-  conn->dontPrint  = 0;
+  conn->dontPrint   = 0;
   conn->in_overflow = 0;
+
+  conn->ssl_en      = 0;
 }
 //------------------------------------------------------------------------------
 void atcd_conn_open(atcd_conn_t *conn, const char *dest, uint16_t port, atcd_conn_type_t type) //open conenction

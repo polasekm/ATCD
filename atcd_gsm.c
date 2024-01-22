@@ -68,7 +68,7 @@ uint8_t atcd_gsm_asc_msg()
         {
           char buf[15];
           snprintf(buf, sizeof(buf), "%d->%d\r\n", state_p, val);
-          atcd_dbg_inf3("ATCD CREG", buf);
+          atcd_dbg_inf3("ATCD CREG", buf); // TODO ma se realizovat makrem
         };
         if ((state_p==1) ||
             (state_p==5) ||

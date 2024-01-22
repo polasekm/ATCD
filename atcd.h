@@ -17,7 +17,7 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 
-#include "../Libs/rbuff/rbuff.h"
+#include "rbuff/rbuff.h"
 
 #include "atcd_config.h"
 #include "atcd_hw.h"
@@ -34,6 +34,7 @@
 #include "atcd_gps.h"
 #include "atcd_conn.h"
 #include "atcd_conns.h"
+#include "atcd_bluetooth.h"
 
 /* Exported functions ------------------------------------------------------- */
 
@@ -110,10 +111,12 @@ typedef enum
 #define ATCD_SB_GPS_START           1000
 #define ATCD_SB_GPS_STOP            1100
 
-#define ATCD_SB_SETUP               1200
-#define ATCD_SB_SELFCHECK           1300
+#define ATCD_SB_BLE                 1200
 
-#define ATCD_SB_END                 1400
+#define ATCD_SB_SETUP               1300
+#define ATCD_SB_SELFCHECK           1400
+
+#define ATCD_SB_END                 1500
 
 #define ATCD_SO_ERR_NEEDNOT         97
 #define ATCD_SO_ERR                 98
@@ -198,6 +201,7 @@ typedef struct
   atcd_gps_t gps;                       //
   atcd_setup_t setup;
   atcd_wifi_t wifi;                     //
+  atcd_ble_t ble;                       //
 
   uint8_t cb_events;                    //device callback events
   void (*callback)(uint8_t);            //events callback
