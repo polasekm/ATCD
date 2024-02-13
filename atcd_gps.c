@@ -35,6 +35,7 @@ void atcd_gps_reset()
   atcd.gps.time_fix[0] = 0;
 
   atcd.gps.sats = 0;
+  atcd.gps.sats_view = 0;
 
   atcd.gps.latitude = 0;
   atcd.gps.longitude = 0;

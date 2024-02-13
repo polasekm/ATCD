@@ -66,6 +66,7 @@ struct atcd_gps_ts
   char time_fix[16];
 
   uint8_t sats;
+  uint8_t sats_view;
 
   double latitude;
   double longitude;
