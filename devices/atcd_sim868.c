@@ -32,9 +32,9 @@ uint16_t atcd_proc_step()
 
   switch(atcd.proc_step)
   {
-      //-------------------------------
-      // Init cast
-      //-------------------------------
+    //-------------------------------
+    // Init cast
+    //-------------------------------
     case ATCD_SB_INIT:
       // Zahajime inicializacni sekvenci
       ATCD_DBG_INIT_START
@@ -360,8 +360,11 @@ uint16_t atcd_proc_step()
     }
 
     case ATCD_SB_INIT + ATCD_SO_END:
-
+    //------------------------------------------------------------------------
+    // Konfigurace modulu
+    //------------------------------------------------------------------------
     case ATCD_SB_SETUP:
+      // Konfigurace modulu
       if (atcd.setup.clean)
         return ATCD_SB_SETUP + ATCD_SO_END;
 
@@ -1412,9 +1415,9 @@ uint16_t atcd_proc_step()
       //Zalogovat!
 
     case ATCD_SB_GPS_START + ATCD_SO_END:
-      //-------------------------------
-      // GPS STOP
-      //-------------------------------
+    //-------------------------------
+    // GPS STOP
+    //-------------------------------
     case ATCD_SB_GPS_STOP:
       if(atcd.gps.state != ATCD_GPS_STATE_W_OFF)
       {
@@ -1445,93 +1448,102 @@ uint16_t atcd_proc_step()
     //------------------------------------------------------------------------
     // BLE START
     //------------------------------------------------------------------------
-	case ATCD_SB_BLE:
+    case ATCD_SB_BLE:
 
-	if(atcd.ble.init != 0b01111111){
-		return ATCD_SB_BLE + ATCD_SO_END;
-	}
+      if(atcd.ble.init != 0b01111111)
+      {
+        return ATCD_SB_BLE + ATCD_SO_END;
+      }
 
-	if(atcd.ble.state == ATCD_BLE_STATE_TO_ON){
-		return ATCD_SB_BLE + 1;
-	}
-	else if(atcd.ble.state == ATCD_BLE_STATE_TO_OFF){
-		return ATCD_SB_BLE + 3;
-	}
-	else return ATCD_SB_BLE + 10;
+      if(atcd.ble.state == ATCD_BLE_STATE_TO_ON)
+      {
+        return ATCD_SB_BLE + 1;
+      }
+      else if(atcd.ble.state == ATCD_BLE_STATE_TO_OFF)
+      {
+        return ATCD_SB_BLE + 3;
+      }
+      else
+      {
+        return ATCD_SB_BLE + 10;
+      }
 
-	case ATCD_SB_BLE + 1:
-	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
-	case ATCD_SB_BLE + 2:
-		if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 2;
-		if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
-		atcd.ble.state = ATCD_BLE_STATE_ON;
-		return ATCD_SB_BLE + 10;
+    case ATCD_SB_BLE + 1:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
+    case ATCD_SB_BLE + 2:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 2;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      atcd.ble.state = ATCD_BLE_STATE_ON;
+      return ATCD_SB_BLE + 10;
 
-	case ATCD_SB_BLE + 3:
-	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
-	case ATCD_SB_BLE + 4:
-		if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 4;
-		if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
-		atcd.ble.state = ATCD_BLE_STATE_OFF;
+    case ATCD_SB_BLE + 3:
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
+    case ATCD_SB_BLE + 4:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 4;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      atcd.ble.state = ATCD_BLE_STATE_OFF;
 
-	case ATCD_SB_BLE + 10:
-	if(atcd.ble.state != ATCD_BLE_STATE_ON){
-		return ATCD_SB_BLE + ATCD_SO_END;
-	}
+    case ATCD_SB_BLE + 10:
+      if(atcd.ble.state != ATCD_BLE_STATE_ON)
+      {
+        return ATCD_SB_BLE + ATCD_SO_END;
+      }
 
-	if(atcd.ble.devname_state == ATCD_BLE_DEVNAME_STATE_UPDATED){
-		return ATCD_SB_BLE + 20;
-	}
+      if(atcd.ble.devname_state == ATCD_BLE_DEVNAME_STATE_UPDATED)
+      {
+        return ATCD_SB_BLE + 20;
+      }
 
-	atcd.ble.devname_state = ATCD_BLE_DEVNAME_STATE_UPDATED;
-	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
-	case ATCD_SB_BLE + 11:
-	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 11;
-	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
-	  atcd.ble.state = ATCD_BLE_STATE_OFF;
+      atcd.ble.devname_state = ATCD_BLE_DEVNAME_STATE_UPDATED;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTOP=1\r\n");
+    case ATCD_SB_BLE + 11:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 11;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      atcd.ble.state = ATCD_BLE_STATE_OFF;
 
-    sprintf(atcd.at_cmd_buff, "AT+BTHOST=\"%s\"\r\n", atcd.ble.device_name);
-	atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
-	case ATCD_SB_BLE + 12:
-	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 12;
-	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      sprintf(atcd.at_cmd_buff, "AT+BTHOST=\"%s\"\r\n", atcd.ble.device_name);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+    case ATCD_SB_BLE + 12:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 12;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
 
-	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
-	case ATCD_SB_BLE + 13:
-	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 13;
-	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
-	  atcd.ble.state = ATCD_BLE_STATE_ON;
+      atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESLSTART=1\r\n");
+    case ATCD_SB_BLE + 13:
+      if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 13;
+      if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      atcd.ble.state = ATCD_BLE_STATE_ON;
 
 
-	case ATCD_SB_BLE + 20:
-		if(atcd.ble.response_state == ATCD_BLE_RESP_STATE_COMM){
-			return ATCD_SB_BLE + ATCD_SO_END;
-		}
+    case ATCD_SB_BLE + 20:
+      if(atcd.ble.response_state == ATCD_BLE_RESP_STATE_COMM)
+      {
+        return ATCD_SB_BLE + ATCD_SO_END;
+      }
 		
-//	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESRSP=1\r\n");
-//		case ATCD_SB_BLE + 7:
-//		  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 7;
-//		  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+  //	atcd_atc_exec_cmd(&atcd.at_cmd, "AT+BLESRSP=1\r\n");
+  //case ATCD_SB_BLE + 7:
+//	 if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 7;
+//		if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
 
-	sprintf(atcd.at_cmd_buff, "AT+BLESIND=2,\"%s\"\r\n",
-				  atcd.ble.resp_buff);
-	  atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
-//	case ATCD_SB_BLE + 8:
-//	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 8;
-//	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
-	  atcd.ble.response_state = ATCD_BLE_RESP_STATE_COMM;
+      sprintf(atcd.at_cmd_buff, "AT+BLESIND=2,\"%s\"\r\n",
+            atcd.ble.resp_buff);
+      atcd_atc_exec_cmd(&atcd.at_cmd, atcd.at_cmd_buff);
+  //	case ATCD_SB_BLE + 8:
+  //	  if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_BLE + 8;
+  //	  if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_BLE + ATCD_SO_ERR;
+      atcd.ble.response_state = ATCD_BLE_RESP_STATE_COMM;
 
-	case ATCD_SB_BLE + ATCD_SO_ERR:
+    case ATCD_SB_BLE + ATCD_SO_ERR:
 
-	case ATCD_SB_BLE + ATCD_SO_END:
-	
-	
-	
-	
-	    case ATCD_SB_SELFCHECK:
-    {
+    case ATCD_SB_BLE + ATCD_SO_END:
+    //------------------------------------------------------------------------
+    // SELFCHECK
+    //------------------------------------------------------------------------
+    case ATCD_SB_SELFCHECK:
+
       if (atcd.selfcheck_state!=atcd_selfcheck_stateBUSY)
         return ATCD_SB_SELFCHECK + ATCD_SO_END;
+
       atcd_reg_state_e reg=atcd_gsm_state();
       atcd_sim_state_e sim=atcd_sim_state();
       /*  sim  reg  gprs
@@ -1565,7 +1577,8 @@ uint16_t atcd_proc_step()
 
       atcd.stat.selftest_run++;
       atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsflsize=Z:\\NVRAM\\NVD_DATA\\MT6B_010\r");
-    }
+
+
     case ATCD_SB_SELFCHECK + 1:
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 1;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
@@ -1574,13 +1587,13 @@ uint16_t atcd_proc_step()
       {
         atcd_dbg_err("atcd", "selfcheck 1: bad size");
         return ATCD_SB_SELFCHECK + 3;
-      };
+      }
 
       //fsread jde s uvozovkami i bez
       atcd_atc_exec_cmd(&atcd.at_cmd, "at+fsread=Z:\\NVRAM\\NVD_DATA\\MT6B_010,1,64,900\r");
       expecting_binary=64;
+
     case ATCD_SB_SELFCHECK + 2:
-    {
       if(atcd.at_cmd.state != ATCD_ATC_STATE_DONE) return ATCD_SB_SELFCHECK + 2;
       if(atcd.at_cmd.result != ATCD_ATC_RESULT_OK) return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
       char tmp[65];
@@ -1591,7 +1604,7 @@ uint16_t atcd_proc_step()
         for (i=0; i<resp_len; i++)
           if (atcd.at_cmd.resp[atcd.parser.line_pos+i]==0)
             zeros++;
-      };
+      }
 
       /*static uint32_t error_simulator=0;
       if (error_simulator++==4)
@@ -1605,15 +1618,14 @@ uint16_t atcd_proc_step()
       {
         atcd_dbg_err("atcd", "selfcheck 2: not 64");
         return ATCD_SB_SELFCHECK + ATCD_SO_ERR;
-      };
-
+      }
 
       if (zeros<50) //64 po poruse, 5 po oprave
         return ATCD_SB_SELFCHECK + 5;
       snprintf(tmp, sizeof(tmp), "selfcheck 2 got %d bytes, %d zeros, at_res=%d sta=%d\r\n",
           resp_len, zeros, atcd.at_cmd.result, atcd.at_cmd.state); //res 1=OK, sta 0=DONE
       atcd_dbg_warn("atcd", tmp);
-    }
+
     case ATCD_SB_SELFCHECK + 3:
       atcd.stat.selftest_wrong++;
       //fsdel jde s uzovkami i bez
@@ -1639,9 +1651,9 @@ uint16_t atcd_proc_step()
     case ATCD_SB_SELFCHECK + ATCD_SO_END:
       if (atcd.sim.state == ATCD_SIM_STATE_NONE) //kdyz jsem si sem jenom odskocil z INIT protoze neni SIM
         return ATCD_SB_INIT;	
-      //------------------------------------------------------------------------
-      // END
-      //------------------------------------------------------------------------
+    //------------------------------------------------------------------------
+    // END
+    //------------------------------------------------------------------------
     case ATCD_SB_END:
       //Konec, navrat na pocatek...
       atcd.stat.full_cycles++;

@@ -109,7 +109,8 @@ uint8_t atcd_gps_asc_msg()
     scs = strtoul(endl - 4, NULL, 16);
 
     if(cs != scs)
-    { //$GPGSA,A,1,,,,,,,,,,,,,,*1E   <-- nejaky problem s UARTem
+    {
+      //$GPGSA,A,1,,,,,,,,,,,,,,*1E   <-- nejaky problem s UARTem
       //ATCD: GPS: Chybny checksum vety
       //$GPGSA,A,1,,,,,,,,,,,,,,,*1E
       //je v pohode
@@ -138,7 +139,8 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
       if(*p == 'A')
-      { //$GNRMC,171340.000,A,5003.392352,N,01432.710519,E,0.00,90.64,161121,,,A*4A
+      {
+        //$GNRMC,171340.000,A,5003.392352,N,01432.710519,E,0.00,90.64,161121,,,A*4A
         //aktualizace casu poslednich platnych dat
         strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
@@ -151,7 +153,8 @@ uint8_t atcd_gps_asc_msg()
         atcd.gps.state = ATCD_GPS_STATE_FIX;
       }
       else
-      { //$GNRMC,181603.000,V,,,,,0.98,69.11,161121,,,N*64
+      {
+        //$GNRMC,181603.000,V,,,,,0.98,69.11,161121,,,N*64
         //vyhodit do fce
         //if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.start_time = atcd_get_ms();
         atcd.gps.state = ATCD_GPS_STATE_SEARCHING;
@@ -163,7 +166,8 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
       if(atcd.gps.state == ATCD_GPS_STATE_FIX)
-      { //5003.395958 -> 50+3.395958/60
+      {
+        //5003.395958 -> 50+3.395958/60
         atcd.gps.latitude = atof(p + 2) / (double)60.f;
         *(p + 2) = 0;
         atcd.gps.latitude += atof(p);
@@ -180,7 +184,8 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
       if(atcd.gps.state == ATCD_GPS_STATE_FIX)
-      { //01432.702996 -> 14+32.702996/60
+      {
+        //01432.702996 -> 14+32.702996/60
         atcd.gps.longitude = atof(p + 3) / (double)60.f;
         *(p + 3) = 0;
         atcd.gps.longitude += atof(p);
