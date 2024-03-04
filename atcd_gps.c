@@ -30,29 +30,38 @@ void atcd_gps_reset()
 {
   atcd.gps.state = ATCD_GPS_STATE_OFF;
 
-  atcd.gps.date[0] = 0;
-  atcd.gps.time[0] = 0;
-  atcd.gps.time_fix[0] = 0;
+  atcd.gps.datetime.date[0] = 0;
+  atcd.gps.datetime.time[0] = 0;
 
-  atcd.gps.sats = 0;
-  atcd.gps.sats_view = 0;
+  atcd.gps.datetime.is_valid = 0;
+  atcd.gps.datetime.ts = 0;
 
-  atcd.gps.latitude = 0;
-  atcd.gps.longitude = 0;
-  atcd.gps.altitude = 0;
-  atcd.gps.undulation = 0;
-  atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+  atcd.gps.sats.in_view = 0;
+  atcd.gps.sats.in_view_gps = 0;
+  atcd.gps.sats.in_view_galileo = 0;
+  atcd.gps.sats.in_view_glonass = 0;
+  atcd.gps.sats.in_view_beidou = 0;
 
-  atcd.gps.speed = 0;
-  atcd.gps.course = 0;
+  atcd.gps.pos.latitude = 0;
+  atcd.gps.pos.longitude = 0;
+  atcd.gps.pos.altitude = 0;
+  atcd.gps.pos.undulation = 0;
+  atcd.gps.pos.fix_mode = ATCD_GPS_FIX_M_NO;
 
-  atcd.gps.pdop = 0;
-  atcd.gps.hdop = 0;
-  atcd.gps.vdop = 0;
-  atcd.gps.accuracy = 300000;
+  atcd.gps.pos.speed = 0;
+  atcd.gps.pos.course = 0;
+
+  atcd.gps.pos.pdop = 0;
+  atcd.gps.pos.hdop = 0;
+  atcd.gps.pos.vdop = 0;
+  atcd.gps.pos.accuracy = 300000;
+
+  atcd.gps.pos.fix_mode = 0;
+  atcd.gps.pos.used_sats = 0;
 
   atcd.gps.last_fix = 0;
   atcd.gps.last_nmea_time = 0;
+
   atcd.gps.stat.time_to_fix = 0;
   atcd.gps.stat.first_search = 0;
   atcd.gps.stat.start_time = 0;
@@ -73,6 +82,8 @@ uint8_t atcd_gps_asc_msg()
   char *p, *np, *endl;
   uint8_t cs, scs;
   char *str;
+
+  atcd_gps_system_t nav_system;
 
   // u moemu A7 je prvni veta uvozena sekvenci nize...
   // asi osetrit co kdyby pak nebyla NMEA veta...
@@ -102,6 +113,35 @@ uint8_t atcd_gps_asc_msg()
       return 1;
     }
 
+    switch(str[2])
+    {
+      case 'P':   //GPS
+        nav_system = ATCD_GPS_SYSTEM_GPS;
+        break;
+
+      case 'A':   //Galileo
+        nav_system = ATCD_GPS_SYSTEM_GALILEO;
+        break;
+
+      case 'L':   //Glonass
+        nav_system = ATCD_GPS_SYSTEM_GLONASS;
+        break;
+
+      /*case 'D':   //Beidou - Neni jednoznacne, prepsat
+        nav_system = ATCD_GPS_SYSTEM_BEIDOU;
+        break;*/
+
+      default:
+        if(strncmp(str, "$BD", 3) == 0)
+        {
+          nav_system = ATCD_GPS_SYSTEM_BEIDOU;
+        }
+        else
+        {
+          nav_system = ATCD_GPS_SYSTEM_NONE;
+        }
+    }
+
     p    = str + strlen("$GP");
     endl = atcd.parser.buff + atcd.parser.buff_pos;
 
@@ -123,7 +163,7 @@ uint8_t atcd_gps_asc_msg()
     if(strncmp(p, "RMC,", strlen("RMC,")) == 0)
     {
       //RMC (Recommended Minimum Navigation Information)
-      //Minimální doporučená informace pro navigac
+      //Minimální doporučená informace pro navigaci
       ATCD_DBG_GPS_RMC
 
       p += strlen("RMC,");
@@ -131,8 +171,9 @@ uint8_t atcd_gps_asc_msg()
       //Time (UTC)
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      memcpy(atcd.gps.time, p, np - p);
-      atcd.gps.time[np - p] = 0;
+
+      memcpy(atcd.gps.datetime.time, p, np - p);
+      atcd.gps.datetime.time[np - p] = 0;
       p = np + 1;
 
       //Status
@@ -142,7 +183,7 @@ uint8_t atcd_gps_asc_msg()
       {
         //$GNRMC,171340.000,A,5003.392352,N,01432.710519,E,0.00,90.64,161121,,,A*4A
         //aktualizace casu poslednich platnych dat
-        strcpy(atcd.gps.time_fix, atcd.gps.time);
+        //strcpy(atcd.gps.time_fix, atcd.gps.time);
         atcd.gps.last_fix = atcd_get_ms();
 
         if(atcd.gps.state == ATCD_GPS_STATE_SEARCHING && atcd.gps.stat.first_search != 0)
@@ -168,16 +209,16 @@ uint8_t atcd_gps_asc_msg()
       if(atcd.gps.state == ATCD_GPS_STATE_FIX)
       {
         //5003.395958 -> 50+3.395958/60
-        atcd.gps.latitude = atof(p + 2) / (double)60.f;
+        atcd.gps.pos.latitude = atof(p + 2) / (double)60.f;
         *(p + 2) = 0;
-        atcd.gps.latitude += atof(p);
+        atcd.gps.pos.latitude += atof(p);
       }
       p = np + 1;
 
       //NS
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.latitude = -atcd.gps.latitude;
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'S') atcd.gps.pos.latitude = -atcd.gps.pos.latitude;
       p = np + 1;
 
       //Longitude
@@ -186,35 +227,35 @@ uint8_t atcd_gps_asc_msg()
       if(atcd.gps.state == ATCD_GPS_STATE_FIX)
       {
         //01432.702996 -> 14+32.702996/60
-        atcd.gps.longitude = atof(p + 3) / (double)60.f;
+        atcd.gps.pos.longitude = atof(p + 3) / (double)60.f;
         *(p + 3) = 0;
-        atcd.gps.longitude += atof(p);
+        atcd.gps.pos.longitude += atof(p);
       }
       p = np + 1;
 
       //EW
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'W') atcd.gps.longitude = -atcd.gps.longitude;
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX && *p == 'W') atcd.gps.pos.longitude = -atcd.gps.pos.longitude;
       p = np + 1;
 
       //Speed - je v uzlech - nutno nasobit
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.speed = atof(p) * 1.852;
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.pos.speed = atof(p) * 1.852;
       p = np + 1;
 
       //Course
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.course = atof(p);
+      if(atcd.gps.state == ATCD_GPS_STATE_FIX) atcd.gps.pos.course = atof(p);
       p = np + 1;
 
       //Date
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc;
-      memcpy(atcd.gps.date, p, np - p);
-      atcd.gps.date[np - p] = 0;
+      memcpy(atcd.gps.datetime.date, p, np - p);
+      atcd.gps.datetime.date[np - p] = 0;
       p = np + 1;
 
       //magneticka deklinace - prazdne
@@ -222,6 +263,34 @@ uint8_t atcd_gps_asc_msg()
       //neco co tu nema byt
 
       //A=Autonomous, D=DGPS, E=DR   (N=nema)
+
+      //aktulizovat cas a pocty druzic
+      atcd.gps.sats.in_view = atcd.gps.sats.in_view_gps + atcd.gps.sats.in_view_galileo + atcd.gps.sats.in_view_glonass + atcd.gps.sats.in_view_beidou;
+
+      //aktulizovat datum a cas
+      int scan_res1, scan_res2;
+      int dt_yy, dt_month, dt_day, dt_hour, dt_minute, dt_second;
+
+      scan_res1 = sscanf(atcd.gps.datetime.date, "%02d%02d%02d", &dt_day, &dt_month, &dt_yy);
+      scan_res2 = sscanf(atcd.gps.datetime.time, "%02d%02d%02d", &dt_hour, &dt_minute, &dt_second);
+
+      if((scan_res1==3) && (scan_res2==3))
+      {
+        if((dt_yy < 50) && (dt_month <= 12) && (dt_day <= 31) && (dt_hour < 24) && (dt_minute < 60) && (dt_second < 60))
+        {
+          struct tm tm;
+
+          tm.tm_year = dt_yy + 2000;
+          tm.tm_mon = dt_month;
+          tm.tm_mday = dt_day;
+
+          tm.tm_hour = dt_hour;
+          tm.tm_min = dt_minute;
+          tm.tm_sec = dt_second;
+
+          atcd.gps.datetime.ts = mktime(&tm);
+        }
+      }
 
       if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE, &atcd.gps);
 
@@ -259,11 +328,11 @@ uint8_t atcd_gps_asc_msg()
       if(np == NULL) goto skip_proc2;
       // TODO: aktulizovat jen pokud jsou platna data (nekonzistence pri prvni vete?)
       //potrebuji vedet jestli 2D nebo 3D hned v prvni vete; na ATCD_GPS_FIX_M_NO nemam pevny nazor
-      if(*p == '2') atcd.gps.fix_mode = ATCD_GPS_FIX_M_2D;
-      else if(*p == '3') atcd.gps.fix_mode = ATCD_GPS_FIX_M_3D;
+      if(*p == '2') atcd.gps.pos.fix_mode = ATCD_GPS_FIX_M_2D;
+      else if(*p == '3') atcd.gps.pos.fix_mode = ATCD_GPS_FIX_M_3D;
       else if(atcd.gps.state == ATCD_GPS_STATE_FIX) //1..no fix
       {
-        atcd.gps.fix_mode = ATCD_GPS_FIX_M_NO;
+        atcd.gps.pos.fix_mode = ATCD_GPS_FIX_M_NO;
       }
       p = np + 1;
 
@@ -332,18 +401,18 @@ uint8_t atcd_gps_asc_msg()
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
       if (np==p)
-        atcd.gps.pdop=300000;
+        atcd.gps.pos.pdop=300000;
       else
-        atcd.gps.pdop = atof(p);
+        atcd.gps.pos.pdop = atof(p);
       p = np + 1;
 
       //HDOP
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc2;
       if (np==p)
-        atcd.gps.hdop=300000;
+        atcd.gps.pos.hdop=300000;
       else
-        atcd.gps.hdop = atof(p);
+        atcd.gps.pos.hdop = atof(p);
       p = np + 1;
 
       //VDOP
@@ -365,9 +434,9 @@ uint8_t atcd_gps_asc_msg()
 
       if(np == NULL) goto skip_proc2;
       if (np==p)
-        atcd.gps.vdop=300000;
+        atcd.gps.pos.vdop=300000;
       else
-        atcd.gps.vdop = atof(p);
+        atcd.gps.pos.vdop = atof(p);
       p = np + 1; //p=&"1E\r\n"
 
       if(atcd.gps.callback != NULL && (atcd.gps.cb_events & ATCD_GPS_EV_UPDATE) != 0) atcd.gps.callback(ATCD_GPS_EV_UPDATE, &atcd.gps);
@@ -471,19 +540,19 @@ uint8_t atcd_gps_asc_msg()
       if(np == NULL) goto skip_proc3;
 
       //TODO: prejmeovat
-      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.sats = atoi(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.pos.used_sats = atoi(p);
       p = np + 1;
 
       //HDOP
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.hdop = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.pos.hdop = atof(p);
       p = np + 1;
 
       //Altitude MSL
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.altitude = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.pos.altitude = atof(p);
       p = np + 1;
 
       //Jednotka pro předchozí údaj (č.9) (M=metr)
@@ -495,7 +564,7 @@ uint8_t atcd_gps_asc_msg()
       //Undulation - geoid separation
       np = (char*)memchr(p, ',', endl - p);
       if(np == NULL) goto skip_proc3;
-      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.undulation = atof(p);
+      if((atcd.gps.state == ATCD_GPS_STATE_FIX) || ggavalid) atcd.gps.pos.undulation = atof(p);
       p = np + 1;
 
       //Jednotka vzdálenosti pro předchozí položku (č.11) (M=metr)
@@ -525,8 +594,8 @@ uint8_t atcd_gps_asc_msg()
       ATCD_DBG_GPS_GSV
 
       p += strlen("GSV,");
-      //gsv total
-      //gsv index
+      //GSV total
+      //GSV index
       //satellites total
       //[sat id, elev, azim, SNR] x1..4
       //$GPGSV,3,1,12, 27,69,300,,    23,55,083,,    10,55,150,,     16,52,211,26      *78
@@ -538,13 +607,53 @@ uint8_t atcd_gps_asc_msg()
 
       //myslim, ze by se hodilo vedet, jestli aspon 1 satelit ma SNR -> je platny cas
 
+      //GSV total
+      np = (char*)memchr(p, ',', endl - p);
+      if(np == NULL) goto skip_proc4;
+      p = np + 1;
+
+      //GSV index
+      np = (char*)memchr(p, ',', endl - p);
+      if(np == NULL) goto skip_proc4;
+      p = np + 1;
+
+      //satellites total
+      np = (char*)memchr(p, ',', endl - p);
+      if(np == NULL) goto skip_proc4;
+
+      int n;
+      n = atof(p);
+
+      switch(nav_system)
+      {
+        case ATCD_GPS_SYSTEM_GPS:
+          atcd.gps.sats.in_view_gps = n;
+          break;
+
+        case ATCD_GPS_SYSTEM_GALILEO:
+          atcd.gps.sats.in_view_galileo = n;
+          break;
+
+        case ATCD_GPS_SYSTEM_GLONASS:
+          atcd.gps.sats.in_view_glonass = n;
+          break;
+
+        case ATCD_GPS_SYSTEM_BEIDOU:
+          atcd.gps.sats.in_view_beidou = n;
+          break;
+
+        default:
+      }
+
+      p = np + 1;
+
       atcd.parser.buff_pos = atcd.parser.line_pos;
       return 1;
 
-    /*skip_proc4:
+    skip_proc4:
       ATCD_DBG_GPS_GSV_ERR
       atcd.parser.buff_pos = atcd.parser.line_pos;
-      return 1;*/
+      return 1;
     }
 
     if(strncmp(p, "VTG,", strlen("VTG,")) == 0)
@@ -591,7 +700,7 @@ uint8_t atcd_gps_asc_msg()
       if (np==NULL)
         np = (char*)memchr(p, '*', endl - p);
       if(np == NULL) goto skip_proc_acc;
-      atcd.gps.accuracy = atof(p);
+      atcd.gps.pos.accuracy = atof(p);
       p = np + 1;
 
       atcd.parser.buff_pos = atcd.parser.line_pos;

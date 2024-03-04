@@ -13,6 +13,7 @@
 #include <stdlib.h>     /* atoi */
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "atcd_config.h"
 
@@ -31,7 +32,19 @@ typedef enum
   ATCD_GPS_STATE_W_SEARCH    = 3,
   ATCD_GPS_STATE_FIX         = 4,
   ATCD_GPS_STATE__COUNT
+
 } atcd_gps_state_t;
+
+// Navigation system
+typedef enum
+{
+  ATCD_GPS_SYSTEM_NONE       = 0,
+  ATCD_GPS_SYSTEM_GPS        = 1,
+  ATCD_GPS_SYSTEM_GALILEO    = 2,
+  ATCD_GPS_SYSTEM_GLONASS    = 3,
+  ATCD_GPS_SYSTEM_BEIDOU     = 4
+
+} atcd_gps_system_t;
 
 #define ATCD_GPS_FIX_M_NO            0
 #define ATCD_GPS_FIX_M_2D            1
@@ -55,32 +68,56 @@ typedef struct
 
 } atcd_gps_stat_t;
 
+typedef struct
+{
+  uint8_t in_view;
+
+  uint8_t in_view_gps;
+  uint8_t in_view_galileo;
+  uint8_t in_view_glonass;
+  uint8_t in_view_beidou;
+
+} atcd_gps_sats_t;
+
+typedef struct
+{
+  char date[16];
+  char time[16];
+
+  time_t ts;
+  uint8_t is_valid;
+
+} atcd_gps_datetime_t;
+
+typedef struct
+{
+  double latitude;
+  double longitude;
+  float altitude;
+  float undulation; //geoid separation
+
+  uint8_t fix_mode;
+  uint8_t used_sats;
+
+  float pdop;
+  float hdop;
+  float vdop;
+  float accuracy;
+
+  float speed;
+  float course;
+
+} atcd_gps_pos_t;
+
 typedef struct atcd_gps_ts atcd_gps_t;
 
 struct atcd_gps_ts
 {
   atcd_gps_state_t state;          //GPS state
 
-  char date[16];
-  char time[16];
-  char time_fix[16];
-
-  uint8_t sats;
-  uint8_t sats_view;
-
-  double latitude;
-  double longitude;
-  float altitude;
-  float undulation; //geoid separation
-  uint8_t fix_mode;
-
-  float speed;
-  float course;
-
-  float pdop;
-  float hdop;
-  float vdop;
-  float accuracy;
+  atcd_gps_datetime_t datetime;
+  atcd_gps_sats_t     sats;
+  atcd_gps_pos_t      pos;
 
   uint32_t last_fix;              //atcd_get_ms() v dobe fixu
   atcd_gps_stat_t stat;
